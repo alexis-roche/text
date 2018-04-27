@@ -1,0 +1,94 @@
+GARDIENS (3)
+
+Lloris: 100
+Mandanda: 100
+Areola: 100
+
+DEFENSEURS CENTRAUX (4)
+
+Varane: 100
+Umtiti: 100
+Kos: 100
+Kimpembe: 100
+Zouma: 0
+Sakho: 0
+Rami: 0
+Laporte: 0
+
+LATERAUX (4)
+
+Digne: 80
+Hernandez: 70
+Mendy: 20
+Kurzawa: 10
+Amavi: 10
+
+Sidibé: 100
+Pavard: 50
+Debuchy: 50
+Jallet: 0  
+
+MILIEUX (6)
+
+Pogba: 100
+Kanté: 100
+Matuidi: 100
+Tolisso: 100
+Rabiot: 70
+Lemar: 100
+Sissoko: 20
+Nzonzi: 10
+Bakayoko: 0
+Kondogbia: 0
+Cabaye: 0
+Schneiderlin: 0
+
+ATTAQUANTS (6)
+
+Giroud: 100
+Griezmann: 100
+Mbappé: 100
+
+
+Martial: 50
+
+Coman: 50
+O. Dembélé: 50 
+Thauvin: 40
+
+Payet: 60 
+
+Fekir: 30 
+
+Lacazette: 50
+Gameiro: 0
+Ben Yedder: 0 
+Benzema: 0
+Gignac: 0
+
+
+Mon feeling au 16 avril: 
+
+Logique "4-3-3": considérer Grizou comme avant-centre. Dès lors, deux
+ailiers gauche (Payet, Martial), deux ailiers droits (Mbappé,
+Dembélé).
+
+Grizou n'est pas un pur avant-centre mais Martial peut jouer en pointe
+tout comme Mbappé. Payet peut doubler Lemar dans un rôle de meneur de
+jeu. Dembélé peut être remplacé par Coman ou Thauvin.
+
+--> Martial, Payet, Dembélé.
+<-- Lacaz, Fekir, Coman, Thauvin.
+
+Variante "Euro2016": Grizou ailier droit. Du coup, Dembélé gicle au
+profit de Lacaz.
+
+--> Martial, Payet, Lacaz.
+<-- Dembélé, Fekir, Coman, Thauvin.
+
+Logique "vrai 4-3-3": considérer Lemar comme ailier gauche. Un milieu
+de plus, un seul ailier gauche supplémentaire.
+
+--> Martial, Lacaz, Dembélé + Sissokho 
+<-- Payet, Fekir, Coman, Thauvin. 
+

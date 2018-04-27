@@ -1,0 +1,184 @@
+Thank you for your reply.
+
+To be specific, I got the impression that Gemma was in line with Wendy
+Murphy's theory
+
+http://www.patriotledger.com/article/20090328/NEWS/303289833
+
+because of her pointing to sedation, in addition to suggesting a link
+with paedophilia via the Mary Boyle case. 
+
+This is speculation, of course.
+
+
+
+
+#####################################################
+
+Textusa, don't you think that Gemma O'Doherty has unwittingly helped
+this "paedo offensive"?
+
+It is a disturbing coincidence that her name is strongly associated
+with the Mary Boyle case, in which she quite openly supported the
+theory that the murderer was a paedo protected by the Irish
+establishment. This fact has unavoidably led the public to make a
+mental association between both cases.
+
+Some of the tweets she sent in January suggest that she may sincerely
+believe that both cases are related to paedophilia. Could it be the
+reason why she was "picked" to write a "truthful" article about the
+Maddie case before realizing that she had been played? I know you have
+presented a slightly different interpretation, in which the "other
+side" did not have the initiative, but this coincidence is rather
+strange considering the current Insane's surge.
+
+
+####################################################
+
+Yes, Gemma O'Doherty was almost completely truthful. But "almost"
+isn't really good enough.
+
+To me, she seems to be walking in the footsteps of Sutton, Bilton and
+co, those characters who appeared in the version 2.0 of the hoax,
+presenting themselves as fierce anti-McCanns to gain credibility and
+sympathy from the general public, and then going on stage to say
+essentially one thing: that the PJ investigation was rubbish.
+
+If the PJ investigation was rubbish, then guess what the PJ files
+are. And if Mr Smith is only 60-80% sure that he saw Gerry McCann,
+then what is left against the McCanns? The obvious answer
+is: nothing. Zero. Nada.
+
+Are we supposed to now support Gemma on Twitter and happily follow her
+into this dead end road? The trap seems so obvious that I even wonder
+if she is doing this deliberately.
+
+I would like to be wrong.
+
+
+
+
+
+
+
+##########################
+##########################
+
+Textusa,
+
+To make sure that I am not getting lost in the discussion, is there an
+agreement that the false positives reported in the Oesterhelweg et al
+paper all originated from uncontaminated samples?
+
+That is my understanding. It would imply that the dogs never reacted
+to live blood in these particular experiments - correct?
+
+As to why K gave false positives, the authors did not venture into any
+explanation. However, from Table 1, we can infer that K performed 23
+searches and, considering that "Every sixth search was carried out
+without any contaminated material" (section 2), it can be deduced that
+K gave at least one positive signal in every search. Speculating,
+could it be that K felt compelled by the experimental protocol to find
+something in every search? It does not explain the remaining "10 min"
+false positive, though, but casts some doubt on the likelihood of
+"uncontaminated" false positives in real-world situations.
+
+************************************************
+
+I got that idea from the sentence: "Searches of squares contaminated
+with the scent of the control (alive) subjects, ilicited no signals
+from any of the cadaver dogs".
+
+What can this mean other than saying that the dogs signaled either
+samples contaminated by cadaver (true positives) or uncontaninated
+samples, but no sample contaminated by living person? Please explain.
+
+I thought the debate with Insane was about what the paper calls
+"control", on which he is clearly wrong, but I believe he is right
+about the above - unless I misread the sentence, or the whole paper.
+
+Besides, the doubt I raised is about the relevance of the 3 false
+positives in the 'Uncontaminated or contaminated by living/false
+positive' line of Table 1, for the reasons that I have tried to
+explain. It is not a doubt about the dog's reliability, much to the
+contrary.
+
+************************************************
+
+Please let me add to the above that I believe the reason for writing
+"Uncontaminated or contaminated by living" in the Table to be simply
+that the authors did not want to imply that false positives can only
+arise from uncontaminated samples. The fact that no false positive
+from contaminated samples was observed (if my interpretation is
+correct) is an outcome of the experiment that must not be confused
+with an a priori assumption. By doing this, they stress that false
+positives from live scent may occur in other experiments.
+
+************************************************
+
+What I meant precisely is that, if the same experiment was replicated
+(same experimental design, dogs with similar training and experience,
+etc. ), some false positives from live scent may be observed. At
+least, the authors have no basis to reject this possibility.
+
+Again, this is my interpreation of their text. But, for sure, they did
+not mean to speculate on what how the dogs behave under different
+experimental conditions.
+
+Unfortunately, I don't know anything about this particular subject and
+cannot direct you to other studies of interest.
+
+
+************************************************
+
+Thank you for considering my arguments with objectivity. I fully agree
+with what you have just written.
+
+I was also the commenter challenging you on the "worst-case
+specificity" (Anonymous 26 Jan 2018, 19:57:00 and following
+discussion). I did this, not to disprove the conclusions of your post
+as you certainly figured out, but to help making the underlying
+reasoning totally bulletproof in my opinion.
+
+NotTextusa aka Insane seems to be someone with some scientific
+background who has seized an opportunity to use it in order to
+discredit your blog.
+
+Strictly speaking, the Oesterhelweg et al paper contradicts the claim
+that "dogs never give a false positive". However, beside that the
+study targets what appear to be extremely difficult detection tasks,
+the simple fact that all the false positives arised from a single dog
+and from uncontaminated material raises a strong suspicion that these
+were indeed behavioral false positives in the sense you have defined.
+
+As a side note, I also puzzled about what the authors called '2 min
+false positives' and '10 min false positives'. This is something they
+should have clarified in the text. I initially subscribed to your
+interpretation, but the counts do not seem to add up in Table 1. I
+speculate that the authors might actually refer to the false positives
+that occurred in the later search sessions where the carpet squares
+had been ventilated for some time depending on the initial
+contamination time.
+
+In these later searches, the signal difference between contaminated
+and uncontaminated material was expected to be smaller, hence the
+precaution to specifically label the false positives occuring in this
+context. This would mean that, ironically, most false positives
+occured in the early searches, which were presumably "easier". This
+further reinforces the impression that false positives were not
+due to a faulty sense of smell.
+
+********************************************
+
+If I follow you, each run with 6 jars would match one of these 3
+categories, therefore the total counts within each category in Table 1
+should be all multiples of 6. This is not the case. For instance,
+summing up the 'correct negative' and 'false positive' rows for
+'Uncontaminated or contaminated by living' yields 46 for K, which is
+not a multiple of 6.
+
+It is after realizing this that I came up with an alternative
+explanation, but I am really not sure.
+
+
+
