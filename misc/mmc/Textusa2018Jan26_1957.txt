@@ -1,0 +1,3 @@
+Anonymous26 Jan 2018, 19:57:00
+
+Sorry to be picky, but according to the article, the specificity of K in Table 3 was 91%, which corresponds to a 9% false positive rate, right? However, even assuming 10% in the worst-case scenario, the probability of two false alarms would be 1%, the probability of three would be 0.1%, and so on... so your argument remains completely valid.

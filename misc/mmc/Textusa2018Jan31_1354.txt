@@ -1,0 +1,9 @@
+Anonymous31 Jan 2018, 13:54:00
+
+Textusa,
+
+To make sure that I am not getting lost in the discussion, is there an agreement that the false positives reported in the Oesterhelweg et al paper all originated from uncontaminated samples?
+
+That is my understanding. It would imply that the dogs never reacted to live blood in these particular experiments - correct?
+
+As to why K gave false positives, the authors did not venture into any explanation. However, from Table 1, we can infer that K performed 23 searches and, considering that "Every sixth search was carried out without any contaminated material" (section 2), it can be deduced that K gave at least one positive signal in every search. Speculating, could it be that K felt compelled by the experimental protocol to find something in every search? It does not explain the remaining "10 min" false positive, though, but casts some doubt on the likelihood of "uncontaminated" false positives in real-world situations.

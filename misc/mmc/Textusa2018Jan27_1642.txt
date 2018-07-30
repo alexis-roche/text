@@ -1,0 +1,5 @@
+Anonymous27 Jan 2018, 16:42:00
+
+I did not speculate on what would have happened if the authors had used more uncontaminated samples. What I said is the false positive count would have remained the same if they had added CONTAMINATED samples (contaminated with deceased tissue). That is not speculation, neither it is in any way a judgment about their experimental design, it's just stating a fact. And I maintain that the reported specificity of 91% corresponds to a false positive rate of 9% as per the definition of specificity (https://en.wikipedia.org/wiki/Sensitivity_and_specificity).
+
+For the rest, we are in agreement.

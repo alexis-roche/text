@@ -1,0 +1,9 @@
+Anonymous31 Jan 2018, 15:35:00
+
+I got that idea from the sentence: "Searches of squares contaminated with the scent of the control (alive) subjects, ilicited no signals from any of the cadaver dogs".
+
+What can this mean other than saying that the dogs signaled either samples contaminated by cadaver (true positives) or uncontaninated samples, but no sample contaminated by living person? Please explain.
+
+I thought the debate with Insane was about what the paper calls "control", on which he is clearly wrong, but I believe he is right about the above - unless I misread the sentence, or the whole paper.
+
+Besides, the doubt I raised is about the relevance of the 3 false positives in the 'Uncontaminated or contaminated by living/false positive' line of Table 1, for the reasons that I have tried to explain. It is not a doubt about the dog's reliability, much to the contrary.

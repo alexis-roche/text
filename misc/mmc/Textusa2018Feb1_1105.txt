@@ -1,0 +1,13 @@
+Anonymous1 Feb 2018, 11:05:00
+
+Thank you for considering my arguments with objectivity. I fully agree with what you have just written.
+
+I was also the commenter challenging you on the "worst-case specificity" (Anonymous 26 Jan 2018, 19:57:00 and following discussion). I did this, not to disprove the conclusions of your post as you certainly figured out, but to help making the underlying reasoning totally bulletproof in my opinion.
+
+NotTextusa aka Insane seems to be someone with some scientific background who has seized an opportunity to use it in order to discredit your blog.
+
+Strictly speaking, the Oesterhelweg et al paper contradicts the claim that "dogs never give a false positive". However, beside that the study targets what appear to be extremely difficult detection tasks, the simple fact that all the false positives arised from a single dog and from uncontaminated material raises a strong suspicion that these were indeed behavioral false positives in the sense you have defined.
+
+As a side note, I also puzzled about what the authors called '2 min false positives' and '10 min false positives'. This is something they should have clarified in the text. I initially subscribed to your interpretation, but the counts do not seem to add up in Table 1. I speculate that the authors might actually refer to the false positives that occurred in the later search sessions where the carpet squares had been ventilated for some time depending on the initial contamination time.
+
+In these later searches, the signal difference between contaminated and uncontaminated material was expected to be smaller, hence the precaution to specifically label the false positives occuring in this context. This would mean that, ironically, most false positives occured in the early searches, which were presumably "easier". This further reinforces the impression that false positives were not due to a faulty sense of smell.
