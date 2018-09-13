@@ -1,0 +1,41 @@
+http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_surf_intro/py_surf_intro.html
+
+Corners are good features --> avoid the aperture pb.
+
+Harris & Stephens, 1988: combined corner and edge detector. Now called
+Harris corner detector. The core idea is to maximize the local SSD. At
+1st order, this is determined by the Laplacian (g.g' matrix). Corner
+detection follows from looking at the eigenvalues.
+
+Corners are not scale-invariant. Motivation for SIFT, Lowe,
+2004. Basic idea: compute Laplacian at different scales and search for
+local extrema in scale-space. 
+
+L(x,y,sigma) = G(x,y,sigma) * I(x,y)
+
+In practice, the Laplacian (scaled by sigma^2 for "true scale
+invariance") is approximated using a difference of Gaussians. Extrema
+(maxima and minima) are detected by comparing each pixel to its 26
+neighbors in 3x3 regions at the current and adjacent scales.
+
+NB. Octave in scale-space = doubling of sigma. 
+
+From this, a set of candidate "keypoints" is constructed. Points with
+low contrast or poor localization along an edge are unstable and are
+eliminated in a second stage.
+
+Next, an orientation is assigned to each selected keypoint to achieve
+image rotation invariance. This is done via a local analysis of
+orientations within a neighborhood (basically taking the mode of local
+orientations, and sub-modes above 80% of the mode so that about 15%
+keypoints appear with multiple orientations).
+
+At this stage, each keypoint is assigned to a location, scale and
+orientation. The next step is to define a descriptor for each
+keypoint. Instead of using raw intensities, Low uses orientation
+frequencies in a neighborhood. Gradients are rotated relative to the
+keypoint orientation to achieve rotation invariance.
+
+SURF = faster version of SIFT. The method revisits SIFT with different
+implementaiton choices. Differences of Gaussian are replaced by box
+filters. Orientation assignment is performed using wavelets.

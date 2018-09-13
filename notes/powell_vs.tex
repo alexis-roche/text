@@ -1,0 +1,336 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,subfigure}
+
+
+\def\x{{\mathbf{x}}}
+\def\a{{\mathbf{a}}}
+\def\s{{\mathbf{s}}}
+\def\r{{\mathbf{r}}}
+\def\I{{\mathbf{I}}}
+\def\eps{{\boldsymbol{\varepsilon}}}
+\def\m{{\boldsymbol{\mu}}}
+\def\param{{\boldsymbol{\theta}}}
+
+\title{Powell's method revisited using variational sampling?} 
+\author{Alexis Roche} 
+%\date{} 
+
+\begin{document}
+
+\maketitle      
+
+\section{Introduction}
+
+Some thoughts I had during the May 1st break... I came across the concept of variational sampling more than 8 years ago. I was always convinced that it was an interesting idea, but the reality is that I haven't been able to find any clearly useful application of it so far. 
+
+My latest attempt to use VS as a building block for the Expectation Propagation algorithm ended up showing in practice that VS was not really better than the good old Laplace method. Before that, I had considered a brute-force implementation of VS to solve the problem of evaluating a KL-optimal approximation at a very general level, and the conclusion was that VS was not appropriate in large dimension.
+
+One path I haven't followed up to now is the natural continuation of the one that took me to the VS idea. I was initially trying to perform gradient-free quadratic approximations to a cost function in the context of running Powell's optimization method. The standard implementation of Powell's method performs successive line minimizations using Brent's method, a fairly simple scheme that relies on one-dimensional quadratic approximations using three points. Beside the problem that Brent's method requires a fair number of function evaluations, it doesn't provide a global quadratic approximation to the objective function, unlike Newton's method -- and such an approximation would be nice to evaluate things like the posterior variance (if the cost is some kind of log-likelihood function).
+
+\section{Factorial fit}
+
+So here is the problem to solve. Consider an unnormalized distribution $p(\x)$. We want to approximate it by a factorized form $q(\x) = \prod_i g_i(\x_i)$, where $(\x_1,\x_2,\ldots)$ are coordinate blocks and each factor is parameterized independently, 
+$$
+g_i(\x_i) = \exp [\param_i^\top \phi(\x_i)]
+.
+$$
+
+This is not even a restriction of the general fitting problem if the coordinate blocks are allowed to overlap. In fact, for now, the ``big idea'' is to perform an alternate minimization in the parameter space as opposed to a full minimization. Does it make our life easier? Of course, it does, because each $\param_i$ lives in a smaller dimensional space than all parameters altogether, so we will be performing many simple minimizations instead of a single very difficult one. VS can be used for each such minimization, obviously yielding a sequence of convex problems...
+
+I cannot believe that I haven't thought about that earlier! This is actually not true, but it is true that I got lost on that  track, for reasons that I don't really know... I probably was blinded by two things: one was the EP algorithm, the other was some sort of belief that alternate minimization is irrelevant in convex problems. This conception is clearly wrong when considering the benefit of dimension reduction. On the other hand, the key difference with EP is that we don't assume here that the target distribution has a factorial form -- only the fitting distribution is factorial. So we are not trying to solve the same problem as EP, in fact our problem is (much) more general.
+
+Each optimization step boils down to fitting $p(\x)$ with a form $c(\x)g_i(\x_i)$, where $c(\x)=\prod_{j\not= i}g_j(\x_j)$ is the very same thing as the context in EP, by minimizing the KL divergence $D(p\|cg_i)$ wrt $g_i$.
+
+
+\section{Variational sampling idea}
+
+The generalized KL divergence reads:
+$$
+D(p\|q) = \int  p \log \frac{p}{q} - p + q .
+$$
+
+If $p$ is our target distribution, the objective is minimized wrt $q$ in some approximation space. This is obviously equivalent to maximizing the ``log-likelihood'':
+$$
+L(q) = \int p \log q - q,
+$$
+or, more generally, if $q$ decomposes as $q=c g$ with $c$ fixed:
+$$
+L_c(f) = \int p \log g - c g
+$$
+
+The key idea of VS is to approximate the generally intractable objective via a sampling average. For this, we need to choose some sampling distribution $s(\x)$ and apply an associated quadrature rule:
+$$
+\int s(\x) f(\x) d\x \approx \sum_k w_k f(\x_k),
+$$
+leading to the surrogate objective:
+$$
+\tilde{L}_{c,s}(g)
+= 
+\sum_k 
+w_k
+\left[
+a(\x_k) \log g(\x_k)
+- b(\x_k) g(\x_k)
+\right],
+\qquad
+a = \frac{p}{s},
+\quad
+b = \frac{c}{s}
+.
+$$
+
+When the approximation space is an exponential family, $f(\x) = \exp[\param^\top \phi(\x)]$, we have:
+$$
+\tilde{L}_{c,s}(\param)
+= 
+\sum_k 
+w_k \left[
+a(\x_k) \param^\top \phi(\x_k)
+- b(\x_k) e^{\param^\top \phi(\x_k)}
+\right]
+$$
+
+
+$$
+\nabla \tilde{L}_{c,s}(\param)
+= 
+\sum_k 
+w_k \left[
+a(\x_k) 
+- b(\x_k) e^{\param^\top \phi(\x_k)}
+\right]
+\phi(\x_k)
+.
+$$
+
+$$
+\nabla \nabla^\top \tilde{L}_{c,s}(\param)
+= 
+- \sum_k 
+w_k 
+b(\x_k) e^{\param^\top \phi(\x_k)}
+\phi(\x_k) \phi(\x_k)^\top 
+.
+$$
+
+There are two arbitrary distributions involved in VS:
+\begin{itemize}
+\item the reference or cavity or context distribution $c$, which can be thought of as some window function defining the area of interest;
+\item the sampling distribution $s$, which impacts the VS approximation accuracy; it's not obvious how to optimally choose $s$ (see appendix~\ref{app:opt_sampling}), but intuition suggests that sampling from~$c$ should do.
+\end{itemize}
+
+
+\subsection{Importance of context}
+
+In my initial take on VS \cite{ijasp:13}, there was no context, meaning $c\equiv 1$. Choosing an appropriate sampling distribution was then fairly painful, as one just cannot sample from a uniform distribution... As an educated guess, one can try and sample from a distribution that approximates the target, yielding a typical ``chicken and egg" problem.
+
+In my work on combining VS with EP \cite{rr:16}, I was using the context as the sampling distribution, which makes sense if the context is narrow enough compared to the variations of the target distribution -- something we expect to be verified in the late EP iterations. Arguably, a better choice would be the context multiplied by the current approximation to the factor being updated... By construction of EP, the context is also included in the target, i.e. $p=cf$, yielding an alternative interpretation that the factor $f$ is being approximated by another factor $g$. Choosing $s=cg_0$, we have $a=f/g_0$ and $b=1/g_0$.
+
+
+\subsection{Iterative VS}
+
+To date, I have only studied one-step versions of VS, but we can think of the following iterative scheme in case the sampling distribution is completely off as the context is too broad.
+
+Given a target distribution $p$ and a context $c$, consider $f=p/c$ and do the following:
+\begin{enumerate}
+\item Pick some initial narrow context $c$ and some initial factor fit $g$ and set $s\leftarrow c g$.
+\item Solve the VS problem for $s$, yielding a factor update $g$.
+\item Widen context, reset $s\leftarrow c g$, and return to 2 until the context reaches its shape.
+\end{enumerate}
+
+If some sort of convergence occurs, we are left with both a parametric approximation to the target and an approximate independence sampler... Sounds a bit naive, though. In low dimension, there is some hope that the above iteration may work, but I wouldn't be too confident in high dimension... Intuition says that we need to take very small steps to update the context and that could be very time consuming. But, anyway, forget about the brute-force version of VS in large dimension... just too heavy. 
+
+
+\section{Dimension reduction scheme}
+
+So far we haven't made any use of the fact that the factor depends on a subset of coordinates only. The 1000 dollars question is: do we really need to sample the whole $\x$ space if the factor involves a few coordinates? Needless to say, this could be time consuming. 
+
+Let us take a step back and note that, if $f_i$ is a function of $\x_i$ only, the objective (not the surrogate one) amounts to an integral in the relevant subspace:
+$$
+L_\pi(f) = \int [ p_i(\x_i) \log f(\x_i)  - \pi_i(\x_i) f(\x_i) ] d\x_i,
+$$
+with:
+$$
+p_i(\x_i) = \int p(\x) d\x_{-i},
+\qquad
+\pi_i(\x_i) = \int \pi(\x) d\x_{-i}
+,
+$$
+but this is still cumbersome because we don't have the marginal $p_i(\x_i)$ and would need some extra magic to somehow evaluate it.
+
+What if we approximate $p_i(\x_i)$ proportionally to a coordinate application for some fixed values of the coordinates not included in $\x_i$... This would be verified, for instance, if we replace the actual target with:
+$$
+\tilde{p}(\x) = \lambda c(\x) p(\a_{-i}, \x_i),
+$$
+where $\lambda$ is some constant and $\a$ is some current estimate of the target mode and $\a_{-i}$ denoting the ``fixed" coordinates of $\a$. This way, the factor to be adjusted is essentially the coordinate application at the mode estimate.
+
+Doesn't that sound familiar? Yes, it reminds us of the EP trick! The {\em only} difference, or say, addition, is that the factor is independent from any context in EP because the target is assumed to be factorial, while here no such assumption is made. And what I am finding out here, is that there is a very simple way to generalize the EP trick, which is to do this $p(\a_{-i}, \x_i)$.
+
+How shall we choose $\lambda$? Let us assume {\em non-overlapping coordinate blocks}. We are approximating each coordinate application by some parametric form and a particular iteration of our algorithm is concerned with a particular coordinate application. Defining:
+$$
+g_{-i}(\x)\equiv \prod_{j\not=i} g_j(\x_j),
+\qquad
+c(\x) \equiv \frac{g_{-i}(\x)}{g_{-i}(\a)},
+$$
+where it is natural to choose $\a$ as the current approximation maximizer, the coordinates of which respectively maximize each coordinate fit, a natural approximation to the target distribution is:
+$$
+p(\x)
+\approx
+\tilde {p}(\x)
+= c(\x) p(\a_{-i},\x_i)
+\approx c(\x) g_i(\x_i),
+$$
+which verifies the property $\tilde{p}(\a)=p(\a)$. The quantity $c(\x)$ can be seen as the {\em context} in which the coordinate fit is performed, so here the context is normalized (it's not the mere product of the factors).
+
+In summary, our scheme is similar to EP up to two modifications:
+\begin{enumerate}
+     \item The context is normalized.
+     \item The target factor is contextual (depends on the context). 
+\end{enumerate}
+
+
+\section{Generalized EP}
+
+The goal is to describe some target distribution as a set of {\em factors}. All it takes is a parametric approximation space for each factor and a {\em contextual} approximation scheme. The contextual scheme is a method to approximate the target depending on the said factors. More specifically, there is one scheme for each factor, which determines an approximation to the target given the factor under consideration and all the other factors fitted.
+
+We thus have two approximation levels: one structural (the description stage) and one numerical (the fitting stage). The algorithm is fully determined by the description stage.
+
+In the classical EP, the description is exact in the sense that it recovers exactly the target if all factors are exact.
+
+In the coordinate-wise EP, the description is inexact unless the target is separable, i.e. is the product of its coordinate applications up to a constant. But we could not care less.
+
+The two things that these situations have in common is the factorial nature of the approximating distribution and the fact that each factor may involve a reduced set of coordinates. In fact, if they don't, one may question the benefit of the factor decomposition.
+
+
+\subsection{Motivation}
+
+The above insight helps understanding the very nature of EP: it is a dimension reduction trick! Minka never gave a clear motivation for the structural approximation underlying EP \cite{Minka-01,Minka-05}. 
+
+When factors correspond to data items, one advantage is that we don't need to load the whole data in memory -- but is it decisive? Our premise is that we want an approximation of the form: 
+$$
+p(\x) 
+\approx
+c(\x) g_i(\x_i)
+$$
+
+Another potential motivation, which is more or less what Minka seemed to have in mind, is that the fitting problem may enjoy a closed-form solution with the approximation while being intractable without. This is of course not always true, as in the logistic and hinge regression problems considered in my EP/VS paper. Reason why VS is an alternative to EP {\em per se} in moderate dimension.
+
+Dimension reduction appears as a stronger rational: if the factors happen to depend on subsets of variables, then the EP trick leaves us with smaller dimensional fitting problems. I don't remember Minka mentioning this. In the classical online learning setting, this does not happen because each factor is the model response to a single data item and thus basically depends on all the model parameters...
+
+\subsection{Global fit}
+
+As the algorithm hopefully converges, do the different factor approximations $c_{-i}g_i$ converge to the same distribution? If so, it would yield a global fit to the target, which may be needed sometimes. 
+
+Open question: how to design the contextual scheme to guarantee this convergence in general? It is straightfoward in the classical EP. However, in the coordinate-wise EP, it is unlikely to occur because, even if $\a$ converges, all fitted factors may not have exactly the same value at $\a$. 
+
+To address this, we can simply define a global approximation scheme to be used in the end, which does not need to be consistent with the contextual approximation scheme. 
+
+The contextual scheme applies when trying to best approximate the target while able to evaluate each factor independently, and only one exactly. 
+
+The global scheme applies when trying to best approximate the target while able to evaluate each fitted factor independently. 
+
+It is about setting constraints to ourselves in order to gain freedom. As often in computational statistics.
+
+
+\subsection{Machine learning}
+
+It sounds a bit like I was not using EP at its best for machine learning. Instead of having factors associated with data items, they should be associated with model parameters. But... wait... the target distribution does not factorize across model parameters, so EP is not applicable here. It's not, but we have seen how we can extend EP to satisfy our need.
+
+If we still wish to do online learning, we have the opportunity to keep the factorization across batches, and sub-factorize each batch factor across model parameters. This means that each iteration of the algorithm will update a specific parameter subset based on a specific batch.
+
+
+\section{Epilogue}
+
+Il n'est pas n\'ecessaire d'imposer la factorisation par coordonn\'ees de la forme approximante. Celle-ci d\'ecoule directement de l'approximation contextuelle ``g\'en\'eralis\'ee'' dans laquelle le facteur \`a ajuster est remplac\'e par le produit de ses applications coordonn\'ees. Avec \c ca et la forme param\'etrique factorielle, choisie {\em a priori}, non seulement l'approximation est factorielle mais, et c'est le point cl\'e, l'ajustement des facteurs peut se faire coordonn\'ee par coordonn\'ee, c-\`a-d, grosso modo, par des ajustements unidimensionnels peu co\^uteux. 
+
+La seule innovation n\'ecessaire, par rapport au FF-EP de base, c'est l'approximation du facteur lui-m\^eme dans l'approximation contextuelle. On a vu en quoi cette id\'ee permet de r\'eduire la dimensionalit\'e du probl\`eme d'ajustement par divergence KL et de faire de l'approximation variationnelle {\em low cost}.
+
+Une subtilit\'e qui m'avait \'echapp\'e lorsque je travaillais sur FF-EP, c'est que la m\'ethode de Laplace (qu'on peut voir comme une alternative \`a l'ajustement via KL) garantit elle aussi la s\'eparabilit\'e de l'ajustement des applications coordonn\'ees (\`a condition de faire le DL au centre de la cavit\'e). En revanche, les m\'ethodes de quadrature n'ont pas cette propri\'et\'e. On le voit ais\'ement avec la quadrature gaussienne: chaque moment est estim\'e par une somme pond\'er\'ee de $2d+1$ points o\`u toutes les dimensions varient \`a tour de r\^ole.  
+
+Pour \'eviter cette lourdeur, il suffit de recourir \`a notre petite astuce: imposer la forme s\'eparable au facteur et remarquer que, d\`es lors, l'ajustement via KL est lui-m\^eme s\'eparable. Le gain en efficacit\'e est proportionnel \`a la dimension, donc \'enorme en grande dimension!
+
+Intuitivement, on ne perd pas grand chose \`a ajuster chaque application coordonn\'ee l'une apr\`es l'autre. C'est aussi ce que fait la m\'ethode de Laplace ``gratuitement'' au sens o\`u elle donne une approximation quadratique {\em non-s\'eparable} dont on d\'eduit naturellement une approximation factorielle en ignorant les termes non-diagonaux du hessien. C'est ``\'evident'' mais je me rends compte que je ne m'\'etais pas fatigu\'e \`a justifier cela dans mon c\'el\`ebre article. 
+
+Une justification, celle que j'avais en t\^ete je crois, c'est de dire qu'on applique la formule de mise \`a jour de FF-EP \`a l'approximation de Laplace du facteur, ce qui a pour seul effet d'annuler les termes non-diagonaux du hessien. Pourquoi? Parce que c'est une propri\'et\'e de la gaussienne: en annulant les moments crois\'es, on ne modifie pas les moments non-crois\'es.
+
+Une autre justification, c'est d'appliquer la m\'ethode de Laplace \`a l'approximation contextuelle, ce qui produit le m\^eme r\'esultat mais est plus coh\'erent avec l'id\'ee que la m\'ethode de Laplace remplace la minimisation de la divergence KL. 
+
+En d'autres termes, la g\'en\'eralisation de l'approximation contextuelle EP \'etait d\'ej\`a plus ou moins sous-jacente \`a mon article de 2016...
+
+
+
+\appendix
+
+\section{Optimal sampling distribution}
+\label{app:opt_sampling}
+
+For random sampling, it can be shown that the VS solution achieves a KL divergence larger than the actual minimum by a quantity vanishing at asymptotic rate $\nu/N$ with:
+$$
+\nu = \frac{1}{2}\int \frac{[p(\x)-q_\star(\x)]^2}{s(\x)} \psi(\x)^2 d\x,
+\qquad 
+\psi(\x)^2 = \sum_j \phi_j(\x)^2,
+$$
+where $q_\star$ is the optimal factor, i.e. $q_\star=\arg\min_q D(p\|q)$, and $\phi_j$ is an orthornomal basis for the dot product induced by~$q_\star$:
+$$
+\int q_\star \phi_j \phi_k  = \delta_{jk} 
+\qquad \Rightarrow \quad
+\int cg_\star \psi^2 = n,
+$$
+where $n$ is the number of free parameters. 
+
+Minimizing $\nu$ wrt $s$ is akin to optimal design in importance sampling. The optimal sampling distribution is: $s_\star \propto |p-q_\star|\psi$. As can be seen, it is not simply $p$ as could perhaps be expected or hoped. Note that the equivalent IS problem is to compute the integral:
+$$
+\int (p-q_\star)\psi,
+$$
+but this is purely theoretical as we don't know $q_\star$ (yet we do know that this integral is zero).
+
+Now it is time to remember that we may have a context, meaning that $p=cf$ and $q=cg$. We can rewrite the same story using the minimizer $g_\star$ of $D(cf\|cg)$ and the same kind of orthonormal basis built from $cg_\star$:
+$$
+\nu = \frac{1}{2}\int \frac{c^2}{s} (f-g_\star)^2 \psi^2,
+$$
+and the optimal sampling distribution is $s_\star \propto c|f-g_\star|\psi$. If the functions under consideration vary slowly compared to $c$, then $c$ should be a fair approximation to $s_\star$. Using $c$ as a sampling distribution, we have:
+$$
+\nu = \frac{1}{2}\int c (f-g_\star)^2 \psi^2
+$$
+
+Letting $\omega=cg_\star\psi^2/n$, which is a density, i.e. $\int \omega = 1$, we see that the variance factor is proportional to the chi-square divergence between the factors in the context $\omega$: 
+$$
+\nu 
+= \frac{n}{2} \int \omega \frac{(f-g_\star)^2}{g_\star}
+= \frac{n}{2} D_2(\omega f\| \omega g_\star)
+.
+$$
+
+So we have an interesting outcome here: the variance relates to the contextual divergence between factors, but this is neither the same divergence nor the same context as the initial ones (those considered for minimization): $\chi_2$ instead of KL and $\omega$ instead of $c$... Yet, we can say loosely that $\nu$ should be smaller as the context gets narrower, hence VS should be faster to converge.
+
+If we are not in ``narrow context'' regime, then we are kinda screwed, right? But we can try and generalize the above argument:
+$$
+\nu = \frac{n}{2}\int \omega \frac{c}{s} \frac{(f-g_\star)^2}{g_\star}
+.
+$$
+
+So, now, we see that this is the same story as before by redefining the context as $\omega'=\omega c / s$, which may no longer be a density. If we set $s=c g_\star/z$ with the constant $z$ so that $\int s = 1$, then the context simplifies to $\omega'=(z/n) c \psi^2$, hence:
+$$
+\nu = \frac{z}{2} D_2(c' f\| c' g_\star),
+\qquad
+c' \equiv c\psi^2
+.
+$$
+
+It now looks like we have a similar interpretation as above, with the exception that $n$ is replaced by $z$, so the variance does no longer depend on the family dimension! On the other hand, the chi-square divergence involved here may not be as small as one would like since we assume a possibly broad context. 
+
+Those are just some insights on the effect of the sampling distribution. In summary: if the context is narrow, it is a good choice as the sampling distribution; if not, then multiply it by some initial guess of the factor fit... and pray cause there is no warranty.
+
+The conclusion is that VS may be inefficient unless used in a certain {\em context}. A context is a region wider than an infinitesimal neighborhood but can't be too wide. If very narrow, VS will most likely work very well but will ressemble the Laplace method. If broader, VS efficiency will heavily rely on the availability of a good approximation to the target. 
+
+
+\bibliographystyle{abbrv}
+\bibliography{cvis,stat,alexis}
+
+
+\end{document} 
+
+

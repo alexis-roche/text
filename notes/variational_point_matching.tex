@@ -1,0 +1,567 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,subfigure}
+
+
+\def\x{{\mathbf{x}}}
+\def\y{{\mathbf{y}}}
+\def\s{{\mathbf{s}}}
+\def\r{{\mathbf{r}}}
+\def\I{{\mathbf{I}}}
+\def\eps{{\boldsymbol{\varepsilon}}}
+\def\m{{\boldsymbol{\mu}}}
+\def\param{{\boldsymbol{\theta}}}
+
+\title{Point matching notes} 
+\author{Alexis Roche} 
+%\date{} 
+
+\begin{document}
+
+\maketitle      
+
+\section{Introduction}
+
+This is where I say some bs.
+
+
+\section{Generative model}
+
+\subsection{Gaussian point pair model}
+
+Assume that corresponding points $(\x,\y)$ in $\mathbb{R}^d$ are random variables defined by:
+\begin{eqnarray*}
+\x & = & \s + \eps\\
+\y & = & \s + \eps'
+\end{eqnarray*}
+with $\s\sim N(\m, v \I_d)$, $\eps\sim N(0, w \I_d)$, $\eps'\sim N(0, w \I_d)$, $\eps\perp \s$, $\eps'\perp \s$, $\eps'\perp \eps$. It follows that $(\x,\y)$ is distributed like a $2d$ Gaussian variable with mean $(\m,\m)$ and variance matrix:
+$$
+V = w \I_{2d} + v E,
+\qquad
+E \equiv
+\left(
+\begin{array}{cc}
+\I_d & \I_d\\
+\I_d & \I_d
+\end{array}
+\right)
+.
+$$
+
+The determinant of $V$ is: 
+$$
+|V| = \left[ (v+w)^2 - v^2 \right]^d
+$$
+
+Remarking that $E^2=2E$, we easily find the inverse variance matrix to be:
+$$
+V^{-1} 
+= 
+\frac{1}{w} \left(\I_{2d} - \frac{v}{w+2v} E \right)
+.
+$$
+
+Introducing the variance ratio $\lambda = v/w$, these expressions read:
+$$
+|V| = w^{2d} (1 + 2\lambda)^d,
+\qquad
+V^{-1} = 
+w^{-1} \left[ 
+\I_{2d} - \lambda (1+2\lambda)^{-1} E
+\right] 
+.
+$$
+
+Letting now $\nu=\lambda (1+2\lambda)^{-1}$ so that $\lambda=\nu(1-2\nu)^{-1}$, these read:
+$$
+|V| = w^{2d} (1 - 2\nu)^{-d},
+\qquad
+V^{-1} = 
+w^{-1} \left[ 
+\I_{2d} - \nu E
+\right] 
+.
+$$
+
+Note that $(\x\ \y)^\top E (\x\ \y)= \|\x+\y\|^2$. Therefore, the negated log-likelihood $\ell(\param) = -2\log p(\x,\y)$ associated with a single pair is, up to an additive constant,
+\begin{eqnarray*}
+\ell(\param)
+& = & 
+2d \log w - d \log(1-2\nu) 
++ w^{-1} \left[
+\|\x-\m\|^2 + \|\y-\m\|^2 - \nu \|\x+\y-2\m\|^2
+\right] \\
+& = & 
+2d \log w - d \log(1-2\nu)
++ w^{-1} \left[
+(1-\nu) (\|\x-\m\|^2 + \|\y-\m\|^2) 
+- 2 \nu (\x-\m)^\top(\y-\m)
+\right]
+,
+\end{eqnarray*}
+where $\param=(\m, w,\nu)$ stands for the aggregated parameter vector. Derivatives are computed as follows.
+
+\begin{eqnarray*}
+\frac{\partial \ell}{\partial \m}
+& = & 
+w^{-1} \left[
+2(1-\nu)(\m - \x + \m - \y) 
+- 2\nu (2\m - \x - \y) \right] \\
+& = & 
+4 w^{-1} (1-2\nu) 
+\left(\m - \frac{\x + \y}{2} \right)
+.
+\end{eqnarray*}
+
+Denoting $R=(\|\x-\m\|^2+\|\y-\m\|^2)/2$ and $C=(\x-\m)^\top(\y-\m)$,
+
+$$
+\frac{\partial \ell}{\partial w}
+=
+2d w^{-1} - 2w^{-2}
+[(1-\nu) R - \nu C]
+.
+$$
+
+$$
+\frac{\partial \ell}{\partial \nu}
+=
+2d (1-2\nu)^{-1} - 2w^{-1}(R + C)
+.
+$$
+
+
+\subsection{Parameter estimation}
+
+Now, assume that we are given a set of i.i.d. pairs $(\x_k,\y_k)$, $k=1,\ldots,n$. We want to estimate the $\param$ by maximum likelihood, which leads to minimizing:
+$$
+L(\param) 
+= \sum_k \ell_k(\param)
+.
+$$
+
+Let us denote $\bar{\x}$, $\bar{\y}$, $\bar{C}$ and $\bar{R}$ the sample means of $\x$, $\y$, $C$ and $R$, respectively. From the above derivative expressions, we clearly have:
+$$
+\frac{\partial L}{\partial \m} = 0 
+\quad \Rightarrow \quad
+\m = \frac{1}{2} (\bar{\x} + \bar{\y})
+.
+$$
+
+Furthermore, 
+$$
+\frac{\partial L}{\partial w}=0
+\quad \Rightarrow \quad
+dw = (1-\nu)\bar{R} -\nu\bar{C}.
+$$
+
+$$
+\frac{\partial L}{\partial \nu}=0
+\quad \Rightarrow \quad
+dw = (1-2\nu)(\bar{R}+\bar{C}).
+$$
+
+By equating these two last expressions, we find that:
+$$
+\nu = \frac{\bar{C}}{\bar{R}+\bar{C}}
+$$
+
+It follows that:
+$$
+1-2\nu = \frac{\bar{R}-\bar{C}}{\bar{R}+\bar{C}}
+\quad
+\Rightarrow
+\quad
+\lambda = \nu(1-2\nu)^{-1} = \frac{\bar{C}}{\bar{R}-\bar{C}}
+$$
+
+Therefore, 
+$$
+w = \frac{1}{d} (\bar{R} -\bar{C}),
+\qquad
+v = \frac{1}{d} \bar{C}
+.
+$$
+
+
+\subsection{Estimation with fixed parameters}
+
+If $\mu$ is fixed, $\bar{R}$ and $\bar{C}$ are computed using the fixed $\mu$ rather than the ML estimate. 
+
+If $w$ is fixed and $v$ is not, we need to estimate $v$ via $\nu$ from the equation $\partial L / \partial \nu = 0$, yielding:
+$$
+(1-2\nu)^{-1}
+= (1+2\lambda)
+= \frac{\bar{R} + \bar{C}}{dw}
+\quad\Rightarrow\quad
+v 
+= \frac{1}{d}(\bar{R} + \bar{C}) - \frac{w}{2} 
+= v_{ML} + \frac{w_{ML} - w}{2}.
+$$
+
+If $v$ is fixed and $w$ is not, things look more tricky but this case is not of practical interest... 
+
+
+
+\subsection{Marginal and conditional distributions}
+
+Under the above model, the marginal distributions of $\x$ and $\y$ are the same Gaussian with mean $\m$ and variance $(v+w)\I_d$.
+
+For the conditionals, it is clear that $p(\x|\y)$ and $p(\y|\x)$ are the same Gaussian distribution up to the permutation of $\x$ and $\y$. The mean and variance are given by the generic formula:
+$$
+\m_{x|y} = \m_x + \Sigma_{xy}\Sigma_{yy}^{-1}(\y-\m_y),
+\qquad
+\Sigma_{x|y} = \Sigma_{xx} - \Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}
+.
+$$
+
+In this case, 
+$$
+\m_x=\m_y=\m,
+\qquad
+\Sigma_{xy}=\Sigma_{yx}=v\I_d,
+\qquad
+\Sigma_{xx}=\Sigma_{yy}=(v+w)\I_d,
+$$
+therefore:
+$$
+\m_{x|y} = \alpha\y + (1-\alpha)\m,
+\qquad
+\alpha = \frac{v}{v+w},
+$$
+and:
+$$
+\Sigma_{x|y}
+=
+[v+w - v^2 (v+w)^{-1}]\I_d
+= 
+(v+w) (1-\alpha^2) \I_d
+.
+$$
+
+
+\subsection{Null model}
+
+Consider a trivial model variant whereby points stem from independent seeds:
+\begin{eqnarray*}
+\x & = & \s + \eps\\
+\y & = & \s' + \eps'
+\end{eqnarray*}
+with $\s'\sim \s$ and $\s\perp s'$, implying that $\x\perp \y$ with the same marginal distribution $N(\m, (v+w)\I_d)$. The twice negated log-likelihood then simplifies to:
+$$
+\ell(\param)
+=
+2d \log (v+w) 
++ (v+w)^{-1} \left[
+\|\x-\m\|^2 + \|\y-\m\|^2 
+\right]
+.
+$$
+
+Note that $v$ and $w$ are not separately identifiable, but the sum of the two is. The maximum likelihood parameter estimates are easily seen to be:
+$$
+\m = \frac{1}{2} (\bar{\x} + \bar{\y}),
+\qquad
+v+w = \frac{1}{d} \bar{R} 
+.
+$$
+
+Therefore, the ML distribution can be alternatively computed by taking the ML distribution corresponding to the point pair model, and then replacing it by the product of its marginals. 
+
+
+\section{Matching algorithm}
+
+Let us turn to assuming that two point sets $(\x_1,\ldots,\x_n)$ and $(\y_1,\ldots,\y_m)$ are related by a correspondence function $q:\Omega_q\subset\{1,\ldots,n\} \to \{1,\ldots,m\}$ and a spatial transform $T:\mathbb{R}^2\to \mathbb{R}^2$, so that, roughly speaking, $T(\x_k)\approx \y_{q(k)}$. The subset $\Omega_q$ defines the source points with a correspondence, meaning that missing correspondences are accounted for. 
+
+Let us assume that, for given $q$ and $T$, the set of matched point pairs $(T(\x_k),\y_{q(k)})_{k\in\Omega}$, for is independently and identically distributed according to the above joint Gaussian model, which assumes, in particular, that $q$ is a one-to-one mapping. This generative model can be justified as ``minimally discriminative'' in the sense that it minimizes the KL divergence to the set of distributions assuming statistical independence between the two point sets. The distribution of each point pair is thus:
+$$
+p_T(\x_k, \y_{q(k)}) = |J_T(\x_k)| p(T(\x_k), \y_{q(k)})
+,
+$$
+where $J_T(\x)$ is the transformation Jacobian matrix. 
+
+Using the PDF projection theorem (or the super composite likelihood framework), we can define a likelihood function for $(q,T)$:
+$$
+L(q,T) = \prod_{k\in\Omega_q} \frac{p(T(\x_k), \y_{q(k)})}{\pi(T(\x_k), \y_{q(k)})},
+$$
+where $\pi$ is some reference distribution representing a null hypothesis. Note that the Jacobian terms in the numerator and denominator cancel out. Accouting for the fact that distribution parameters are unknown, the (composite) log-likelihood function is a function of multiple variables:
+$$
+L(q,T,\param,\param_0) 
+= 
+\prod_{k\in\Omega_q} 
+\frac{p_\param(T(\x_k), \y_{q(k)})}{\pi_{\param_0}(T(\x_k),\y_{q(k)})}
+.
+$$
+
+In this story, $\param_0$ plays a bit of an unusual role because the composite likelihood is to be {\em minimized} along $\param_0$. The rational behind this is the elimination of nuisance parameters in super composite likelihood models. The joint estimation of all parameters can be seen in terms of Game theory. It is a four-player game, where each parameter is associated with a ``player''. The payoff for the players associated with $q$, $T$, and $\param$ is the log-likelihood, and the negated log-likelihood for the player associated with $\param_0$. 
+
+This special player accounts for the fact that the null model is not fully specified. As a null hypothesis, we assume that the point pairs are statistically independent consistently with the minimum discrimination property of the generative model. Plugging in the likelihood the minimal $\param_0$ while fixing all other parameters boils down to taking the product of the marginals:
+$$
+\min_{\param_0}\max_\param
+L(q,T,\param,\param_0) 
+= 
+\prod_{k\in\Omega_q} 
+\frac{p_{\hat{\param}}(T(\x_k), \y_{q(k)})}{p_{\hat{\param}}(T(\x_k))p_{\hat{\param}}(\y_{q(k)})}
+.
+$$
+
+Let us redefine the log-likelihood ratio:
+$$
+R(q,T,\param) = \prod_{k\in\Omega_q} 
+\frac{p_{\param}(T(\x_k), \y_{q(k)})}{p_{\param}(T(\x_k))p_{\param}(\y_{q(k)})}
+$$
+
+The above shows that the game can alternatively be seen as a three-player game with players respectively associated with $q$ and $T$ have $R(q,T,\param)$ as a payoff, and a third player associated with $\param$, which seeks to maximize the numerator only, leading to the maximum likelihood parameter estimates computed above.
+
+
+\section{Registration}
+
+Let us examine the likelihood ratio maximization along $T$, which amounts to maximizing:
+$$
+C(T) = 
+\prod_{k\in\Omega_q} 
+p_{\param}(\y_{q(k)}|T(\x_k))
+.
+$$
+
+Recall that $p(\y|\x)$ is a Gaussian distribution with mean $\mu_{\y|\x} = \alpha\x + (1-\alpha)\m$ and isotropic variance matrix. By noting the identity:
+$$
+\alpha \x + (1-\alpha) \m - \y 
+= \alpha \{ \x - \alpha^{-1}[\y - (1-\alpha) \m)]\},
+$$
+we conclude that the maximization of $T$ amounts to a least square problem where the target points are corrected via:
+$$
+\y' = \alpha^{-1} [ \y - (1-\alpha) \m ]
+.
+$$
+
+Hence the optimal transformation $T$ is found by minimizing least squares:
+$$
+C(T) = 
+\sum_k
+\|T(\x_k)-\y_k'\|^2
+$$
+
+Assuming an affine transformation $T(\x)=A\x + t$, the Jacobian matrix is constant equal to $A$. We can ignore the translation in the variational problem by centering the points, that is, computing $\tilde{\x}_k = \x_k - \bar{\x}$ and $\tilde{\y}'_k = \y'_k - \bar{\y}'$ with:
+$$
+\bar{\x} = \frac{1}{n} \sum_k \x_k,
+\qquad
+\bar{\y}' = \frac{1}{n} \sum_k \y'_k
+.
+$$
+
+Once the optimal $A$ is found, the optimal translation is then given by $t = \bar{\y}'- A \bar{\x}$.
+
+
+\subsection{Rigid transform}
+
+If $T$ is searched among rigid transforms, the solution is found by computing the SVD of:
+$$
+K = \frac{1}{n}\sum_k \tilde{\y}'_k \tilde{\x}_k^\top
+$$
+
+Specifically, the SVD gives orthogonal matrices $U$ and $V$ and a diagonal matrix $S$  with positive elements such that $K = U \Lambda V$. The optimal rotation is then $R = U {\rm diag}(1,\ldots,1,|U||V|) V$.
+
+
+\subsection{Scaling transform}
+
+In the case of a scaling transform, we can decompose the unknown matrix as $A=sR$. The optimal rotation is, again, found by standard least sqaures and is easily seen to be the same as in the rigid case (see Pennec). For the optimal scale $s$, we need to minimize:
+$$
+C(s) = 
+\sum_k \|s R\tilde{\x}_k-\tilde{\y}_k'\|^2
+.
+$$
+
+By developing the squared Euclidean distance term, we see that, up to a constant,
+$$
+C(s)
+= 
+n(\sigma_x^2 s^2 - 2\gamma s),
+$$
+with:
+$$
+\sigma_x^2 = \frac{1}{n} \sum_k \|\tilde{\x}_k\|^2,
+\qquad
+\gamma = {\rm trace}(RK^\top)
+,
+$$
+implying that the optimal scale is given by:
+$$
+s = \frac{\gamma}{\sigma^2_x}
+.
+$$
+
+
+\subsection{Affine transform}
+
+In the case of an unconstrained affine transformation, the optimality condition is readily obtained by applying rules of derivation w.r.t. matrices:
+$$
+A \Sigma_x - K = 0
+$$
+with:
+$$
+\Sigma_x = \frac{1}{n} \sum_k \tilde{\x}_k \tilde{\x}_k^\top
+.
+$$
+
+It follows that the optimal matrix $A$ is given by:
+$$
+A = K \Sigma_x^{-1}
+.
+$$
+
+
+
+
+\section{MaxEnt}
+
+Assume we have a pseudo generative model that minimizes the discrimination $D(p_\theta \| \pi)$ on a certain subspace $P_\theta$ for a given $\theta$. Under linear moment constraints, the solution has the exponential form:
+$$
+p_\pi (y|\theta,\lambda) = \frac{1}{Z_\pi(\theta,\lambda)} \pi(y) e^{-\lambda t(y,\theta)}
+$$
+
+This can be seen using the Lagrangian:
+$$
+{\cal L}(p,\lambda) = 
+D(p\|\pi) + \lambda [\int p(y)t(y,\theta)dy - \tau] dy
+,
+$$
+which is minimized at fixed $\lambda$ (and $\theta$) by the above distribution. The achieved Lagrangian minimum defines the dual function at fixed $\theta$:
+\begin{eqnarray*}
+\psi(\theta,\lambda) = 
+& = & 
+\min_p {\cal L}(p,\lambda) \\
+& = & 
+-\log Z_\pi(\theta,\lambda) - \lambda \tau \\
+& = & 
+\log\frac{p_\pi(y|\theta,\lambda)}{\pi(y)} + \lambda [t(y,\theta)-\tau],
+\quad \forall y.
+\end{eqnarray*}
+
+This is true for any $y$, and in particular for the one observed. The dual function amounts to the log-likelihood if we equate $\tau$ with its empirical value (meaning that $\tau$ depends on $\theta$). In this story, $\theta$ is fixed but we see that the dual function, as a function of $(\theta,\lambda)$, amounts to the joint log-likelihood:
+$$
+\psi(\theta,\lambda) 
+= 
+\log\frac{p_\pi(y|\theta,\lambda)}{\pi(y)}
+.
+$$
+
+For instance, we can apply an EM algorithm with $\theta$ as a latent variable. This boils down to maximizing a soft version of the dual function: 
+$$
+\Psi(q, \lambda) = \int q(\theta) \left[
+\psi(\theta,\lambda)- \log q(\theta)
+\right]
+d\theta
+.
+$$
+
+How does this reasoning generalize when $\pi$ is searched in a certain set of distributions $P_0$? The dual function then becomes a function of $(\theta,\lambda)$ and $\pi$. At fixed $\theta$, $\lambda$ and $\pi$ are concurrently optimized, which ends up defining two parametric families $p(y|\theta)$ and $\pi(y|\theta)$. Under mild regularity conditions, we have:
+$$
+\max_\lambda \psi(\theta,\lambda,\pi) 
+= \min_{p\in P_\theta} \psi(\theta,\lambda,\pi)
+.
+$$
+
+Therefore, the optimal $\pi$ corresponds to a minmax problem:
+$$
+\min_{\pi\in P_0}
+\min_{p\in P_\theta} 
+D(p\|\pi) 
+= 
+\min_\pi \max_\lambda \psi(\theta,\lambda,\pi)
+.
+$$
+
+We might be able to replace $\pi$ with a parameter $\lambda_0$ so that we have a $\psi(\theta,\lambda,\lambda_0)$. Under  
+
+
+\section{Variational point matching}
+
+$\theta=(M,T)$ represents the pointwise correspondence function and the spatial transform, both of which are unknown. If we focus on matching, $M$ is the variable of main interest and $T$ is more like a nuisance parameter. We also have distribution parameters $(\lambda,\lambda_0)$. The lack of a fixed reference comes from the fact that the null hypothesis is that of statistical independence between the two point sets, which does not specify a distribution.
+
+When updating the distribution parameters, we take the 
+
+
+We can have an EM using probablistic correspondences but pointwise transform estimates. Why? Because the correspondences are the bottleneck in terms of optimization since they turn the problem into a discrete optimization one. It's a way to smooth it.
+
+
+
+
+
+\section{Rubbish}
+
+
+$$
+A \Sigma_x A^{\top} - K A^{\top} -w^{-1} (1-\nu) \I_d  = 0
+$$
+
+
+Note that:
+$$
+\frac{\nu}{1-\nu}
+=
+\frac{v}{v+w}
+$$
+
+
+
+
+\appendix
+
+\section{Multivariate Gaussian}
+
+The $n$-dimensional normal distribution $N(\m,V)$ is defined by:
+$$
+-2\log p(\x)
+= 
+n\log(2\pi)
++\log |V|
++ (\x-\m)^\top V^{-1} (\x-\m),
+$$
+
+\section{Derivatives wrt a matrix}
+
+Consider the squared Euclidean distance: 
+$$
+C = \| T(\x) - \y \|^2
+$$
+
+Assume a pure linear transform to start.
+$$
+T(\x) = A\x
+$$
+
+$$
+C = 
+\x^\top A^\top A \x - 2 \y^\top A \x
++ \y^\top \y 
+$$
+
+Formula can be found in Pennec's thesis.
+$$
+\frac{\partial (\log |A|)}{\partial A}
+= A^{-\top}
+$$
+
+$$
+\frac{\partial (\y^\top A \x)}{\partial A}
+= \y \x^\top,
+\qquad
+\frac{\partial (\y^\top A^\top B A \x)}{\partial A}
+= B A \x \y^\top + B^\top A \y \x^\top
+$$
+
+
+This implies:
+$$
+\frac{\partial C}{\partial A}
+=
+2 A \x \x^\top - 2 \y \x^\top
+$$
+
+Least square optimality condition.
+
+
+\end{document} 

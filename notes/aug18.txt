@@ -1,0 +1,286 @@
+Les pistes de travail actuelles:
+
+1. Segmentation via FCNN. La labélisation des pixels par blocs centrés de taille fixe est-elle suffisante? Faut-il prendre en compte l'échelle? Comment? Quel lien avec les approches type R-CNN ou SSD? 
+
+2. Apprentissage classique. Faire un inventaire des métodes actuelles. Comment diagnostiquer la convergence? Ca coûte cher de faire des itérations... Pire, est-ce que les performances ne se dégradent pas au fil des itérations par effet de sur-apprentissage? Si oui, comment remédier à ce problème? Le "weight decay" est-il vraiment la solution?
+
+3. Apprentissage "bayésien". Bénéfices des approches type EP ou SEP? Est-ce que ça converge plus vite? Est-ce que ça permet de tester la convergence? Diagnostiquer le sur-apprentissage? Dimensionner les données d'apprentissage?
+
+4. Exploitation des hypothèses de régularités dans l'apprentissage (hypothèses sur la distribution jointe inputs/outputs). Echangeabilité, de Finetti et tout le bastringue? 
+
+5. Réflexions générales sur l'optimisation. Au-delà de la descente de gradient: mises à jour non-linéaires (par ex: compositionnelles genre les "démons"). Impact en AI?
+
+6. TensorFlow vs Keras. Which one is more convenient for covii projects?
+
+---------------------------------------------
+
+2. Apprentissage classique
+
+Est-ce qu'on peut prendre le checkpoint qui donne les meilleures perfs
+en validation croisée? Ca ressemble à une faute de débutant, qui
+consisterait à confondre les données d'apprentissage et de validation,
+mais ce n'est pas tout-à-fait la même chose car l'optimisation reste
+confinée aux données d'apprentissage. 
+
+5. Optimisation
+
+Dans l'algorithme des "démons", qui représente décidemment une espèce
+de fil rouge de ma carrière scientifique, il y a une idée nouvelle qui
+pourrait s'avérer utile à un niveau plus général en
+optimisation. C'est l'idée de mettre à jour la solution au problème
+d'optimisation selon une règle non-linéaire contrairement au cadre
+classique de la descente de gradient. Cette approche permet d'obtenir
+des propriétés de "régularité" qui ne sont pas explicitement imposées
+à l'espace de recherche et qui ne seraient pas non plus garanties par
+la descente de gradient.
+
+Dans le cas du recalage, je force chaque mise à jour de mon algo à
+composer des petits déplacements fluides avec la solution
+courante. C'est moi qui contrôle l'amplitude et la fluidité des
+déplacements en question. Je le fais parce que j'obtiendrai ainsi un
+difféomorphisme suffisamment fluide et que c'est ce qui
+m'intéresse. Néanmoins, l'espace des difféomorphismes est sans doute
+dense dans celui des déformations libres... en d'autres termes, il y a
+des tas de difféomorphismes très moches qui ressemblent autant qu'on
+veut à des déformations discontinues. Il serait naïf de travailler
+dans l'espace entier des diffémorphismes.
+
+Le hic, c'est que je ne sais pas définir précisément l'espace qui
+m'intéresse. Comment traduire mathématiquement la notion de
+difféomorphisme suffisamment fluide? L'idée des démons est d'imposer
+"à la volée" une contrainte de régularité à la solution, en
+restreignant non pas l'espace de recherche en tant que tel mais la
+façon dont on se déplace dedans.
+
+C'est l'idée que l'espace des solutions admissibles est complexe,
+alors on se place dans un espace plus grand, bien défini
+mathématiquement, et dans lequel on sait définir localement des
+sous-espaces de solutions admissibles. Ainsi, de proche en proche, on
+obtiendra une solution admissible.
+
+Encore faut-il éviter d'itérer indéfiniment car on sent bien qu'il y a
+un lièvre caché dans cette affaire. Chaque itération nous attire vers
+une solution potentiellement inadmissible puisque il s'agit d'un
+optimum local dans l'espace élargi. Pour faire le barbot, si notre
+espace d'admission n'est pas compact au sens topologique du terme, hé
+bien on pourrait finir par en sortir ou, tout du moins, se retrouver à
+la limite. 
+
+On le voit aisément dans la condition d'arrêt des démons: l'algorithme
+continue à évoluer tant que les images ne sont pas d'intensité égales
+partout! Et c'est un aspect qui m'a toujours perturbé dans cet
+algorithme, qu'il faille, en pratique, limiter le nombre d'itérations
+sous peine de partir en torche.
+
+Une idée simple qui me vient pour remédier à ce problème est
+d'appliquer un "taux d'apprentissage" aux mises à jour des démons,
+exactement comme dans l'approximation stochastique... On peut
+justifier ça par le fait que la SSD n'est qu'une version empirique de
+la "vraie" SSD, celle qu'on observerait si les images n'étaient pas
+bruitées. Et c'est ce bruit qui pourrait faire converger l'algorithme
+des démons vers une solution absurde.
+
+L'idée sous-jacente est de se ramener au cas où le critère atteint son
+minimum absolu (ou au moins local) sur l'espace d'admission.
+
+
+3. Apprentissage bayésien
+
+La brique de base de cette approche, c'est l'ajustement gaussien d'une
+distribution. On a une approximation courante q(x) de l'a posteriori
+sur les poids du réseau, on considère un batch qui donne une
+distribution b(x), et on veut améliorer q(x) en tenant compte de
+b(x). Je suppose ici par convenance que b(x) est mis "à l'échelle",
+ie, élevé à la puissance k=N/n où n est la taille de batch et N la
+taille totale de l'ensemble d'apprentissage.
+
+L'ajustement procède comme suit:
+
+1) Déterminer un contexte c(x) en fonction de l'approximation courante
+
+2) Déterminer un facteur f(x) en fonction du batch
+
+3) Calculer une approximation gaussienne de la cible p(x)=c(x)f(x) et
+mettre à jour q(x) selon
+
+Par exemple, dans un apprentissage avec batch aléatoire, le contexte
+peut être c(x)=q(x)^1-w, où w est un poids qui décroit vers zéro au
+fil des itérations et qui représente l'importance relative du batch
+par rapport à l'approximation courante. Le facteur est f(x)=b(x)^kw où
+k est une constante permettant de mettre le facteur "à l'échelle", ie,
+k=N/n où n est la taille de batch et N la taille totale de l'ensemble
+d'apprentissage.
+
+Quelles sont les méthodes dont nous disposons pour faire une
+approximation gaussienne? Toutes celles que j'ai référencées dans mes
+papiers sur le VS: outre VS, "Laplace", IS, MCMC... que l'on peut voir
+comme diverses mises en oeuvre pratiques de la méthode "idéale", à
+savoir la minimisation de la divergence KL, mais qui n'est pas
+calculable.
+
+Pour "Laplace" (en fait, juste un vieux DL...), il faut choisir un
+point pour le DL, le choix le plus naturel étant le centre du
+contexte. La vraie approximation de Laplace correspond à l'argmax de
+c(x)f(x), ce qui est évidemment plus coûteux en calculs sans être plus
+précis dans les faits. Notons que dans le premier cas, l'approximation
+gaussienne ne dépend que du mode mais pas de la variance du contexte.
+
+Pour VS (et IS) se pose la question du noyau d'échantillonnage
+(aléatoire ou pas). Le contexte c(x) est le choix le plus naturel, ce
+qui nous ramène à la présentation de mon article de 2016.
+
+Plus le contexte est resseré, comme on s'y attend au fil des
+itérations, plus Laplace se rapproche de min-KL. Par contre, en début
+d'algorithme, lorsque le contexte est encore large, Laplace pourrait
+fournir de mauvaises approximations des facteurs et faire partir
+l'algorithme dans une mauvaise direction... 
+
+On peut aisément imaginer des cas pathologiques où l'algorithme
+d'apprentissage partirait en torche dès la première itération à cause
+d'une seule approximation de Laplace effectuée "au mauvais
+endroit". Mais tout cela reste un peu théorique, il faut bien le
+reconnaitre... Il reste à prouver en pratique que VS permet un
+apprentissage plus robuste ou plus rapide, et ce dans le contexte du
+deep learning. Mais l'idée de tenir compte de l'incertitude dans
+l'apprentissage fait sens.
+
+Pour accélérer VS, on peut considérer une version one-step qui
+consisterait à faire une seule itération de Newton. Si on cherche q(x)
+sous la forme c(x)g(x), où g=exp[a phi], on peut initialiser a via g =
+q/c (ce qui suppose que tous les facteurs "se ressemblent"). Dans
+l'algo stochastique, ca revient à initialiser l'approximation du
+facteur par g(x)=q(x)^w.
+
+Et là, une question me vient: n'y a-t-il pas moyen d'utiliser une
+relaxation à la con genre EM pour approcher VS?
+
+L(a) = -a <phi> + int c exp[a phi]
+
+Il faudrait majorer L(a)-L(a0) <= Q(a, a0)
+
+1 + a phi + (a phi)^2 / 2
+
+
+---------------------------------------------
+
+Quelques réflexions du 12 septembre
+
+
+L'idée selon laquelle le "deep learning" serait la solution ultime à
+tous les problèmes d'IA est grossièrement fausse. Quand on fait du
+deep learning en pratique, on se rend compte qu'on a rarement un
+modèle permettant d'accomplir directement la tâche souhaitée. C'est
+souvent faute de données d'entrainement, mais pas nécessairement par
+manque de temps ou de moyens: il y a des problèmes pour lesquelles
+l'acquisition massives de données d'entrainement n'est tout simplement
+pas possible (pensons à des problèmes de reconnaissance de personnes).
+
+Dans les faits, on se retrouve la plupart du temps à faire de
+l'apprentissage par transfert, c-à-d utiliser un modèle entrainé à une
+tâche "générale" sur des données collectées et mises en ligne par tel
+ou tel institut sympa et recycler ledit modèle pour la tâche qui nous
+intéresse. Ce recyclage peut prendre plusieurs formes mais toutes
+reviennent peu ou prou à récupérer la représentation apprise par le
+réseau "généraliste" pour faire du machine learning classique.
+
+Oui, du machine learning classique, car tout l'objet du deep learning
+est l'apprentissage de représentation. Quand on n'apprend pas la
+représentation, on fait du machine learning classique - par
+définition. Et quand les données sont comptées, mieux travailler avec
+des modèles génératifs. "Apprentissage par transfert" est donc une
+expression codée pour dire qu'on revient à nos bons vieux modèles
+génératifs du 20ème siècle.
+
+Le panorama de l'IA se divise ainsi en deux méthodologies bien
+distinctes et complémentaires:
+
+- l'apprentissage de représentation: deep learning, modèles
+  discriminants (quoique on laisse pour l'instant de côté
+  l'apprentissage non-supervisé);
+
+- l'inférence statistique: shallow learning, modèles génératifs de
+  préférence.
+
+Il existe une raison fondamentale pour laquelle l'apprentissage de
+représentation ne nécessite pas de modèle génératif complet. Un tel
+apprentissage est assimilable à la recherche d'une statistique
+exhaustive pour l'inférence d'une certaine variable d'intérêt. Or, on
+l'a déjà vu à maintes reprises, il suffit pour cela de modéliser la
+distribution conditionnelle de la variable cachée à représentation
+connue. Plus généralement, on peut travailler avec un modèle de
+distribution jointe de la variable cachée et de la représentation, au
+prix d'une complexité accrue (type théorie des jeux) et sans bénéfice
+notable si on est en régime "big data". Mais dans tous les cas, il est
+inutile d'exhiber un modèle génératif des données complètes.
+
+La résolution de nombreux problèmes d'IA procède en deux étapes
+différentes en nature:
+
+1. Identifier le type de problème: choisir une représentation
+pertinente par analogie avec une tâche similaire déjà apprise;
+
+2. Comprendre le problème: modéliser la distribution de la
+représentation sous les différentes hypothèses à envisager.
+
+C'est une erreur de penser qu'il faut nécessairement réaliser ces deux
+étapes par deep learning. Ce n'est vrai que pour un petit nombre de
+problèmes "généralistes" qui sont en quelque sorte des savoir-faires
+élémentaires sur lesquels on peut capitaliser pour développer des
+aptitudes plus spécifiques.
+
+Ce serait aussi une erreur de penser que le deep learning, ou une
+autre forme d'apprentissage, est nécessaire pour réaliser la première
+étape. L'exemple du recalage montre qu'on peut travailler avec des
+représentations de base "par défaut" pour lesquelles existent des
+modèles génératifs identifiables découlant des régularités de la
+représentation. Par exemple, dans le cas du recalage, la
+représentation de base est l'ensemble des couples de pixels (l'ordre
+des couples étant sans importance), dont la distribution est
+assimilable à iid en vertu du théorème d''echangeabilité de de
+Finetti.
+
+Ainsi, restreindre volontrairement l'information permet dans certains
+cas d'éviter la phase d'apprentissage de représentation.
+
+Une petite question au passage: quelles contraintes faut-il appliquer
+à un CNN pour que les attributs qu'il apprend soient échangeables?  Si
+tel est le cas, leur distribution est facile à modéliser...
+
+Mais, de façon plus générale, est-il toujours faisable de modéliser la
+distribution d'une représentation apprise? Quid de l'estimation des
+paramètres? N'a-t-on pas intérêt parfois à sacrifier l'information
+(ou, plus exactement, mettre les paramètres inconnus dans l'équation
+informationnelle)? La vraisemblance composite peut apporter des
+réponses à ce niveau.
+
+En résumé: apprendre à faire une inférence, c'est d'abord choisir une
+représentation (laquelle passe éventuellement par un apprentissage
+profond), ensuite comprendre comment cette représentation varie en
+fonction de la variable d'intérêt, enfin évaluer la qualité de
+l'inférence qui en découle et recommencer le procès au besoin.
+
+L'apprentissage profond fournit une représentation hautement
+informative dans la mesure où le réseau choisi est suffisamment
+flexible et où la tâche considérée est suffisamment proche de celle
+qui nous intéresse.
+
+
+Question comme ça: est-ce qu'un CNN peut me pondre un descripteur des
+yeux indépendant de la pose du sujet? Idéalement, le 56e neurone de
+l'avant-dernière couche dense code la forme des yeux. Comprendre les
+CNN, c'est comprendre s'ils sont capables de faire ça.
+
+Mis à part la position du descripteur en question qui est évidemment
+arbitraire, la question revient à celle de l'invariance par
+translation et rotation. Il semble admis que les CNN sont plus ou
+moins invariants par translation, du fait de l'équivariance par
+translation de la convolution et des opérations de pooling. Pour ce
+qui est des rotations, une invariance approximative peut être obtenue
+en utilisant plusieurs versions tournées de chaque filtre... Si on ne
+le fait pas explicitement, l'apprentissage devrait le faire
+automatiquement pour la gamme de rotations observées dans l'ensemble
+d'apprentissage.
+
+
+
+

@@ -1,0 +1,33 @@
+Comment segmenter une image de façon robuste?
+
+Le problème de la segmentation est-il pertinent? Oui, une image peut être partitionnée en objets distincts. L'oeil (le cerveau) humain le fait très bien, même avec de multiples occultations. Comment y parvient-il?
+
+Manifestement, la luminance ou la couleur ne sont pas des critères suffisants. Ces paramètres sont susceptibles de varier fortement au sein d'un même objet à cause de l'aspect, de la texture, de l'éclairage, des ombres... C'est ce qui fait la difficulté de la segmentation des images naturelles par rapport aux images médicales, par exemple, dans lesquelles l'intensité est une caractéristique forte des tissus. 
+
+J'ai sous les yeux une image de poisson dont le haut de la tête est noir et se confond avec le fond de l'image... Pourtant, je suis capable d'extrapoler sa forme, en suivant les contours du poisson, qui à certains endroits sont à peine distincts. De toute évidence, les contours jouent un rôle comme candidats naturels à des frontières entre objets et notre oeil a la capacité de relier des segments, en utilisant sans doute des critères de "bonne forme", mais aussi d'ignorer certains contours, comme par exemple ceux créés ici par la réflection de l'eau. 
+
+Il est probable que notre cerveau fasse également appel à la cognition pour segmenter une image et que cette tâche soit réalisée de concert avec l'identification des objets représentés. Par exemple, je vois deux éléphants dont la trompe de l'un occulte la patte de l'autre. Comment puis-je savoir à quel éléphant appartient la trompe sans savoir qu'un éléphant a une trompe?
+
+La question qui se pose est celle de la représentation d'une image pour la segmentation et, plus fondamentalement encore, la reconnaissance d'objets. Dans les années 1990-2000, il y a eu beaucoup d'approches utilisant les ondelettes, cf notamment Viola and Jones, 2001.
+
+En 2005, Dalal et Triggs remettent au goût du jour l'histogramme des orientations de gradient (HOG). Très intéressant travail que j'avais râté cet hiver... Il y a un lien avec les SIFT mais les auteurs notent: "The success of these sparse feature based representations has somewhat overshadowed the power and simplicity of HOG's as dense image descriptors".
+
+Comment ça marche? On prend une image en niveau de gris ou de préférence en couleur, peu importe l'espace (RGB ou LAB). On peut appliquer une correction gamma racine carrée. On calcule les gradients par simples différences finies, ça marche mieux qu'avec du lissage gaussien. Pour les images en couleur, c'est la norme max du gradient qui fait foi. Les HOG sont calculés dans différentes cellules rectangulaires ou circulaires de taille 4x4 à 12x12, chaque pixel votant par interpolation bilinéaire proportionnellement à la norme de son gradient. Pour limiter les effets d'illumination, les histogrammes sont normalisés par blocs: dans un bloc correspondant à plusieurs cellules, on concatène les histogrammes et on normalise par une certaine norme. On aboutit ainsi à un vecteur de dimension de l'ordre de plusieurs milliers. 
+
+Est-ce que cette représentation est invariante par rotation/translation/changement d'échelle? Clairement pas. Un tutoriel de Satya Mallick sur la reconnaissance de chiffres manuscrits par HOG dans OpenCV conseille ouvertement de corriger l'inclinaison de l'écriture par la méthode des moments. C'est considéré comme un pré-traitement. 
+
+Une version des HOG est combinée avec les deformable part models (Felzenszwalb). "Cascade object detection with deformable part models", CVPR 2010. 
+
+Krizhevsky et al, "ImageNet Classification with Deep Convolutional Neural Networks", NIPS 2012. Motivation for CNN: complex model but enforces natural assumptions about images (stationarity and locality of pixel dependencies). ImageNet = 15M images, 22K categories. In fact, the paper seems to consider 1000 classes only. They resampled images to 256x256, the network is trained on 224x224 patches. Their CNN = 5 convolutional layers + 3 fully connected layers. ReLU response makes training 6 times faster than tahnh. Some tricks: use two GPUs, local response normalization, overlapping pooling. Discriminative training (multinomial logistic regression).
+
+60 million parameters --> need to reduce overfitting. They use several tricks. Data augmentation: applying translation and horizontal reflections, alter RGB values using PCA to simulate changes in illumination. They also use dropout: setting to zero the output of hidden neurons with probability 50% (only in the first two layers). Learning via SGD using mini-batches of size 128. 
+
+R-CNN. R for Region-based. Girshick et al, 2013, "Rich feature hierarchies for accurate object detection and semantic segmentation". Goal is to apply CNN to object detection (not just image classification), so output is a set of bounding boxes with associated labels. Basically: R-CNN = selective search + CNN. 
+
+In 2015-17, Microsoft/Facebook researchers created Fast R-CNN, Faster R-CNN and Mask R-CNN, speeding up and improving R-CNN in several ways: sharing computation, removing the need for selective search (by inserting a region proposal network after the feature extraction step), and producing pixel level segmentation masks rather than bounding boxes.
+
+
+
+
+
+

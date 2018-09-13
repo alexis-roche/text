@@ -1,0 +1,54 @@
+Image indexing = extract features to represent image
+Similarity measure
+Content-based image retrieval != concept-based image indexing
+SIFT = scale-invariant feature transform
+SURF = speeded-up robust features
+RANSAC = random sample consensus
+
+Homogeneous coordinates:
+(x, y) --> (x, y, 1)
+3d point (x, y, w) projects to (x/w, y/w)
+
+Perspective transform.
+8 independent parameters 
+[ a b c
+  d e f
+  g h 1 ]
+  
+
+
+https://www.researchgate.net/post/How_to_check_whether_two_images_are_similar2/2
+
+Viola and Jones, CVPR 2001, Rapid Object Detection using a Boosted Cascade of Simple Features
+Focus of attention
+
+AdaBoost
+
+OpenCV
+http://docs.opencv.org/master/d2/d96/tutorial_py_table_of_contents_imgproc.html
+
+import cv2
+
+# I/O
+img = cv2.imread('alexis.jpg', 0)  # 1 for color, 0 for BW, -1 for unchanged
+WARNING: BGR mode, while matplotlib uses RGB
+cv2.imwrite('toto.png', img)
+
+# Display
+cv2.imshow('image',img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# Color transform
+b, g, r = cv2.split(img)
+hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+
+# Resampling
+rows, cols = img.shape[0:2]
+img_t = cv2.warpAffine(img, T23, (cols, rows))
+dst = cv2.warpPerspective(img,M,(300,300))
+
+# 2d convolution
+kernel = np.ones((5,5), np.float32) / 25
+dst = cv2.filter2D(img,-1,kernel)
+blur = cv2.bilateralFilter(img,9,75,75)

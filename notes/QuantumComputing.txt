@@ -1,0 +1,25 @@
+Quantum computing is computing using two fundamental
+quantum-mechanical phenomena: superposition and entanglement.
+
+Quantum bit = qubit
+Binary digits = bits
+
+Qubit state can have several values unlike usual bits.
+
+The quantum state "collapses" to a classical state as a result of making the measurement.
+
+L'état du qbit est une superposition de deux états:
+
+alpha |0> + beta |1>
+
+alpha et beta sont complexes, |alpha|^2 + |beta|^2 = 1, on peut choisir la phase de facon que alpha soit réel positif.
+
+L'état d'un quantum à n-qubits est la superposition d'états de base et est représenté par 2^n coefficients complexes liés dont le module au carré représente la probabilité de mesurer l'état de base associé.
+
+Classical computers are bad at combinatorial problems (optimization...).
+
+IBM quantum experience (5 cubits)
+
+Parallel computing...
+
+L'idée de base c'est que le système est dans plusieurs états en même temps, ce qui est cool pour les problèmes combinatoriaux... mais pas clair comment on récupère le bon.

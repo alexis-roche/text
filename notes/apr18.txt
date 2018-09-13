@@ -1,0 +1,49 @@
+Au final, quelle importance le concept de vraisemblance restreinte généralisée a-t-il?
+
+Commençons par la vraisemblance restreinte classique. Quel intérêt a-t-elle? Elle permet d'éliminer des paramètres sans aucun calcul, ce qui semble à première vue contraire à la méthode bayésienne, qui préconise d'éliminer les paramètres par intégration:
+
+p(y¦x) = int p(y¦x,theta) pi(theta¦x) dtheta
+
+Mais cette incompatibilité n'est qu'apparente. La vraisemblance restreinte revient simplement à un choix particulier d'espace de représentation, dans lequel toutes les approches statistiques sont disponibles, et notamment la méthode bayésienne.
+
+Ce qui est potentiellement non-bayésien dans la vraisemblance restreinte, c'est le fait de considérer deux espaces de représentation distincts dans la même analyse statistique, l'idée étant de réduire un espace initial de façon opportune pour inférer certains paramètres. Une fois placé dans l'espace réduit, on peut être parfaitement bayésien à condition d'oublier l'existence de l'espace initial.
+
+L'approche est donc "localement" bayésienne, ou en tout cas peut l'être. Lorsqu'on l'utilise pour inférer la variance du bruit dans un modèle linéaire, on est dans les clous. Mais lorsqu'on utilise l'estimée par vraisemblance restreinte de la variance en question, on sort du strict cadre bayésien qui suppose un espace de représentation unique. Il n'y a alors plus de notion objective de "données" mais des modules inférentiels qui communiquent entre eux en utilisant chacun leur propre représentation des données.
+
+--------------------------------------------------------------------------------------
+
+Peut-on interpréter les couches intermédiaires d'un réseau neuronal comme des classes implicites dont les valeurs codent des probabilités?
+
+--------------------------------------------------------------------------------------
+
+Un des problèmes fondamentaux sous-jacent à bien des questions que je me pose est de déterminer la meilleure représentation pour une inférence. La question est intimement liée à l'existence de paramètres de nuisance car, si tous les paramètres de la distribution reliant les données à la variable d'intérêt sont connus, l'inégalité fondamentale du traitement des données nous dit que plus la représentation est large, plus l'inférence est précise (au sens où l'information mutuelle entre la représentation des données et la variable d'intérêt augmente). 
+
+Plus généralement, pour une loi "par défaut" pi(y), la divergence de Kullback de p(y|x) à pi(y) à x fixe est plus grande que pour n'importe quelle sous-représentation z=f(y). Dans le cas de l'information mutuelle, la loi par défaut est la loi marginale de pi(y) résultant de l'intégration bayésienne de X. Mais on peut adopter une démarche non-bayésienne dans laquelle X n'est pas probabilisée et, dans ce cas, il est naturel de choisir pi(y) comme la distribution correspondant à une hypothèse particulière. Plus fondamentalement, c'est un a priori, non pas sur les hypothèses, mais sur les observables.
+
+Reste que plus la représentation est large, plus D(p(y|x)||pi(y)) est grand pour tout x... c'est une fonction de x que l'on peut noter I(x) et qui représente en un certain sens l'information que les données fournissent sur une classe particulière.  Grosso merdo, cette information est d'autant plus grande que les données sont riches. 
+
+Mais il s'agit là d'une situation idéale. Dans la vraie vie, il y a des paramètres inconnus et l'information dépend de ces paramètres zinconnus: I_theta(x)... ce qui peut changer la donne, car plus la représentation est parcimonieuse, moins ces paramètres sont nombreux, et moins ils sont suceptibles d'altérer l'information... est-ce bien dit? Je ne sais pas. Je ne sais plus. 
+
+--------------------------------------------------------------------------------------
+
+Information mutuelle entre une représentation et une variable binaire...
+
+Suppose X = 0, 1
+
+I(X, Y) = int p(y|x) p(x) log p(y|x) / p(y) dy dx
+= p0 int p0(y) log p0(y)/p(y) + p1 int p1(y) log p1(y)/p(y)
+= p0 D(p0||p) + p1 D(p1||p)
+
+avec p(y) = p0 p0(y) + p1 p1(y). 
+
+--------------------------------------------------------------------------------------
+
+How about using the EP algorithm (with Laplace approx or VS) to train a CNN? It would yield credibility intervals on the parameters... Useful to evaluate whether the training dataset is sufficient or not. Of course, we need to use the "fully factorized" version of EP for feasibility. It provides marginal credebility sets on each and every parameter, and that would be already very good! 
+
+C'est une putain de bonne idée, ça, mon cochon! Peut-être enfin la reconnaissance mondiale!!!
+
+Est-ce qu'il faudrait combiner ça avec du dropout? Le dropout, c'est quoi déjà? "Dropout consists in randomly setting a fraction of input units to 0 at each update during training time, which helps prevent overfitting." Bon, en gros, c'est une façon de bruiter le réseau... en quoi est-ce que ça évite l'overfitting? On peut imaginer que ça évite de tomber dans un minimum local faiblement bandogène. C'est de la stochastiquerie de base. La question ne me semble pas de la plus haute importance. En pratique, j'ai l'impression que le dropout ne sert pas à grand-chose de toute façon. Mais, quoi qu'il en soit, c'est une option sur la table, pas incompatible avec l'EP. 
+
+Pour faire l'essai, il suffit de récupérer mon package "variana", le dépoussiérer un peu car il ne semble pas super bien documenté, et trouver le moyen de mettre à jour les paramètres du modèle Keras... peut-être aussi réfléchir à une bonne paramétrisation (je pense notamment aux soucis de surparamétrisation du modèle logistique)... Un peu de travail, donc, mais potentiellement une belle récompense. 
+
+--------------------------------------------------------------------------------------

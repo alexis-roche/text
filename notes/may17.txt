@@ -1,0 +1,40 @@
+Food recognition biblio
+
+Bossard ECCV 14. First step is to create superpixels using Felzenswalb
+2004 (about 30 superpixels per image). The features associated with
+each superpixel are dense SURFs and CIELAB (L*a*b) color values. My
+understanding of the following steps is that the superpixels are
+classified into distinct components, some of which are more
+discriminative (i.e. class-specific) than others. This is done using a
+Random Forest. Next, for each class, a binary SVM is trained on each
+component among the top N ones (I guess to say chicken vs not chicken). 
+
+Superpixels.
+
+Felzenszwalb, P.F., Huttenlocher, D.P.: Efficient Graph-Based Image
+Segmentation. IJCV (2004)
+
+SLIC. The core idea is to do clustering in the 5D space defined by
+color and pixel position.
+
+Felzenszwalb, P.F., Girshick, R., McAllester, D., Ramanan, D.: Object
+detection with discriminatively trained part based models. PAMI (2010)
+
+Ciocca et al, 2016, perform food recognition from canteen tray images
+by first extracting ROIs and then classifying those using SVM. The
+first step is accomplished using a fairly sophisticated image
+segmentation pipeline relying, in particular, on the JSEG
+algorithm. JSEG identifies regions that are homogeneous in the sense
+of the `J-criterion' defined by Deng and Majunath, 2001. 
+
+K-means algorithm. A practical observation with the K-means is that
+the clusters it generates do not always follow the strongest image
+contours. The obvious reason for this is that cluster assignment not
+only depends on local intensity variations, but also on global
+ones. How can we make the K-means behave in a more intuitive way?
+
+fairly obvious problem that I am realizing only
+now with the K-means algorithm is that it tends to merge small regions
+into bigger ones because the underlying fitting error is proportional
+to the region size. Hence, a region with pretty strong intensity
+gradients at the border can "disappear" because it is just too small. 

@@ -1,0 +1,832 @@
+Any machine learning algorithm can be represented as a two-step process:
+
+Y --> Z --> X
+
+Y: raw data
+Z: representation (feature set)
+X: response (variable of interest)
+
+Why is it relevant to consider the representation stage? Because of
+statistical modeling: both learning and inference rely on the joint
+distribution of (z, x). In other words, the representation is
+important because it acts as the sample space.
+
+There are two cases to distinguish:
+1. fixed representation
+2. representation learning
+
+In 1, z is a known function of the data, z=f(y), so we can consider it
+as the "actual data" in the problem. Inference can be based on the
+joint distribution p_theta(z, x), which is presumably parameterized by
+some vector theta to be determined somehow. To learn theta, we can for
+instance maximize the log likelihood sum_i log p_theta(z_i, x_i) over some
+training dataset.
+
+In 2, the feature extraction function is unknown and should therefore
+be paramaterized as well. But, then, does it make sense to use the
+joint likelihood as a learning criterion.
+
+It does not because z is not a fixed function of y. And this is where
+PDF projection may enter the game in a fairly unexpected way: we know
+how to build a "proper" likelihood from a changing feature space,
+don't we?
+
+Here, the feature is not changing as a function of the response
+variable (x), it's changing as a function of the data (y). It's pretty
+much the same as selecting the best feature among a predefined
+set. The network architecture determines the feature space.
+
+L(alpha) = log [ p(z_alpha, x) / pi(z_alpha) ]
+
+When does this boil down to discriminative learning? The formal
+condition is that p(z_alpha) = pi(z_alpha), which happens when the
+reference distribution is chosen as the marginal corresponding to
+p(z_alpha, x).
+
+Je reboucle ici sur mon idee de l'automne... On a un modele qu'on peut
+representer graphiquement par un graphe un peu particulier à 3
+sommets:
+
+Y --> Z <==> X
+
+Le lien Y --> Z est déterministe et représente l'extraction
+d'attributs. Autrement dit, Z est une fonction de Y, Z=f_alpha(Y),
+paramétrée par un certain vecteur 'alpha'. Le lien Z <==> X est
+probabiliste, il représente une distribution de probabilités conjointe
+p_theta(z, x) paramétrée par un autre vecteur 'theta'.
+
+Quelquepart, tout algo de machine learning peut être représenté par ce
+type de graphe.
+
+En fait, on peut faire encore plus général (et plus simple). Supposer
+qu'on a une chaine de Markov.
+
+Y --> Z --> X 
+
+Le premier lien pourrait être probabiliste (des attributs aléatoires,
+pourquoi pas?) mais on se restreindra au cas déterministe. 
+
+De façon classique, l'apprentissage d'un tel modèle est fait de
+manière discriminante:
+
+max_{alpha,theta} sum_i log p_theta(xi|zi(alpha))
+
+Ce critère dépend bien de alpha et theta.
+
+p(x | y) = p(x | z)
+-> p(x, y) / p(y) = p(x, z) / p(z)
+
+Ce que je pressens, c'est une généralisation de cette approche... Il
+s'agit d'itérer entre l'estimation de theta et de alpha de manière à
+optimiser des critères différents (donc, dans un registre de théorie
+des jeux plus général que de l'optimisation classique).
+
+A attributs fixes (alpha fixe), on maximise un critère de
+vraisemblance des plus classiques:
+
+max_theta sum_i log p_theta(z_i, x_i)
+
+Remarquons que si le modèle sépare les distributions prédictives et
+marginales, c-à-d de la forme p_theta(x|z)f_nu(z), alors cette étape
+revient à une approche discriminante classique pour la distribution
+prédictive complétée par une estimation de la marginale (qui peut ne
+servir à rien, cf étape suivante).
+
+A distribution fixe, on fait du "feature engeneering", c-à-d on
+cherche l'attribut qui maximise un critère de discrimination:
+
+max_alpha sum_i log p(z_i(alpha), x_i) / pi(z_i(alpha))
+
+où pi est une certaine distribution de référence, par exemple
+pi(zi)=p(zi|x0) pour un certain x0 qui serait la "réponse par défaut"
+du classifieur.
+
+Remarquons que si on choisit la distribution de référence comme la
+marginale de z (connue à l'issu de la première étape), ce qui est un
+choix assez naturel, alors cette étape revient à maximiser la
+discrimination.
+
+Dans la foulée de ces réflexions géniales, je revois le séminaire de
+Yann LeCun à CMU 2016
+(https://www.youtube.com/watch?v=IbjF5VjniVE). Parmi les choses qui
+m'interpellent, il y a un papier de Pinheiro et al
+(https://arxiv.org/pdf/1506.06204.pdf) qui décrit un réseau profond
+capable de classifier une image et produire le masque de l'objet
+représenté. L'idée est tout simplement de brancher deux réseaux
+parallèles sur un même réseau assurant une extraction d'attributs
+communs aux deux tâches. C'est bourrin et ça marche... comme d'hab.
+
+GAN: Generative adversarial nets. Deep generative models (to "predict
+the state of the world") as opposed to discriminative models. So the
+goal of GAN is to encode a probability distribution pg(x) on data
+x. But, more specifically, it is to implement the sampling of
+realistic data.
+
+G: z -> x (noise -> data). Outputs a simulated point, x=G(z).
+D: x -> scalar. D(x) evaluates the probability that x is real vs sampled from pg(x).
+
+Ensuite, un jeu à somme nulle permet d'ajuster les paramètres de G et
+D... et donc d'avoir non seulement un échantillonneur de données mais
+aussi, en prime, un algorithme pour évaluer si des données sont
+réelles ou pas.
+
+La façon dont LeCun présente ce travail est quelque peu confuse, je
+trouve. Il semble particulièrement fan de l'idée des GAN mais sans
+bien expliquer pourquoi.  Il voit les GAN comme une façon de prédire
+un état possible du monde -- par opposition à un état unique. Bon,
+c'est l'idée de modéliser la variable d'intérêt comme variable
+aléatoire plutôt que comme une inconnue classique, rien de
+révolutionnaire ici.
+
+Cela étant, c'est une méthode qui semble pertinente pour construire un
+échantillonneur. On peut voir le réseau G comme une version
+non-linéaire d'un développement de Karhunen-Loève. Idée forte et
+simple, qui tombe sous le sens dans le contexte du "deep learning" qui
+tourne autour de l'idée générale de modéliser des fonctions
+non-linéaires.
+
+GAN est comparable aux MCMC. Mais MCMC dépend d'un échantillonneur de
+proposition et n'est finalement qu'une méthode pour "corriger"
+statistiquement les résultats produits par cet échantillonneur.
+
+Autres idées que je retiens du talk de LeCun...
+
+"Pooling creates some sort of distortion invariance"
+
+"What made CNN work on the grand scale was implementation on GPUs and
+the availability of very large labeled datasets"
+
+ResNet is a way to stack many layers without paying a price in terms
+of optimization.
+
+There is like a threshold of data that you need to make CNNs
+work. Above this threshold, you make them bigger and bigger and they
+work better and better. 
+
+Bon, mais les questions que je me pose en ce moment ont trait aux
+problèmes de segmentation d'images. Par exemple, comment distinguer la
+nourriture du fond (plateau, assiette, papier alu...)  dans une image
+de bouffe? C'est une tâche complexe eu égard à la difficulté de
+déterminer a priori des attributs discriminants. Plus complexe que de
+segmenter matière grise, blanche et LCR dans une IRM du cerveau.
+
+Pourquoi? Parce que dans les images dites naturelles, l'intensité, la
+couleur, sont loins d'être homogènes dans un même objet à cause des
+réflections, ombres et autres fluctuations spatiales. Il est de ce
+fait difficile d'identifier des régions pertinentes (homogènes), sans
+parler de labéliser celles-ci.
+
+L'approche classique en segmentation d'images est de se fonder sur un
+modèle génératif décrivant l'apparence locale de chaque élément
+composant l'image: le poulet, les patates, le papier alu, etc. On voit
+bien que de tels modèles font appel à des champs aléatoires fortement
+corrélés spatialement. Ca s'annonce complexe!
+
+Un modèle d'image classique dit que dans une région homogène,
+l'intensité des voxels est iid. On prend généralement une bonne
+vieille distribution gaussienne dont la moyenne caractérise alors
+l'apparence de l'objet et la variance le niveau de bruit. On peut même
+se permettre d'estimer ces paramètres à la volée (plutôt que de les
+apprendre à l'avance).
+
+Mais un tel modèle ne colle pas à la réalité des images
+naturelles. Modéliser l'intensité d'une photo de poulet, c'est décrire
+la texture de la peau en fonction de sa cuisson, les réflections, les
+ombres, ... même chose pour les patates, même chose pour le papier
+alu. C'est beaucoup plus compliqué que de modéliser une IRM du
+cerveau!
+
+Une notion qui s'impose intuitivement est celle de champ de vue. On
+peut classifier avec une bonne fiabilité un voxel IRM pris au centre
+d'une petite région, voire isolé. Un peu de régularisation spatiale,
+et le tour est joué. Ce n'est pas envisageable dans une image
+naturelle. Il faut de toute évidence un champ de vue plus grand pour
+identifier l'objet.
+
+En segmentation IRM, cette notion de champ de vue est implicite au
+modèle génératif, elle découle de l'hypothèse d'indépendance
+conditionnelle des voxels (en l'absence de biais du champ
+magnétique). Bien entendu, une régularisation spatiale est souhaitable
+pour réduire l'effet du bruit mais, comme l'expérience de l'algorithme
+VEM nous l'enseigne, celle-ci peut être appliquée en
+post-traitement. Mathématiquement parlant, l'information fournie par
+l'image est intégralement décrite par un "champ externe" (donné par la
+vraisemblance des labels). 
+
+C'est le calcul de ce champ externe qui est la clé. Le reste, ce ne
+sont que des fioritures. En imagerie médicale, on a sans doute une
+perception faussée car le calcul du champ externe est trivial. Mais il
+n'en est pas moins essentiel.
+
+En vision naturelle, ce n'est plus trivial pour les raisons déjà
+évoquées. Si on veut rester dans le même cadre algorithmique, il nous
+faut associer à chaque pixel une fonction de vraisemblance
+(d'appartenance aux différentes classes). Il est bien clair que cette
+vraisemblance ne saurait se baser sur le seul pixel mais sur une
+région suffisamment grande l'entourant.
+
+Techniquement, cela suppose une fonction de vraisemblance de la forme:
+
+L(S, Y) propto prod_i p(si|Yi)
+
+On peut justifier cette forme en disant que, d'une part, la
+vraisemblance est la même chose que l'a posteriori correspondant à un
+a priori uniforme sur les labels et, d'autre part, qu'on peut faire
+l'hypothèse qu'en chaque pixel, la distribution de probabilités des
+labels conditionnelle à toute l'image ne dépend à peu de choses près
+que d'un certain voisinage du pixel, dont nous fixerons la
+taille. Ceci permet de déterminer les marginales de notre a posteriori
+"agnostique". Il ne nous reste plus alors qu'à justifier
+l'approximation dudit a posteriori par le produit de ses marginales,
+et encore cela est-il nécessaire si on veut faire de la
+régularisation.
+
+On se ramème ainsi au problème d'estimer les probabilités des labels
+d'un pixel en fonction du voisinage dont il est le centre. Une idée
+naturelle qui vient à l'esprit est d'utiliser un CNN pour construire
+la fonction de vraisemblance par pixel. Ce CNN prendrait un bloc image
+de taille fixe en entrée et produirait un vecteur de probabilités en
+sortie: c'est exactement ce qu'on veut.
+
+Au passage, on a mis au point un petit tour de passe-passe qui
+remplace l'estimation de la vraisemblance par celle de l'a posteriori
+dit "agnostique" (ou plutôt de ses marginales). Y aurait-il tromperie
+sur la marchandise?
+
+Le CNN apprend p(s|Y) supposée être la même distribution pour tous les
+pixels, hypothèse raisonnable s'il en est. Cette distribution p(s|Y)
+intègre la distribution marginale de s, qui est remplacée dans
+l'approche bayésienne par l'"a priori", mais hormi cette distinction
+on a p(s|Y) = p(s) p(Y|s) à la normalisation près, donc c'est bien la
+vraisemblance multipliée par p(s) que l'on apprend. En fait, c'est
+encore mieux d'avoir déjà intégré le champ externe. La vraisemblance
+stricte n'est pas fondamentale.
+
+Mais cette généralisation du modèle basique de segmentation nous
+oblige à repenser certaines notions, à commencer par celle de
+vraisemblance classiquement associée à la distribution générative
+p(Y|s). A force de lier ces deux concepts, on en oublie qu'il n'est en
+aucun cas nécessaire d'exhiber un modèle génératif réaliste pour
+estimer correctement la vraisemblance. Ce deuxième problème peut être
+résolu par apprentissage supervisé d'un modèle purement discriminant
+car c'est in fine ce modèle qui nous intéresse!
+
+Le cerveau des êtres vivants dotés de la vision a-t-il un modèle
+interne de formation d'image? Une telle hypothèse semble presque
+absurde. En tous cas, un tel modèle n'est pas nécessaire.
+
+Est-ce à dire que le cerveau fait de l'apprentissage purement
+discriminant? Peut-être pas. Rebouclons sur notre idée d'un réseau
+fondé sur un modèle semi-génératif, c-à-d dont les dernières couches
+sont "réversibles" au sens où elles modélisent la distribution
+conjointe des labels et d'attributs de haut niveau.
+
+Une telle architecture semble plus plausible car elle évite la
+complexité déraisonnable d'un modèle génératif complet tout en en
+fournissant les avantages: capacité d'apprentissage supervisé plus
+parcimonieux, d'apprentissage non-supervisé, d'estimation à la
+volée... 
+
+Pour ce qui est de l'apprentissage supervisé, l'intérêt des modèles
+semi-génératifs apparait cependant assez maigre. Qu'on pense au papier
+de Ng qui montre, théorie et expérience à l'appui, que l'apprentissage
+discriminant finit toujours par faire mieux qu'un apprentissage
+génératif comparable pourvu qu'on ait suffisamment de données
+d'entrainement. A l'heure du big data, un tel argument semble
+condamner les modèles génératifs pour l'apprentissage supervisé. Quand
+bien même le propos était de dire que ces modèles pouvaient s'avérer
+supérieurs pour de petits jeux de données.
+
+Notons aussi que l'apprentissage discriminant n'oblige pas un modèle à
+être purement discriminant car on peut très bien construire une
+distribution jointe p(x,y) en apprenant séparemment p(x|y) et p(y). La
+distribution générative qui en résulte p(y|x), proportionnelle à
+p(x|y)p(y), peut être vue comme une version "tiltée" de la marginale
+p(y) et on pourrait sans doute envisager une généralisation de
+l'approche GAN de Jean-Claude Bravetype (Goodfellow) pour
+l'échantillonner. Tout ceci serait fait en aval de l'apprentissage
+discriminant et n'aurait d'intérêt que pour simuler des
+représentations de divers objets.
+
+Ce n'est pas le but en classification, souvenons-nous de la phrase de
+Vapnik: "one should solve the classification problem directly and
+never solve a more general problem as an intermediate step". Pas
+certain qu'il visait la modélisation générative comme "more general
+problem" car maximiser la vraisemblance conditionelle p(x|z) ou la
+vraisemblance jointe p(x,z) sont en définitive deux problèmes du même
+ordre, le 2e pouvant être vu comme une régularisation du 1er. Est-ce
+vraiment "plus général"? Laissons ce débat à ceux qu'il intéresse.
+
+Pour résumer, l'idée de l'apprentissage génératif dans les réseaux
+supervisés, sans être absurde, semble assez peu fertile. Elle oblige à
+une généralisation non-triviale de l'apprentissage type théorie des
+jeux, où les critères de sélection d'attribut et d'ajustement des
+distributions génératives sont distincts.
+
+Pour le non-supervisé, les choses sont différentes. A attributs fixes,
+on peut ajuster les distributions p(z|x) en maximisant la
+vraisemblance marginale p(z) (via mixture EM, typiquement), modulo les
+problèmes de label swapping. Pour être plus clair, on peut au moins
+théoriquement identifier les distributions des attributs par classe,
+sans forcément être capable de désigner les classes en question. Mais
+comment sélectionner les attributs? On peut peut-être prendre une
+version intégrée de la log-vraisemblance conditionnelle.
+
+Mais mon objectif pour l'heure n'est pas de faire de l'apprentissage
+non-supervisé. Plutôt essayer d'unifier deux approches qui semblent
+radicalement opposées: le paradigme classico-bayésien (génératif)
+d'une part, l'apprentissage discriminant d'autre part. Si cette
+dernière approche domine à juste titre le champ de l'apprentissage
+supervisé, la première est une condition sine qua non à toute forme
+d'apprentissage non-supervisé ou d'inférence "à la volée", c-à-d sans
+apprentissage.
+
+Mais, cette petite réflexion le prouve, la distinction entre
+modélisation générative et discriminante est un peu surfaite, l'une
+n'étant en fait qu'un cas particulier de l'autre (dans lequel des
+paramètres distincts encodent les distributions conditionnelles et
+marginales). Il n'y a donc pas de différence fondamentale entre les
+deux, même si l'approche discriminante ne se généralise pas
+trivialement pour l'apprentissage de représentation.
+
+Construire un réseau, c'est exhiber un modèle paramétrique, qu'il soit
+"totalement" génératif ou juste discriminant - peu importe. La
+démarche classico-bayésienne commence de la même manière. Où est la
+différence? La différence, c'est l'apprentissage vs l'élimination à la
+volée des paramètres.
+
+Mais, là encore, on peut voir ces deux démarches en apparence opposées
+dans un même cadre. Il suffit de considérer le jeu d'apprentissage
+comme faisant partie des données de l'inférence. Dans un cas, on a un
+jeu d'apprentissage et, dans l'autre, non.
+
+Si j'ai un modèle p_theta(x, y), avec des données d'apprentissage (xi,
+yi) pour i=1,..., n, et une nouvelle donnée `y`, en supposant
+l'indépendance mutuelle des cas, la log-vraisemblance correspondant
+aux observations X=(x1, x2, ..., xn) et Y=(x1, x2, ..., yn, y) est:
+
+Ln(theta) = sum_i log p_theta(xi, yi) + log p_theta(y)
+
+On peut aussi prendre la variante qui considère `x` comme un
+paramètre:
+
+Ln(theta) = sum_i log p_theta(xi, yi) + log p_theta(x, y)
+
+Attention: bien garder à l'esprit que cela suppose `theta` constant à
+travers les expériences!
+
+Si n=0, c'est la log-vraisemblance marginale ou jointe, deux critères
+des plus classiques. Si n>>1, le terme lié aux nouvelles données est
+négligeable dans un cas comme dans l'autre, ce qui permet d'estimer
+`theta` une fois pour toutes, d'où le concept-même d'apprentissage,
+plutôt que de le réestimer à chaque nouveau problème d'inférence, ce
+qui serait un poil plus précis mais beaucoup moins efficace.
+
+Où se situe ma contribution sur la vraisemblance restreinte
+généralisée? On peut remplacer l'observable `y` par n'importe quelle
+représentation fixe: ça ne change rien conceptuellement, la
+représentation étant assimilée à l'observable. Par contre, ma
+généralisation prend en compte une représentation adaptative (fonction
+de `x`). En fait, on peut voir ça sous l'angle du PDF projection
+theorem:
+
+p_theta(x, y) / pi_theta(y) = p_theta(z_x, x) / pi_theta(z_x)
+
+Plutôt que d'estimer `theta` via la distribution jointe p_theta(x, y),
+l'idée est de passer dans un espace de représentation adaptative, ce
+qui conduit à calculer un rapport de vraisemblances maximales plutôt
+que de maximiser la vraisemblance.
+
+Il y a quelque chose qui semble clocher dans cette histoire: on
+maximise pi_theta(z_x) avec des z_x tirés sous x et donc pas
+distribués selon pi(z_x). Ca aurait plus de sens d'estimer pi(z_x) à
+partir d'attributs z_x tirés dans la bonne loi. A condition, bien sûr,
+de disposer de telles données, mais ça n'aurait pas de sens que classe
+de référence ne soit pas échantillonnée comme les autres.
+
+Résumons-nous dans un cas simple, le cas binaire où x prend 2 valeurs
+possibles, x0 et x1. On a un jeu de données labélisées (yi, xi) qui
+revient à deux ensembles z0i et z1i correspondant aux labels x0 et x1,
+respectivement. En choisissant la distribution de ref comme p(y|x0) et
+en prenant un a priori uniforme sur x, le rapport de vraisemblances
+revient à:
+
+R(theta) = prod_i p_theta(z1i|x1) / p_theta(z1i|x0)
+
+et est donc indépendant des attributs z0i acquis sous x0 puisque, pour
+ceux-ci, le numérateur et le dénominateur sont égaux. Donc, en fait,
+on n'a pas besoin de données sous x0. Bon, admettons, mais maintenant
+que sommes-nous censés faire? Maximiser le numérateur et le
+dénominateur indépendament. OK, ça donne deux estimées de p(z1|x1),
+l'une précise et l'autre biaisée puique contrainte à la famille
+p_theta(z1|x0). Attention: il ne s'agit pas d'une estimée de p(z1|x0)
+puisque les points z1i sont tirés sous x1!
+
+A un facteur multiplicatif près, le rapport de vraisemblances
+correspondant à (X, Y) est donné en x1 par le rapport de ces deux
+distributions.  La seule différence par rapport à l'approche
+"naturelle", c'est finalement qu'on utilise cette espèce d'estimée
+bâtarde au dénominateur plutôt que p(z1|x0). Quand on passe à
+plusieurs classes, on aura le même phénomène en supposant que les
+p_theta(zk|xk) sont des familles disjointes.
+
+Le truc, c'est que l'apprentissage de theta par maximum de
+vraisemblance "complet" donne exactement l'approche "naturelle" et est
+donc incontestablement plus... naturel.
+
+Encore une fois, force est de constater que cette idée de
+vraisemblance restreinte (généralisée) est peu convaincante dans le
+contexte de l'apprentissage supervisé. L'astuce sous-jacente est de
+réduire la dimension des paramètres, mais si ce n'est pas nécessaire
+au regard de la puissance statistique, alors ce n'est plus vraiment
+une astuce mais plutôt une complication inutile.
+
+Dans le modèle de recalage statistique, on n'est pas dans un contexte
+d'apprentissage mais d'estimation à la volée. L'astuce du changement
+de représentation permet d'éviter de se retrouver à estimer la
+distribution des points isolés sur des ensembles très petits. Par
+exemple, si on prend un modèle gaussien pour les points isolés, la
+distribution estimée avec un seul point isolé est un Dirac et rend la
+log-vraisemblance infinie.
+
+Mais le problème est plus fondamental que ça. Remarquons que s'il n'y
+a pas de point isolé, alors il n'y a pas de distribution des points
+isolés. Comment dès lors évaluer la vraisemblance de correspondances
+dont certaines nulles? N'importe quelle distribution peut être
+utilisée, notamment un Dirac qui rend la vraisemblance infinie si tous
+les points putativement isolés ont même valeur. C'est possible: il
+suffit d'envoyer dans le décor tous les points d'un même iso-set!
+
+Il y a donc quelque chose de fondamentalement vicié avec la
+vraisemblance profile (complète) dans ce modèle. Le problème, c'est
+l'identifiabilité du modèle!
+
+Pour mémoire, un modèle est identifiable s'il définit une bijection
+entre l'ensemble des paramètres et l'ensemble des distributions qu'ils
+décrivent. En recalage iconique, on se rend compte que les
+correspondances ne sont pas identifiables si la distribution
+conditionnelle des intensités sources est la même pour deux tissus
+distincts (dans l'image cible). Des contraintes spatiales sur les
+appariemments sont donc nécessaires. 
+
+Mais raisonnons à correspondances fixées. La distribution complète des
+couples (incluant les points isolés) n'est pas identifiable car on ne
+peut estimer les proportions de points appariés et isolés (d'une
+certaine manière, ces proportions sont arbitraires). Celles-ci jouent
+un rôle plus important qu'on pourrait le penser car les "distributions
+des points isolés" ne peuvent être définies que s'il existe des points
+isolés, lapalissade s'il en est... On le sent: on a un souci, une
+sorte d'effet de bord...
+
+Sans rentrer dans des considérations techniques d'identifiabilité, on
+a tout intérêt à "réduire" le modèle, et c'est ce qu'on fait en se
+restreignant à la distribution des points appariés, qui peut être
+estimée à condition d'avoir un recouvrement suffisant (par rapport à
+la complexité du modèle). 
+
+L'autre argument massue, c'est que si on pose que la vraisemblance de
+`x` dépend exclusivement de `zx`, alors il FAUT estimer les paramètres
+dans l'espace de représentation. La question est donc plutôt: pourquoi
+la vraisemblance restreinte n'est-elle pas une idée naturelle en
+apprentissage supervisé?
+
+Dans le contexte de l'apprentissage supervisé, le principe revient à
+dire que la vraisemblance de x dépendrait exclusivement de zx et des
+données d'apprentissage via les couples (xi, zxi)... Pourquoi imposer
+une telle restriction? Ce jugement d'exhaustivité n'a pas beaucoup de
+sens, ni d'intérêt calculatoire. Si on veut imposer que la
+vraisemblance ne dépende de x que via zx, rien n'empêche de la faire
+dépendre de l'ensemble des données d'apprentissage. La seule condition
+nécessaire est de restreindre la vraisemblance liée à la variable sur
+laquelle on veut faire l'inférence. 
+
+Le contexte dans lequel la vraisemblance restreinte est utile doit
+être clarifié. Dans un modèle discriminant classique, on a une
+hypothèse d'exhaustivité type p(x|y)=p(x|z) avec une variable z
+fonction de y mais indépendante de x. Plus généralement,
+l'exhaustivité "binaire" se caractérise sur le même type de relation
+mais sur des ensembles restreints, par exemple des paires {x, x0} mais
+ça peut aussi être des ensembles plus grands pourvu qu'il y ait un
+élément commun, la référence x0.
+
+Ce que ça suggère, c'est d'entraîner de tels modèles restreints
+indépendamment les uns des autres, comme on le fait de façon
+habituelle, et d'ensuite "recoller les morceaux" au sein d'un
+classifieur plus grand. Voici enfin une prescription pratique 100%
+compatible avec le "representation learning"! Une telle approche
+offrirait en outre une structure hiérarchique naturelle.
+
+On peut ainsi, par exemple, construire un classifieur multiclasses à
+partir de classifieurs binaires indépendants (du moment qu'ils opèrent
+sur la même entrée "grande dimension", par exemple une
+image). Intuitivement, il n'est pas idiot de se concentrer sur chaque
+tâche de classification binaire avant de résoudre le problème
+global. Un tel classifieur est optimal si l'exhaustivité binaire
+tient, ce qui dépend de la qualité de l'extraction d'attribut.
+
+Mais notons un point essentiel: à architecture fixe, la représentation
+optimisée pour chaque problème binaire ne peut être que meilleure
+("plus exhaustive") que la représentation optimisée globalement. Sous
+les réserves pratiques qui s'imposent quant à cette comparaison (le
+temps de calcul en prédiction sera multiplié par le nombre de classes,
+on devra apprendre plusieurs représentations binaires avec le même jeu
+d'apprentissage), on voit là qu'un classifieur multiclasses basée sur
+des classifieurs binaires indépendants ne peut qu'être meilleur dans
+la limite du "big data"!
+
+Cela étant, l'intuition est qu'une telle architecture doit permettre
+une représentation plus parimonieuse des données en devenant
+spécifique à chaque classe. L'idée de "class-specific representations"
+est dans les travaux de Baggenstoss, dans mon papier sur l'inférence
+bayésienne composite, mais c'est peu dire que j'ai tâtonné avant de
+voir comment l'articuler avec l'état de l'art. En définitive, je
+reboucle ici sur la première intuition, qui était d'avoir un
+mini-réseau pour chaque problème binaire.
+
+C'est potentiellement plus efficace que l'approche globale à condition
+de modifier la procédure d'entrainement de chaque réseau "binaire"
+comme suggéré plus haut dans cette longue note. La sélection
+d'attribut maximise le log-rapport de vraisemblance moyen plutôt que
+la log-probabilité a posteriori. Les paramètres des distributions
+dudit attribut sont appris par maximum de vraisemblance classique. On
+a déjà dit qu'un tel problème relevait de la théorie des jeux.
+
+En fait, c'est un problème analogue au recalage iconique: la
+transformation spatiale est analogue à la fonction d'extraction
+d'attribut, la distribution de couples d'intensités est analogue à la
+distribution de l'attribut. 
+
+Le choix d'une classe de référence donne un côté arbitraire peu
+plaisant à l'affaire. D'un autre côté, cette classe nous permet de
+"recoller les morceaux", c-à-d rendre les classifieur binaires
+comparables.
+
+En outre, comme montré dans mon papier "Composite Bayesian inference",
+elle fournit un critère d'approximation de la VRAIE vraisemblance
+(donc la probabilité a posteriori) par le biais de rapports de
+vraisemblance. Au sens de ce critère, les rapports de probabilités
+sont mieux estimés avec l'architecture "binaire" qu'avec la
+"classique", ceci à la limite des grands jeux d'apprentissage - dans
+le régime stationnaire du "big data", si on peut dire. Et si les
+rapports de probabilités p(x)/p(x0) sont tous mieux estimés, ben
+alors, forcément, p(x) est mieux estimée aussi!
+
+En langage simple, on entraine chaque réseau "binaire" à s'allumer
+lorsque une classe particulière lui est présentée. La classe de
+référence sert de ligne de base: elle équilibre l'apprentissage et
+évite ainsi que le réseau s'allume à tout bout de champ - les fameux
+faux positifs! On note que les exemples de la classe de référence
+n'interviennent que dans la calibration statistique de l'attribut mais
+pas directement dans sa sélection.
+
+On assemble alors tous ces réseaux "binaires" au sein d'un grand
+réseau capable de faire de la classification multiclasses. Ce réseau
+encode mieux la vraie distribution conditionnelle des classes que le
+réseau classique "équivalent", ce qui veut dire en gros qu'il a
+tendance à répondre plus fort à la bonne classe.
+
+Ce qui est joli, c'est que si on présente une certaine classe à tous
+ces réseaux binaires, c'est en moyenne le réseau correspondant qui
+s'allume le plus. Cette propriété de cohérence asymptotique résulte
+fondamentalement du fait que la distribution de l'attribut sélectionné
+pour une classe maximise la divergence de KL avec la distribution de
+référence.
+
+---
+DEMO: si z1 et z2 sont les attributs choisis pour les classes 1 et 2,
+respectivement, alors, en supposant que l'exemple vient de la classe
+1, la réponse moyenne du classifieur binaire 1 sera:
+
+int p1(z1) log p1(z1)/p0(z1) = D(p1(z1)||p0(z1))
+
+Celle du classifieur 2 sera:
+
+int p1(z2) log p2(z2)/p0(z2) dz2
+= D(p1(z2)||p0(z2)) - D(p1(z2)||p2(z2))
+<= D(p1(z2)||p0(z2))
+<= D(p1(z1)||p0(z1))
+
+La dernière étape résulte de la maximalité de la divergence KL pour
+z1, qui découle du principe-même de l'extraction d'attribut. 
+---
+
+Insistons sur le fait que le raisonnement suppose que les attributs
+soient cherchés dans le MEME ESPACE pour toutes les classes. Condition
+on ne peut plus naturelle.
+
+Si on revient au codage softmax, l'idée de base est de modéliser la
+log-probabilité (non-normalisée) de chaque classe par une combinaison
+linéaire particulière des attributs. Mais cette idée conduit à un
+modèle sur-paramétrisé car on obtient les mêmes probabilités en
+ajoutant une constante à chaque combinaison linéaire.
+
+Pour éviter cela, il suffit de coder non pas directement la
+probabilité mais le rapport de probabilités avec une classe de
+référence arbitraire. Celle-ci n'a pas d'incidence sur les
+probabilités car, quelle que soit la référence choisie, la
+distribution a posteriori appartient toujours à la même famille
+paramétrique, seule la paramétrisation change.
+
+L'idée des classifieurs binaires revient à remplacer, dans le softmax,
+la combinaison linéaire d'attributs par... eh bien n'importe quelle
+fonction des données et de la classe:
+
+log p(x)/p(x0) = f(x, y)
+
+à condition d'avoir bien sûr f(x0, y) = 0. La famille ainsi définie
+dépend-t-elle de x0? Certes, f(x, y) dépend de x0 vu la contrainte
+f(x0, y)=0. Mais, si on part d'une fonction F(x, y) définie de façon
+complètement indépendante de x0, et qu'on suppose que p(x) est
+proportionnel à exp[F(x, y)], alors on a pour n'importe quel x0:
+
+log p(x)/p(x0) = F(x, y)-F(x0, y)
+
+Autrement dit, le modèle paramétrique de l'a posteriori n'est pas
+fondamentalement plus dépendant de la classe de référence que pour le
+bon vieux softmax.
+
+Ce qui change, c'est que l'optimisation de la fonction `F` dépend de
+x0 puisque l'entrainement des réseaux binaires en dépend. Mais comment
+entrainer ces réseaux indépendamment sans utiliser une référence? Il
+faut bien (au moins un) point d'ancrage pour pouvoir comparer des
+probabilités calculées sur des espaces distincts.
+
+Bien entendu, on pourrait apprendre `F` par discrimination classique,
+ce serait une généralisation non-linéaire triviale, et le résultat ne
+dépendrait pas du choix de x0.
+
+Remarquons que la modélisation générative, dont je faisais le point
+central du papier "composite Bayesian", est un aspect
+orthogonal. Puisque les paramètres du modèle sont appris par
+maximisation de la vraisemblance conjointe p(x, z), pour une sélection
+d'attribut donnée, c'est tout-à-fait compatible avec l'ajustement
+discriminant qui correspond au cas particulier où p(x|z) et p(z) sont
+paramétrées de façon indépendantes et où on peut alors omettre
+d'estimer p(z) qui n'intervient pas dans le calcul du log-ratio. Dans
+ce cas, on maximise bien la vraisemblance conditionnelle, mais juste
+pour apprendre les paramètres de p(x|z). Rappelons que la maximisation
+du log-ratio n'est pas prévue pour l'ajustement de la distribution
+(problème qui serait d'ailleurs mal posé).
+
+Pour ce qui est de la sélection d'attribut, l'entrainement classique
+des classifieurs binaires reste une option, et plus généralement on
+peut maximiser un crtière de type log-ratio moyen:
+
+sum_i log[p(zi|xi)/pi(zi)]
+
+où pi(z) est un mélange arbitraire de p(z|x0) et p(z|x1). L'espérance
+de ce critère est:
+
+int p(x,z) log[p(z|x)/pi(z)] dxdz
+= int p(x) [ D(p(z|x)||pi(z)] dx
+<= int p(x) [ D(p(y|x)||pi(y)] dx (*)
+= int p(x,y) log[p(y|x)/pi(y)] dxdy
+
+(*) découle de l'inégalité fondamentale de la réduction de données
+déjà invoquée dans mon papier.
+
+Par conséquent, quelle que soit la distribution pi, la maximisation
+d'un tel critère sélectionne un attribut aussi exhaustif que possible
+au sens d'une certaine métrique.
+
+Quel est le meilleur choix pour pi? L'approche discriminante classique
+revient à prendre pi(z)=p(z), choix implicite au demeurant puisque le
+ratio est alors égal à p(x|z)/p(x) en vertu du théorème de Bayes bien
+connu. Ainsi, en paramétrant p(x,z) de façon judicieuse, comme indiqué
+plus haut, on se ramène à la discrimination classique pour la
+sélection de l'attribut comme pour l'ajustement des
+probabilités. Notons qu'on peut utiliser la vraisemblance
+conditionnelle classique pour la sélection d'attribut tout en
+apprenant la distribution via la vraisemblance jointe. 
+
+Quoiqu'il en soit, la probabilité a posteriori dans le cas binaire est
+forcément distincte de la probabilité a posteriori multi-classes, donc
+l'entrainement classique ne s'impose pas d'emblée.
+
+Notre construction initiale correspond au choix pi(z)=p(z|x0), naturel
+dans le contexte où le but est de calculer le ratio p(x1|z)/p(x0|z)
+pour combiner les classifieurs binaires. Dans ce cas, on veut que
+notre classifieur binaire signale le plus clairement possible les
+vrais positifs, sans tenir compte ni des vrais négatifs ni des faux
+positifs. L'apprentissage vise alors à s'approcher le plus possible
+d'un test de Neyman-Pearson, dont on sait que c'est le plus puissant.
+
+En dehors de ces considérations un peu vaseuses, on a vu que ce choix
+de pi garantit aussi la cohérence asymptotique. Qu'en est-il pour
+d'autres choix? Eh bien la démo ne semble pas se généraliser! Le
+souci, c'est que le grand classifieur est basé sur les ratios
+p(z1|x1)/p(z1|x0), or tout autre choix de distribution de référence
+que p(z1|x0) ne garantit plus l'optimalité de ces ratios au sens de la
+divergence KL, pierre de voûte de la cohérence asymptotique.
+
+L'objection un peu philosophique, c'est que si on veut juste
+construire un classifieur binaire, il ne semble pas pertinent de
+choisir comme référence une des deux classes au petit bonheur la
+chance. L'approche discriminante classique est plus naturelle... sauf
+si... une des classes s'impose naturellement comme "classe par
+défaut", de façon analogue à une "hypothèse nulle". Comme, par
+exemple, la normalité en diagnostic médical. C-à-d si, en gros, les
+erreurs de classification sont plus graves dans une classe que dans
+l'autre.
+
+Pour un classifieur binaire, la cohérence asymptotique est garantie
+quel que soit `pi`. En effet, les log-ratio moyens si z est issu de la
+classe 0 sont, pour les classes 0 et 1:
+
+E[log p0(z)/pi(z)|0] = D(p0||pi)
+E[log p1(z)/pi(z)|1] = D(p0||pi) - D(p0||p1) <= E[log p0(z)/pi(z)|0]
+
+Même raisonnement pour la classe 1, et donc pas de lézard.
+
+Ainsi, en classification binaire, la question de la cohérence
+asymptotique ne se pose pas. C'est un cas particulier où on peut
+disserter à loisir sur la pertinence d'une loi de référence plutôt
+qu'une autre. On peut avancer l'argument que les faux négatifs sont
+plus graves que les faux positifs pour justifier l'asymétrie du
+classifieur fondé sur une classe nulle. Dans le cas de l'apprentissage
+discriminant, positifs et négatifs sont mis sur un pied d'égalité,
+ainsi le classifieur aura tendance à produire moins de faux positifs
+(car l'apprentissage pénalise davantage les erreurs de classification
+sous x0) mais aussi moins de vrais positifs (car il n'est pas entrainé
+pour avoir la réponse la plus forte possible sous x1)... donc en somme
+moins de positifs. C'est une question de goût.
+
+Question subsidiaire: a-t-on la cohérence asymptotique dans le cas
+multi-classes classique? La question revient à savoir si la quantité
+suivante est positive pour tout (x, x0):
+
+int p(z|x) log [p(x|z)/p(x0|z] dz
+= int p(z|x) log [p(z|x)p(x)/p(z|x0)p(x0)] dz
+= D[p(z|x)||p(z|x0)] + log [p(x)/p(x0)]
+
+On suppose ici qu'on a ajusté parfaitement p(x|z) pour un certain
+attribut z, de façon analogue au cas génératif. Le premier terme est
+évidemment positif, le deuxième dépend exclusivement de la marginale
+des classes. Pour être certain qu'il est toujours positif, il faut que
+p(x) soit uniforme, ce qui dépend des données d'apprentissage.
+
+Si tel est le cas, alors l'approche discriminante est
+cohérente. Sinon, on peut remplacer p(x) par un a priori uniforme pour
+garantir la cohérence asymptotique, ce qui suppose d'utiliser un
+modèle génératif. Démarche bayésienne s'il en est, où la notion d'a
+priori bayésien n'a aucun rapport avec la distribution fréquentiste
+des exemples, et c'est VOLONTAIRE.
+
+Pour résumer, un réseau discriminant peut ne pas être cohérent s'ils
+est entrainé avec des exemples répartis de façon non-uniforme, ce qui
+veut dire qu'il pourrait exister des classes pour lesquelles le réseau
+s'allume en moyenne moins que pour d'autres classes. On peut certes
+dire qu'on s'en fout, que ce qui compte c'est le critère
+d'entrainement.
+
+Si c'est par exemple la vraisemblance conditionnelle, la réponse du
+réseau à la bonne classe sera la plus forte possible en moyenne, ce
+qui ne veut pas dire plus forte que toutes les autres classes... mais
+pas loin. Intuitivement, la vraisemblance conditionnelle va tendre à
+limiter le nombre de classes stimulées, mais on peut imaginer des
+situations où la vraie classe est (légèrement) dominée par une
+autre.
+
+Si le critère est l'erreur de classification, ce problème devrait être
+limité... Mais les performances du réseau "par classe" ne sont pas
+garanties, en particulier pour les classes faiblement représentées
+dans le jeu d'apprentissage. Et, plus fondamentalement, si on
+s'intéresse à l'incertitude de la classification, ce n'est clairement
+pas le bon critère.
+
+La question de la cohérence asymptotique en machine learning est
+posée, même si le vrai nerf de la guerre, c'est sans doute
+l'efficacité statistique de l'apprentissage. Que faire quand on n'est
+pas dans le régime du "big data"? Et nous avons (oui je parle de moi à
+la 1ère personne du pluriel) des idées à proposer, si jamais.
+
+Pour résumer, nous apportons deux éléments distincts:
+
+1. Approche générative vs discriminante. La première impose une
+généralisation type "théorie des jeux" où la sélection d'attribut est
+séparée de l'estimation des paramètres statistiques, mais garantit la
+cohérence asymptotique promet surtout un apprentissage plus efficace
+(à condition que les hypothèses génératives tiennent).
+
+2. Construction d'un classifieur multi-classes à partir de
+classifieurs binaires entrainés indépendamment. A ne pas confondre
+avec une stratégie de boosting. C'est possible avec le choix d'une
+classe de référence.
+
+On peut associer ces deux idées, c-à-d adopter une approche générative
+de type 1 avec un classifieur de type 2. Les propriétés 1 sont
+conservées à condition de modifier le critère de sélection d'attribut
+(rapport de vraisemblances à la loi de référence plutôt que
+vraisemblance conditionnelle).
+
+Voilà... tout s'éclaire... Le coup de la discrimination modifiée, que
+j'envoyai jadis superbement à la face du sournois Chiant-Nogue aka
+Christian Robert qui se permettait de bloguer à mes dépends, eh bien
+il sert à quelque chose! C'est même peut-être une vraie bonne idée si
+on se donne comme contrainte d'entrainer des classifieurs
+indépendamment avant de les combiner, non pas pour faire du vulgaire
+boosting, mais pour construire un classifieur plus général. Et qu'on
+exige en plus des chouettes propriétés: apprentissage efficace,
+cohérence statistique.
+
+Bravo l'artiste! On peut passer à autre chose maintenant...
