@@ -296,9 +296,59 @@ de l'inférence avec des représentations universelles.
 
 Par exemple, en vision par ordinateur, une image est une fonction
 scalaire d'une grille spatiale, c'est vrai en toute circonstance et
-c'est donc une représentation universelle. On peut exhiber des modèles
+c'est donc une représentation maximale. On peut exhiber des modèles
 génératifs d'images qui permettent de faire de la segmentation, par
-exemple. Mais c'est un cas particulier car de tels modèles sont
-simples CONDITIONNELLEMENT à une scène. 
+exemple. Cette conception est-elle contradictoire avec l'idée-même de
+rechercher des représentations?
 
+La segmentation d'images doit-elle faire appel au deep learnign? En
+revenant de Berlin fin août, j'ai imaginé un algorithme de
+segmentation des plus classiques basé sur un clustering en intensité
+(sans faire intervenir l'espace comme dans le cas des "super voxels")
+via un bon vieux k-moyen ou, si on veut éviter des régions trop
+petites, via un VEM régularisant comme à la grande époque.
+
+Ensuite, il convient de séparer les clusters en composantes connexes
+et éventuellement faire un peu de morphologie math pour nettoyer tout
+ça... 
+
+Les régions homogènes ainsi produites sont de tailles arbitraires. Je
+ne crois pas à l'approche "super pixel": si on l'applique à une image
+uniforme, elle va produire plein de super pixels qui ne servent à
+rien. L'absence de toute contrainte spatiale dans le clustering permet
+de produire des représentations plus parcimonieuses.
+
+A ce stade, il n'y a plus qu'à assembler les régions pour reconnaitre
+des objets. On peut voir ça comme un problème d'optimisation
+combinatoire. Pour chaque combinaison possible de régions, avec
+éventuellement des contraintes morphologiques, identifier l'objet
+éventuel que produit cette combinaison.
+
+Revenons à la segmentation. La segmentation par intensités n'est pas
+très robuste pour les images naturelles, du fait des effets de
+réflection, ombres, textures... Je veux dire par là qu'un objet peut
+se retrouver éparpillé sur plusieurs clusters. Pour remédier à ce
+souci, le clustering pourrait utiliser des critères locaux de
+"texture" en plus de la couleur. Bref, une représentation plus
+pertinente.
+
+On pourrait se dire que c'est juste rendre l'information redondante
+puisque l'image est une représentation maximale d'elle-même, si j'ose
+dire, et là on reboucle sur la question posée plus haut. Une
+représentation n'est utilisable que si on dispose d'un modèle
+génératif, or ce n'est pas pour la couleur dans une image naturelle!
+Le clustering par k-means (ou sa version régularisée VEM) reposent sur
+des modèles grossiers et ne peuvent que fournir des résultats
+grossiers.
+
+Je me suis dit, à l'aéroport de Berlin, qu'on pourrait peut-être
+identifier une bonne représentation avec un CNN. L'idée serait alors
+de remplacer la couleur par cette représentation plus complexe et plus
+adaptée aux images naturelles. Il faudrait juste exhiber un modèle
+(semi)génératif pour cette représentation... ce qui permettrait
+d'ajuster certains paramètres à la volée, comme l'intensité, la
+couleur, etc.
+
+Reste juste à construire un CNN qui permettrait d'identifier des
+"textures" dans les images naturelles. Comment faire ça? 
 
