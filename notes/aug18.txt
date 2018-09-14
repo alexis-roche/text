@@ -264,7 +264,6 @@ informative dans la mesure où le réseau choisi est suffisamment
 flexible et où la tâche considérée est suffisamment proche de celle
 qui nous intéresse.
 
-
 Question comme ça: est-ce qu'un CNN peut me pondre un descripteur des
 yeux indépendant de la pose du sujet? Idéalement, le 56e neurone de
 l'avant-dernière couche dense code la forme des yeux. Comprendre les
@@ -272,15 +271,34 @@ CNN, c'est comprendre s'ils sont capables de faire ça.
 
 Mis à part la position du descripteur en question qui est évidemment
 arbitraire, la question revient à celle de l'invariance par
-translation et rotation. Il semble admis que les CNN sont plus ou
-moins invariants par translation, du fait de l'équivariance par
-translation de la convolution et des opérations de pooling. Pour ce
-qui est des rotations, une invariance approximative peut être obtenue
-en utilisant plusieurs versions tournées de chaque filtre... Si on ne
-le fait pas explicitement, l'apprentissage devrait le faire
-automatiquement pour la gamme de rotations observées dans l'ensemble
-d'apprentissage.
+translation et rotation. Si j'en crois Goodfellow, chapitre 9, les CNN
+sont plus ou moins invariants par translation, du fait de
+l'équivariance par translation de la convolution et des opérations de
+pooling. Pour ce qui est des rotations, une invariance approximative
+peut être obtenue en utilisant plusieurs versions tournées de chaque
+filtre... Si on ne le fait pas explicitement, l'apprentissage devrait
+le faire automatiquement pour la gamme de rotations observées dans
+l'ensemble d'apprentissage.
 
+On peut penser aux convolutions comme à des "match filters". Une
+certaine forme va "activer" telle couche à tel endroit et le réseau
+"transmet" cette activation aux couches ultérieures en perdant
+progressivement l'information de localisation spatiale.
 
+Cette parenthèse refermée, il reste à tirer une conclusion de la
+discussion sur l'apprentissage de représentation vs inférence
+"classique".
+
+Pendant longtemps, je crois, j'ai cru dans la possibilité de
+s'affranchir de toute représentation en inférence statistique - ou
+plutôt, j'ai cru qu'il était préférable en toute circonstance de faire
+de l'inférence avec des représentations universelles.
+
+Par exemple, en vision par ordinateur, une image est une fonction
+scalaire d'une grille spatiale, c'est vrai en toute circonstance et
+c'est donc une représentation universelle. On peut exhiber des modèles
+génératifs d'images qui permettent de faire de la segmentation, par
+exemple. Mais c'est un cas particulier car de tels modèles sont
+simples CONDITIONNELLEMENT à une scène. 
 
 
