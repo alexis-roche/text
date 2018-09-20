@@ -12,6 +12,11 @@
 \def\I{{\mathbf{I}}}
 \def\eps{{\boldsymbol{\varepsilon}}}
 \def\m{{\boldsymbol{\mu}}}
+\def\S{\mathbf{S}}
+\def\H{\mathbf{H}}
+\def\g{\mathbf{g}}
+\def\A{\mathbf{A}}
+\def\B{\mathbf{B}}
 \def\param{{\boldsymbol{\theta}}}
 
 \title{Powell's method revisited using variational sampling?} 
@@ -325,6 +330,323 @@ It now looks like we have a similar interpretation as above, with the exception 
 Those are just some insights on the effect of the sampling distribution. In summary: if the context is narrow, it is a good choice as the sampling distribution; if not, then multiply it by some initial guess of the factor fit... and pray cause there is no warranty.
 
 The conclusion is that VS may be inefficient unless used in a certain {\em context}. A context is a region wider than an infinitesimal neighborhood but can't be too wide. If very narrow, VS will most likely work very well but will ressemble the Laplace method. If broader, VS efficiency will heavily rely on the availability of a good approximation to the target. 
+
+
+\section{Adding quadratic forms}
+\label{sec:quad_add}
+
+Consider a quadratic form parameterized by a tuple $(a,\m,\H)$ as follows:
+$$
+q(\x) = \alpha + \frac{1}{2} (\x-\m)^\top \H (\x-\m)
+$$
+
+Let now two quadratic forms $q_1$ and $q_2$ with respective parameters $(\alpha_1,\m_1,\H_1)$ and $(\alpha_2,\m_2,\H_2)$. What are the parameters $(\alpha,\m,\H)$ of $q_1+q_2$? 
+
+\subsection{Basic formula}
+
+By definition,
+$$
+(q_1 + q_2)(\x)
+= 
+\alpha_1 + \frac{1}{2} (x-\m_1)^\top \H_1 (x-\m_1)
++ \alpha_2 + \frac{1}{2} (x-\m_2)^\top \H_2 (x-\m_2)
+$$
+
+Clearly, $\H$ is the Hessian of $q_1+q_2$. To find $\m$, we need to solve for $\nabla(q_1 + q_2)(\m)=0$. Finally, $\alpha=(q_1+q_2)(\m)$. We have:
+$$
+\nabla(q_1 + q_2)(\x)
+= 
+\H_1 (x-\m_1) + \H_2 (x-\m_2)
+$$
+and:
+$$
+\nabla\nabla^\top(q_1 + q_2)(\x)
+= 
+\H_1 + \H_2
+$$
+
+Therefore, we find that:
+$$
+\H=\H_1+\H_2,
+\quad
+\m = \H^{-1}(\H_1\m_1 + \H_2\m_2),
+\quad
+\alpha =
+\alpha_1 + \alpha_2 +
+\frac{1}{2} 
+\left[
+\|\m-\m_1\|_{\H_1}^2 + \|\m-\m_2\|_{\H_2}^2
+\right]
+.
+$$
+
+\subsection{Incremental form}
+
+We can derive the following alternative expressions of incremental nature:
+\begin{itemize}
+\item For the Hessian:
+$$
+\H = \H_1 + \Delta\H,
+\qquad 
+\Delta\H \equiv \H_2
+.
+$$
+\item For the center:
+$$
+\m = \m_1 + \Delta\m,
+\qquad 
+\Delta\m \equiv \H^{-1}\H_2(\m_2 - \m_1)
+.
+$$
+\item For the offset:
+$$
+\alpha = \alpha_1 + \Delta \alpha,
+\qquad
+\Delta \alpha \equiv \alpha_2 + \frac{1}{2}
+\left[
+\|\Delta\m\|_{\H_1}^2
++ \|\Delta_2\m\|_{\H_2}^2
+\right]
+,
+$$
+with $\Delta_2\m = \H^{-1}\H_1(\m_2-\m_1)$.
+\end{itemize}
+
+These show the final parameters as updates to the initial parameters of one of the two quadratic forms (it doesn't matter which one, of course). Essentially, the Hessian increment is the other quadratic Hessian, the center increment is based on the center difference, and the offset increment combines both the other offset and the center difference.
+
+Both the Hessian and center update rules are straightfoward from the above. To derive the update rule for the offset, we first note that $\m-\m_1=\Delta\m$ by definition, hence: 
+$$
+\|\m-\m_1\|_{\H_1}^2 = 
+\Delta\m^\top \H_1 \Delta\m,
+$$
+and the remainder follows by symmetry.
+
+
+
+\section{Laplace approximation}
+\label{sec:laplace_approx}
+
+Consider now another type of parameterization for a quadratic form (one that naturally follows from a Taylor expansion, for instance):
+$$
+q(\x) = \beta + \g^\top (\x-\a) + \frac{1}{2} (\x-\a)^\top \H (\x-\a)
+$$
+
+What are the $(\alpha,\m,\H)$ parameters of $q$?
+
+Obviously, the Hessian has to be the same in both forms since $\nabla\nabla^\top q = \H$.
+Using the gradient,
+$$
+\nabla q (\x) = \g + \H (\x-\a),
+$$
+we identify $\m$ via $\nabla q(\m)=0$, yielding $\H(\m-\a)=-\g$:
+$$
+\m = \a - \H^{-1}\g.
+$$
+
+Finally, we find $\alpha$ via $\alpha=q(\m)$, hence:
+$$
+\alpha = \beta - \frac{1}{2} \g^\top \H^{-1}\g
+= \beta + \frac{1}{2} \g^\top(\m-\a)
+.
+$$
+
+\section{Laplace-EP}
+
+Consider a target: 
+$$
+p(\x)=\prod_{i=1}^n f_i(\x)
+$$
+
+Assume we have some current Gaussian approximations $g_i$ of each factor and want to improve one of them. We form the cavity distribution, or context:
+$$
+c(\x) = \prod_{j\not=i} g_j(\x)
+$$
+in order to minimize $D(cf_i \| cg_i)$ over $g_i$, either exactly or approximately, yielding an unnormalized Gaussian with parameters $(\alpha_i,\m_i,\H_i)$. Let us denote the context parameters by $(\alpha_{-i},\m_{-i},\H_{-i})$ and the new global approximation parameters by $(\alpha,\m,\H)$. 
+
+Following Section~\ref{sec:quad_add}, we have:
+\begin{enumerate}
+\item Hessian update:
+$$
+\H = \H_{-i} + \H_i,
+$$
+\item Center update:
+$$
+\m = \m_{-i} + (\H_{-i} + \H_i)^{-1}\H_i(\m_i-\m_{-i})
+$$
+\item Offset update:
+$$
+\alpha = \alpha_{-i} + \alpha_i + \ldots
+$$
+\end{enumerate}
+
+One may wonder what is the interest of updating the offset... If the ultimate goal of running EP is to estimate the mode and the associated uncertainty, the offset is useless. We would need it, for instance, to evaluate the evidence for comparison with other models (e.g., decide which CNN architecture is best for some specific task and training dataset).
+    
+If we assume now that the factor approximation has a Taylor-like expression at the cavity center $\m_{-i}$, then according to Section~\ref{sec:laplace_approx} and denoting $\g_i$ the log-factor gradient, $\H_i (\m_i-\m_{-i}) = -\g_i$, we have:
+$$
+\m = \m_{-i} - (\H_{-i} + \H_i)^{-1}\g_i
+$$
+
+Doesn't it remind us of something? Yes, the second-order gradient descent. More precisely, the EP algorithm is comparable with a second-order version of {\em stochastic} gradient descent. Instead of taking a step propotional to the gradient using some (decaying) {\em learning rate} value, the gradient is scaled using anisotropic and adaptive curvature information. Updates tend to be large In the early iterations (assuming $\H\equiv 0$ initially) and get smaller as the Hessian stabilizes to a (hopefully) positive-definite matrix.
+
+As for the offset update,
+$$
+\alpha = \alpha_{-i} + \frac{1}{2} \beta_i \g_i^\top(\m_i-\m_{-i}) + \ldots
+$$
+but we said we don't care, didn't we?
+
+\section{Practical adaptations of EP}
+\label{sec:practical_ep}
+
+In large dimension, the EP algorithm is intractable for at least two reasons. First, the Hessian computation and inversion is too expansive. This turns out to be easy to work around using a fully factorized parametric form, which simply amounts to replacing the Hessian matrices with their diagonals in the computations. 
+
+Another issue is parameter proliferation as EP keeps track of a complete set of parameters corresponding to each and every factor, hence requesting ridiculous memory load. Memory can be saved by assuming a unique approximation to all factors, yielding an EP variant known as the Averaged~EP (AEP) algorithm. 
+
+On each iteration, we have a current unique factor approximation $g(\x)$ that fully determines the current {\em overall} approximation: $q(\x)=g(\x)^n$. Therefore, the cavity is $c(\x)=g(\x)^{n-1}$ independently from the factor under consideration, implying:
+$$
+\alpha_{-i} = \lambda \alpha,
+\quad
+\m_{-i} = \m,
+\quad
+\H_{-i} = \lambda \H,
+\quad 
+\lambda = \frac{n-1}{n}
+$$
+
+We then proceed to the factor fitting exactly as before, yielding a new overall approximation $q(\x)=c(\x)g_i(\x)$. However, instead of storing $g_i$, we collapse the new factor approximation to the previous ones via: $g(\x)=q(\x)^{1/n}$. This step makes the algorithm keep memory of all past factor approximations. In the standard EP, each new factor approximation simply substitutes the previous one. 
+
+The problem I have with tis is: does AEP converge? From the center updating formula, it is clear that the condition for the algorithm to stop moving is that each factor gradient vanishes at the overall center estimate: this won't happen because the factors have  different centers (be them slightly or massively different)... This lack of convergence seems to arise due to the ``factor collapsing" step. 
+
+We might need to introduce some decay to make convergence happen. One way to go is to say: OK, let's consider some scaling $f_i^\epsilon$, with $0<\epsilon\leq 1$ , as the factor under consideration, meaning that the context is made up of ``$n-\epsilon$ factors'', hence $\lambda=(n-\epsilon)/n$. The gradient and Hessian of the log-factor are respectively $\epsilon \g_i$ and $\epsilon \H_i$, hence the update rules generalize to:
+$$
+\H \leftarrow (1-\epsilon/n)\H + \epsilon \H_i,
+\qquad
+\m \leftarrow \m - \epsilon\H^{-1}\g_i
+.
+$$
+
+Clearly, when the decay parameter $\epsilon\to 0$, these updates are effectless hence the algorithm converges. But does it converge to a reasonable solution? That's the question. More on this later.
+
+
+\section{EP as Game Theory}
+
+It occured to me that EP can be viewed as a game, where each factor is associated with a player whose aim is to fit a parametric form to the factor. Each player's payoff depends on all other players as the fit needs to be more accurate in the subspace considered most important collectively.
+
+Player interference arises in a mere alternate minimization of the KL divergence. The key insight into EP is to make the ``where'' task much easier than in the alternate KL minimization approach as it essentially provides a relevance window function that is parametric, hence greatly simplifying each fitting problem.
+
+From this standpoint, the question of convergence of EP boils down to the existence of a Nash equilibrium...
+
+How about AEP? The difference with EP is that players do not see what the other players are doing. They only get aware of the overall fit, which is updated after each player's move but is not specific to one player. One way to account for this is to introduce an additional player that we may call the mediator. He's the only player the others speak to and he can speak with all of them. When a player makes a move, the mediator can reflect it. Problem is: the mediator's strategy depends on which factor he speaks to, so it doesn't seem to be standard game theory.
+
+
+\section{AEP as Stochastic Approximation}
+
+AEP is better understood in terms of an iterative algorithm minimizing factor-dependent costs $D_i(q,q')$ and performing updates $q\to F_i(q)$ where  $F_i(q)\equiv \arg\min_{q'}D(q^\lambda f_i\|q')$ with $q'=q^\lambda g$ or $F_i(q)=q^\lambda g$ with $g$ the Laplace approximation of $f_i$ around the center of $q$.
+
+So it's a weird kind of ``game'' where players always move together. It's not in the framework of Nash equilibrium theory. Convergence in this scenario relies on the existence of a multiple fix point $q=F_1(q)=\ldots=F_n(q)$. This is too much to ask, insn't it? If all factors were the same, all transition functions would be the same and that could work, but there is no way this will happen in practice.
+
+One important property of these transition functions is that they may all be seen as noisy versions of the same ``ideal'' transition function: ${\cal F}(q)=q_\star=\arg\min_{q'}D(p\|q')$ which is actually independent from $q$ and is the Holy Grail distribution this whole stuff is about trying to approximate. So, whenever we update~$q$, the result is slightly or even completely off, and it's only by averaging updates across iterations that we can achieve an accurate result.
+
+Therefore, the iteration will jump from one update to another frantically unless it has some memory. Take a look at the update formula in Section~\ref{sec:practical_ep}. Defining:
+$$
+F_i(\m, \H) = (\m-\H^{-1}\g_i, \lambda\H+\H_i),
+$$
+they correspond to a Robbins–Monro algorithm to track the fix point of $E[F_i(\m,\H)]=(\m,\H)$ where $\epsilon$ can be chosen according to the Blum theorem to guarantee convergence. Bascially, $\sum_n\epsilon_n=\infty$ and $\sum_n\epsilon_n^2<\infty$.
+
+Keras stochastic gradient implementation seems to use a time-based decay of the form:
+$$
+\epsilon_n = \frac{\epsilon_0}{1 + \alpha n},
+$$
+where $\epsilon_0$ is the initial learning rate and $\alpha$ is the decay value, therefore $\epsilon_n=O(1/n)$ and satisfies the Blum condition. 
+
+Keras also shuffles the training data at the beginning of each epoch. This is not compliant with the native EP algorithm but is natural and easy to do with AEP. So shuffle or not shuffle? 
+
+\section{Short biblio on stochastic gradient descent}
+
+\subsection{First-order SGD}
+
+The plain steepest descent looks like this:
+$$
+\x \leftarrow \x - \gamma_i \g_i
+,
+$$
+where $\gamma_i$ is an adaptive learning rate parameter and $\g_i$ is the stochastic gradient. 
+
+The so-called RMS propagation implemented in Keras normalizes the gradient using some running average of its magnitude:
+$$
+a^2\leftarrow \rho a^2 + (1-\rho) \|\g_i\|^2,
+\qquad
+\x \leftarrow \x - \frac{\gamma_i}{a + \epsilon} \g_i,
+$$
+where $0\leq\rho\leq 1$ defaults to 0.9 and $\epsilon$, which defaults to $10^{-7}$, is  here to avoid divisions by zero. The learning rate is computed as $\gamma_i = \gamma/(1 + \alpha i)$ with $\gamma=10^{-3}$ (initial learning rate) and $\alpha=0$ (decay) by default.
+
+\subsection{Second-order SGD}
+
+Bottou (2010) defines 2nd order SGD as an iteration of the form:
+$$
+\x \leftarrow \x - \gamma_i \Gamma_i \g_i,
+$$
+where $\Gamma_i$ is a ``positive definite matrix approaching the inverse of the Hessian'' and $\gamma_i$ is some decay parameter which, like in 1st order SGD, is needed to achieve convergence under the single-point approximation of the gradient (the ``stochastic'' part). But he notes that ``this modification does not reduce the stochastic noise and therefore does not significantly improve the variance" (of the parameter estimate).
+
+Note sure if everyone agrees with that. It seems that some researchers still believe that 2nd order SGD is potentially faster to converge than its 1st order counterpart. One issue in the context of SGD is to come up with an effective online approximation to the Hessian. Then we might want to use the conjugate gradient (CG) method to solve the linear system associated with the SGD update, rather than inverting the Hessian itself. In practice, CG can be run for a few iterations to reach a good enough approximation -- this is known as the {\em Hessian-free} approach (HF). See James Martens (2010). 
+
+So what kind of online Hessian estimates can be used? Martens simply use the Hessian of a large enough mini-batch based on purely empirical arguments. Argawal et al (2017) in a paper called {\em Second-Order Stochastic Optimization for Machine Learning in Linear Time} revisit the question and propose an algorithm called LiSSA (linear time second-order stochastic algorithm) that estimates the Hessian inverse incrementally.
+
+The trick is to exploit the famous formula:
+$$
+\A^{-1} 
+= \sum^{\infty}_{i=0} (I-\A)^i 
+$$
+
+In other words,
+$$
+\s_0 \equiv \g,
+\qquad
+\s_j \equiv \sum_{i=0}^j (I-\A)^{i}\g
+$$
+converges to $\A^{-1}\g$ as $j\to\infty$. The key observation is that $\s_j$ can be computed recursively via $\s_j=\g + (I-\A)\s_{j-1}$, giving rise to a linear solver algorithm that can be seen as an alternative to CG. Now, we would like to replace $\A$ with the Hessian but it's more effective to estimate the Hessian from a mini-batch. More specifically, the paper uses a different mini-batch at each step ``$j$'' of the recursion -- which makes it somewhat more sophisticated than the plain HF mini-batch approach.
+
+To summarize, the fully factorial EP standpoint provides two things: 1) a neat justification to the diagonal approximation to the Hessian; 2) an online Hessian estimate that implicitely depends on all datapoints and likely becomes stable across iterations (unlike the gradient estimate).
+
+\section{Robbins-Monro algorithm}
+
+A brief refresher. The Robbins-Monro algorithm is a stochastic approximation method that uses an iteration of the form:
+$$
+\x_{n+1} = \x_n - \epsilon_n f_n(\x_n)
+,
+$$
+in order to solve for $f(\x)=E[f_n(\x)]=0$, assuming that $f_n(\x)$ are random functions with same mean $f(\x)$. Equivalently, the iteration aims to find a fix point of $F(\x)=\x-f(\x)$ and also reads:
+$$
+\x_{n+1} = (1-\epsilon_n)\x_n + \epsilon_n F_n(\x_n),
+$$
+with $F_n(\x)\equiv \x - f_n(\x)$.
+
+Now, consider the computation of a sample mean:
+$$
+\x_n = \frac{1}{n}\sum_{i=1}^n \a_{i-1}
+.
+$$
+
+We note that $(n+1)\x_{n+1} = n\x_n + \a_n$ hence $\x_{n+1}=[n\x_n+a_n]/(n+1)$, so this is equivalent to the following iteration:
+$$
+\x_{n+1} = \x_n - \frac{1}{n+1} (\x_n-\a_n),
+$$
+which is of Robbins-Monro type with $f_n(\x)=\x-\a_n$, or $F_n(\x)=\a_n$, where $\a$ is the random variable, and $\epsilon_n=1/(n+1)$. The above general considerations confirm that this iteration is meant to track $\x=E(\a)$. 
+
+But it also shows, by substituting formally $\a_n$ with $F_n(\x_n)$, that the Robins-Monro iteration with $\epsilon_n=1/(n+1)$ computes the average of $F_1(\x_1), F_2(\x_2), \ldots, F_{n-1}(\x_{n-1})$.
+
+If it turns out that $F$ is constant, RM is just a way to compute a sample mean. More generally, the Robbins-Monro may be seen as a procedure to estimate some quantity from repeated noisy measurements.
+
+
+\section{Some more stuff about learning}
+
+Why using placeholders? Apparently, people like placeholders because it makes it possible to implement a computational graph without using any data. So we can decorrelate the network architecture from the training. I can see a potential advantage in terms of memory management but it looks like Keras does not use it (to fit a model using Keras, the whole training dataset shall be loaded into memory beforehand).
+
+Dynamic learning phase? What is it? No clue.
+
+How does Keras initialize the network weights?
+
+
+
 
 
 \bibliographystyle{abbrv}

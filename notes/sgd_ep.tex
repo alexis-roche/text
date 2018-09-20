@@ -1,0 +1,67 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,subfigure}
+
+
+\title{Point matching notes} 
+\author{Alexis Roche} 
+%\date{} 
+
+\begin{document}
+
+\maketitle
+
+
+\section{Newton method and expectation-propagation}
+
+EP may be seen as a generalization of Newton's method.
+
+
+\section{Gaussian updates}
+
+Let $c(x)=K \exp[-\frac{1}{2} (x-\mu)^\top \Sigma^{-1} (x-\mu)]$ in canonical form and $g(x)$ such that $-\log g(x)=a + g^\top (x-\mu) + \frac{1}{2} (x-\mu)^\top H (x-\mu)$. Let us give the canonical expression of $c(x)g(x)$:
+\begin{eqnarray*}
+\log cg (x)
+& = & 
+\log K -\frac{1}{2} (x-\mu)^\top \Sigma^{-1} (x-\mu)
+- a - g^\top (x-\mu) - \frac{1}{2} (x-\mu)^\top H (x-\mu) \\
+& = & 
+\log K -a - g^\top (x-\mu) - \frac{1}{2} (x-\mu)^\top (\Sigma^{-1} + H) (x-\mu) \\
+& = & 
+\log K -a - g^\top (x-\mu) - \frac{1}{2} (x-\mu)^\top \Sigma_n^{-1} (x-\mu),
+\end{eqnarray*}
+with the new covariance matrix:
+$$
+\Sigma_n = (\Sigma^{-1} + H)^{-1}
+.
+$$
+
+To find the new mean, just cancel the gradient of the above expression:
+$$
+\nabla \log cg 
+= 
+- g - \Sigma_n^{-1} (x-\mu),
+$$
+yielding:
+$$
+\mu_n = \mu - \Sigma_n g
+.
+$$
+
+Finally, let us evaluate the multiplicative constant. By definition,
+$$
+\log K_n = \log cg(\mu_n),
+$$
+hence, denoting $\delta=\mu_n-\mu=-\Sigma_n g$:
+$$
+\log K_n = \log K -a - g^\top \delta - \frac{1}{2} \delta^\top \Sigma_n^{-1} \delta
+$$
+
+$$
+\log K_n = \log K -a + \frac{1}{2} g^\top \Sigma_n g.
+$$
+
+
+\end{document}
