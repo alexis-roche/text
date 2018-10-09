@@ -1171,16 +1171,16 @@ to compare an input image with a bunch of images from known persons
 and somewhow combine the probabilities output by the deep model to
 make a decision about the image under consideration.
 
-Another approach is to train some generative classifier (e.g. naive
-Bayes) on the features learned by the "generic model" (the output of
-the second-to-last layer). In this case, the generic model is only
-used as a feature extractor to pre-process the data for our task. The
-drawback is that we might need a fairly bigger training dataset than
-in the previous approach.
+Another natural approach is to train some generative classifier
+(e.g. naive Bayes) on the features learned by the "generic model" (the
+output of the second-to-last layer). In this typical transfer learning
+scenario, the generic model is only used as a feature extractor to
+pre-process the data for our task. The drawback is that we might need
+a fairly bigger training dataset than in the previous approach because
+we have to estimate some parameters unlike in the first approach.
 
-Are we done? No... One other idea we can have is to use the "metric"
+Are we done? No... Another idea we can have is to use the "metric"
 learned in the last layer of the generic model to implement some sort
-of KNN classifier. How is that different from approach 1? 
-
+of KNN classifier. How is that different from approach 1?
 
 
