@@ -1,0 +1,793 @@
+Inférence composite bayésienne (ou pas)
+
+
+*****
+
+INTRO
+
+Le concept de modèle composite... Il faut le voir comme une méthode
+d'inférence qui procède par aggrégation d'inférences binaires. Chaque
+inférence binaire est réalisée par un "expert" utilisant SA PROPRE
+REPRESENTATION et INDEPENDANT au sens où ses résultats ne dépendent
+pas des autres experts.
+
+Chaque expert "vit" dans un monde des possibles réduit à deux
+hypothèses, dont l'une est commune à tous les experts. Plus
+concrètement, sa mission est de calculer un rapport de probabilités
+entre l'hypothèse dont il est chargé et l'hypothèse de référence
+commune à tous les experts. C'est ensuite au "coordinateur" de
+construire une fonction de probabilité multi-classes en collectant les
+réponses des experts.
+
+La base de données d'apprentissage, si elle existe, est
+centralisée. Tous les experts y ont accès, mais formattent les données
+à leur façon, c-à-d selon leur représentation. Chaque expert effectue
+son apprentissage de façon classique, dans son monde propre, avec sa
+représentation propre voire son propre sous-ensemble de données.
+
+Dans le cas de l'apprentissage "à la volée" (qui n'a de sens que dans
+le cas où chaque expert utilise un modèle génératif), c'est la même
+idée de base: chaque expert élimine les paramètres de son modèle selon
+sa propre représentation et évalue son propre rapport de probabilités
+que le coordinateur utilise exactement comme dans le cas de
+l'apprentissage séparé.
+
+En d'autres termes, le coordinateur ne sait pas comment les paramètres
+du modèle sont éliminés. Il en délègue la responsabilité aux
+experts. Sa responsabilité à lui est de combiner les rapports de
+probabilités fournis par les experts.
+
+
+*****
+
+LIEN AVEC PDF PROJECTION
+
+Il faut déjà comprendre en quoi ce paradigme certes intuitif diffère
+du paradigme classique pour l'inférence multi-classes. Supposons qu'on
+ait un modèle génératif de la forme:
+
+p(y|x) = a(y) b(zx, x)
+
+où zx = z(x, y) est un "attribut contextuel", on prouve facilement que
+cette forme se ramène à celle du PDF projection theorem:
+
+p(y|x) = pi(y) p(zx|x) / pi(zx) [1]
+
+Une telle structure peut apparaitre naturellement dans un modèle ou
+résulter de l'application du principe d'entropie maximale si on
+sélectionne le modèle en supposant connues les distributions de
+l'attribut contextuel, p(z_x|x). Notons que dans ce dernier cas, la
+distribution de référence pi(y) est arbitraire. 
+
+Cette stratégie d'entropie maximale découle en fait d'un problème de
+théorie des jeux décrit par Grünwald, 2005: il s'agit de simuler des
+données en l'absence d'un modèle génératif complet. Le PDF projection
+n'est donc qu'une solution optimale pour un problème de synthèse de
+données.
+
+Mais est-ce qu'on peut invoquer le PDF projection pour faire de
+l'inférence? Dans son article de 2005 (je crois), Baggenstoss observe
+que le PDF projection est exact si la représentation est
+exhaustive. Autrement dit, on peut se passer du principe de maximum
+d'entropie si on suppose l'exhaustivité de la représentation. C'est
+une justification alternative mais plus fondamentale dans le contexte
+de l'inférence.
+
+
+*****
+
+MAXIMUM VRAISEMBLANCE COMPLETE: EXEMPLE
+
+Supposons qu'on ait la forme [1]. Si on traite p(y|x) de façon
+classique, sans tenir compte de cette structure, on voit que
+l'estimation des paramètres du modèle par maximum de vraisemblance
+(par exemple) conduit à:
+
+max_alpha, beta [sum_k log pi_alpha(y_k)/pi_alpha(zx_k) + sum_k log p_beta(zx_k|x_k)]
+
+En supposant que les paramètres alpha de pi et beta des autres lois
+génératives sont disjoints et que pi est la loi de la classe 0, cela
+revient à maximiser chaque terme indépendamment, donc notamment:
+
+max_alpha [sum_k f_k(alpha)]
+
+avec:
+f_k(alpha)
+= log pi_alpha(y_k) si x_k = 0
+= log pi_alpha(y_k)/pi_alpha(zx_k) si x_k > 0
+
+Supposons par exemple qu'on a 3 classes et que y = (z1, z2) sont
+indépendants dans la classe 0, i.e. pi(z1, z2) = pi(z1)p(z2). On a
+alors:
+
+f_k(alpha)
+= log pi_alpha(z1_k)pi_alpha(z2_k) si x_k=0
+= log pi_alpha(z2_k) si x_k=1
+= log pi_alpha(z1_k) si x_k=2
+
+Si on suppose en outre que pi(z1) et pi(z2) correspondent à des
+sous-ensembles disjoints de alpha, on voit que la méthode classique
+consiste à ajuster la distribution "nulle" de z1 (l'attribut
+"exhaustif" pour la classe 1) sur les données issues des classes 0 et
+2...
+
+Que vient faire la classe 2 dans cette histoire??? N'est-il pas
+absurde d'utiliser des données de la classe 2 pour ajuster la loi de
+la classe 0?
+
+Non car on peut se rendre compte que le modèle implique que z1 est
+distribué de la même façon dans les classes 0 et 2:
+
+p2(z1, z2) = pi(z1) p2(z2) ==> p2(z1) = pi(z1)
+
+Il est judicieux, dans ce cas, de ne pas se restreindre aux données de
+la classe 0 pour ajuster sa distribution. Sans surprise, la
+vraisemblance donne lieu à une estimation statistiquement efficace à
+défaut d'être calculatoirement simple. Bien sûr, si le modèle n'est
+pas réaliste (en d'autres termes, si l'attribut contextuel n'est pas
+exhaustif pour chaque classe), alors ce n'est pas une super idée de
+mélanger les données, mais ce n'est peut-être pas non plus une super
+idée d'utiliser l'approche composite...
+
+
+*****
+
+LIMITATIONS DE LA VRAISEMBLANCE COMPLETE
+
+Est-ce à dire que le maximum de vraisemblance "complète" est toujours
+la meilleure approche? On a déjà compris que son application empêche
+les experts d'être indépendants. En effet, l'ajustement de la loi
+nulle doit être centralisé car il fait intervenir des informations que
+les experts n'ont pas. Dans l'exemple ci-dessus, l'expert pour la
+classe 1 ne peut ajuster pi(z1) lui-même car il a besoin pour ça des
+valeurs de z2.
+
+Pour avoir un modèle complet, on doit avoir une représentation
+"originelle" des données, c-à-d qu'on doit définir la variable y alors
+que celle-ci n'a n'a pas lieu d'être dans l'approche
+composite. L'ajustement des lois pi(z_x) via la vraisemblance complète
+est-il indépendant de la représentation "originelle"? La réponse est
+non. Si on inclut dans y un attribut z3 qui a, par exemple, la même
+variance que z1 sous l'hypothèse de référence alors, clairement,
+l'estimation par maximum de vraisemblance "complète" de pi(z1) va
+dépendre de z3... c-à-d qu'on devra mesurer z3 pour pouvoir ajuster
+cette loi.
+
+Ce problème n'est pas spécifique à notre sujet d'étude. On sait bien
+que toute inférence statistique dépend du choix d'une
+représentation. Si les maximums de vraisemblance marginale et jointe
+donnaient les mêmes résultats, ça se saurait. Et il est bien naturel
+que ce ne soit pas le cas car l'intérêt de choisir une représentation
+plus riche est justement d'incorporer plus d'information - encore
+faut-il acquérir les données qui vont avec.
+
+Imaginons maintenant que la représentation choisie soit de grande
+dimension et implique des tas de paramètres additionnels... Est-ce que
+ça peut conduire à un mauvais ajustement des lois pi(z_x) à cause du
+curse of dimensionality? Je ne pense pas.
+
+Reste une difficulté conceptuelle avec la vraisemblance complète: le
+modèle stipule que tel attribut est suffisant pour tester telle
+hypothèse. Mais l'estimation des paramètres remet en cause ce
+principe.
+
+
+*****
+
+VRAISEMBLANCE REDUITE
+
+Mes réflexions de la fin de l'été 2017 m'avaient conduit à réaliser
+que l'approche composite équivaut à une méthode d'élimination de
+paramètres alternative applicable à tout modèle génératif complet dès
+lors qu'il admet une représentation adaptive réduite (ce qui est
+toujours le cas, en fait!). Appelons-la vraisemblance réduite. Il y a
+quelques similitudes avec le concept de vraisemblance restreinte mais
+ce n'est pas tout-à-fait la même chose.
+
+La vraisemblance réduite garantit l'exhaustivité EN UN SENS FORT: en
+clair, elle laisse chaque expert éliminer les paramètres par ses
+propres moyens. Contrairement à la vraisemblance complète, elle ne
+fournit pas un estimateur unique des paramètres de la distribution de
+référence (chaque expert y va de son estimateur...). Si les paramètres
+des distributions de classe sont liés, c'est encore plus le bordel.
+
+Mais quelle importance si le but assumé est d'estimer les rapports de
+vraisemblance:
+
+R(x) = p(y|x) / pi(y) = pi(z_x|x) / pi(z_x) ?
+
+La vraisemblance réduite permet de le faire sans exploiter toute
+l'information contenue dans les données mais avec plusieurs avantages:
+
+* exhaustivité forte
+
+* cohérence asymptotique (et oui, c'est maintenu car la vraisemblance
+  restreinte reste la vraisemblance...)
+
+* indépendance vis-à-vis de toute représentation "universelle"
+
+* flexibilité: indépedendance des experts et donc possibililté de
+  combiner leurs résultats sans connaitre les données utilisées (et
+  donc notamment s'ils ont utilisé des données différentes)
+
+* simplicité calculatoire: on n'a même pas besoin d'un modèle complet,
+  il suffit de modéliser les attributs sous chaque hypothèse d'intérêt
+
+
+*****
+
+LE CAS DU RECALAGE
+
+En recalage, l'exhaustivité forte signifie que la mesure de similarité
+ne dépend que de ce qui se passe dans la zone de recouvrement entre
+les images. Propriété on ne peut plus naturelle, mais qu'on n'obtient
+pas avec la vraisemblance complète.
+
+Je suis désormais convaincu de la validité du modèle génératif "i.i.d"
+présenté dans ma thèse pour le recalage: il est justifié par le
+théorème d'échangeabilité de de Finetti dans la mesure où on suppose
+que les pixels/voxels sont mélangés au préalable, ce qui revient à
+dire que la représentation "universelle" est un ensemble de pixels
+(donc sans notion d'ordre).
+
+On peut soit appliquer le théorème dans la région de recouvrement des
+images et obtenir ainsi un modèle incomplet, ou l'appliquer
+globalement en introduisant des distributions pour les points
+non-appariés et obtenir un modèle qui a l'apparence d'une PDF
+projection sans en être une. Dans le premier cas, on ne peut pas
+utiliser la vraisemblance complète car elle n'existe pas mais on peut
+utiliser la vraisemblance réduite!
+
+Cela dit, autant avoir un modèle complet. La vraisemblance complète
+est alors applicable et conduit à estimer les distributions des points
+non-appariés précisément sur les points non-appariés. Mais des
+propriétés bizarres apparaissent:
+
+* La mesure de similarité dépend de pixels extérieurs à la zone de
+  recouvrement...
+
+* Le nombre de points cibles non-appariés est potentiellement infini
+si l'image cible doit être interpolée. La distribution associée est
+alors hyper stable vis-à-vis de la transformation mais a aussi un
+poids infini dans la mesure de recalage...
+
+L'intuition dit qu'il est bien plus naturel d'utiliser la
+vraisemblance réduite. Tellement plus naturel que c'est une
+évidence. Et c'est ce qui me gêne encore un peu dans cette
+histoire. C'est évident mais je n'ai pas d'argument théorique pour
+rejeter la vraisemblance complète.
+
+
+*****
+
+ELIMINATION DE PARAMETRES
+
+On peut voir l'élimination de paramètres comme un problème
+d'approximation ou, si on préfère, de DECISION, c-à-d un problème de
+choix d'une valeur unique dans un ensemble. Il s'agit ici de
+représenter un modèle paramétrique par une distribution unique afin
+d'évaluer "l'évidence" du modèle, c-à-d la probabilité qu'il confère
+aux données.
+
+Notons la différence de perspective avec l'estimation ponctuelle, qui
+cherche directement à estimer la variable d'intérêt, par exemple, dans
+un cadre bayésien, par son mode ou sa moyenne a posteriori. Dans ce
+cas, les paramètres de nuisance sont éliminés par marginalisation car
+ils n'apparaissent pas dans la fonction de perte associée au problème
+de décision.
+
+Ici, l'objectif est en soi d'estimer l'évidence de manière à obtenir
+une FONCTION DE VRAISEMBLANCE de la variable d'intérêt x. On ne se
+contente pas d'un estimateur ponctuel de x. Celui-ci sera obtenu
+comme sous-produit de l'élimination de paramètres, mais d'autres
+sous-produits seront disponibles, par exemple l'incertidude sur x.
+
+Pour chaque x, on représente donc la famille de distributions sur y,
+p_theta(y|x), par une distribution unique indexée par x qui définit
+donc une loi conditionnelle q(y|x) libre de tout paramètre. Comme on
+travaille à x fixé, on peut omettre x dans les notations suivantes par
+souci de simplicité. Comment choisir cette loi? 
+
+--- Elimination bayésienne.
+
+Une idée naturelle est de choisir une sorte de centre de la famille,
+c'est-à-dire un élément situé à faible "distance" de tout autre
+élément. La "distance" en question définit la fonction de perte et
+peut être prise, par exemple, au hasard, comme la divergence KL:
+
+L(theta, q) = D(p_theta||q)
+
+Dans une perspective bayésienne, on minimise le risque intégré par
+rapport à la distribution jointe des données et des paramètres, ce qui
+suppose la définition d'un a priori pi(theta). On note que la décision
+q est ici indépendante des données par contrainte du problème. Ceci
+donne:
+
+R(q) = int pi(theta) p_theta(y) log [p_theta(y) / q(y)] dy dtheta
+
+==> argmin R(q) = int pi(theta) p_theta(y) dtheta
+
+On tombe nez à nez avec la marginalisation. Le bon vieux barycentre,
+quoi... (qui n'appartient pas forcément à la famille). Pas besoin
+d'une grande théorie pour ça.
+
+On peut cependant obtenir d'autres stratégies tout aussi bayésiennes
+en choisissant d'autres divergences; par exemple, la divergence KL
+inversée:
+
+L(theta, q) = D(q||p_theta)
+
+R(q) = int pi(theta)q(y) log[q(y) / p_theta(y)] dy dtheta
+= int q(y) log q(y) dy - int pi(theta) q(y) log p_theta(y) dy dtheta
+
+==> dR / dq = log q(y) + 1 - int pi(theta) log p_theta(y) dy
+==> argmin R(q) = K exp[ int pi(theta) log p_theta(y) dy ]
+
+La solution est cette fois la moyenne géométrique. Tout ça pour dire
+que la marginalisation n'est PAS NECESSAIREMENT la méthode bayésienne
+de choix pour l'élimination des paramètres de nuisance. Tout dépend du
+problème de décision et de la fonction de perte associée.
+
+--- NML.
+
+Il existe une alternative non-bayésienne à l'élimination de paramètres
+issue de la communauté minimum description length (MDL): la normalized
+maximum likelihood distribution (NML). Sa justification classique
+(cf. Grünwald ou Rissanen) repose sur la notion de "regret", c-à-d la
+différence de longueur de code entre la distribution caractéristique
+candidate et la distribution qui compresse le plus l'observation:
+
+L(y, q) = - log q(y) - min_theta [-log p_theta(y)]
+= -log q(y) + log ML(y)
+
+avec: ML(y) = max_theta p_theta(y)
+
+Le maximum de vraisemblance apparait naturellement dans cette
+formulation en tant que "meilleur modèle" mais c'est un modèle "naïf"
+car ML(y) ne définit pas une distribution prédictive valide à cause du
+couplage entre l'observation et l'estimée MV.
+
+Une différence essentielle avec l'approche précédente est que la
+fonction de perte dépend de l'observation. Tout se passe en fait comme
+si l'observation remplaçait theta comme "état inconnu du monde". Cela
+a du sens dans la mesure où la distribution caractéristique doit être
+choisie indépendamment de toute observation. En fait, on peut
+considérer que l'état du monde est donné par le couple (y, theta), ce
+qui permet de définir le regret pour tout theta:
+
+L(y, theta; q) = log p_theta(y) / q(y)
+
+Dès lors, il est naturel de chercher à minimiser le "pire" regret:
+
+R(q) = max_{y, theta} L(y, theta; q)
+
+en notant au passage qu'on ne fait pas l'hypothèse que `y` est
+distribué selon un certain p_theta(y). Cette approche évite de choisir
+des a priori sur `y` et `theta`. Comme c'est classique dans ce type de
+problèmes minimax, on probabilise `y` en introduisant le risque moyen:
+
+L(p, theta; q) = E_p [L(y, theta; q)]
+= int p(y) log p_theta(y) / log q(y) dy
+= D(p||q) - D(p||p_theta)
+
+On a évidemment:
+
+R(q) = max_p max_theta L(p, theta, q)
+= max_p L(p, q)
+
+où:
+
+L(p, q) = int p(y) log ML(y) / q(y) dy
+
+Il suffit alors de montrer que les opérateurs min et max commutent: 
+
+min_q R(q) = min_q max_p L(p, q)
+= max_p min_q L(p, q)
+
+On voit alors que quelque soit p, la distribution de Shtarkov (1987)
+dite NML minimise TOUJOURS L(p, q):
+
+argmin_q L(p, q) = ML(y) / Znml
+
+avec en plus la propriété que le minimum atteint est indépendant de p:
+
+min_q L(p, q) = log Znml
+
+Ainsi, la distribution NML est solution de notre problème!
+
+Au-delà de la nature "Bayes robuste" de cette formulation, on voit
+qu'elle consiste plus fondamentalement à remplacer D(p_theta||q) dans
+la 1ère formulation par D(p||q) - D(p||p_theta) avec l'idée que (p,
+theta) représente l'état du monde.
+
+
+--- Critère d'Akaike.
+
+Une autre approche bien connue est celle d'Akaike, 1974.
+
+L'idée de base est de définir l'adéquation d'un modèle via la
+divergence KL ou, de façon équivalente, la log-vraisemblance moyenne:
+
+S(p, p_theta) = int p(y) log p_theta(y) dy
+
+plutôt que via la notion empirique d'évidence. Dans cette perspective,
+la distribution réalisant le maximum de S sur la famille apparait
+comme distribution caractéristique naturelle et le maximum en question
+donne une mesure "optimiste" qu'il est naturel de considérer comme
+log-vraisemblance du modèle:
+
+S* = max_theta S(p, p_theta)
+
+Tout semble parfait jusqu'au moment où on réalise qu'on ne ne connait
+pas p, la "vraie" distribution des données, et que S* est donc
+inconnu. Mais Akaike justifie l'approximation:
+
+S* ~ log ML(y) - k
+
+où k est la dimension de theta. Très franchement, j'ai du mal à suivre
+son raisonnement...
+
+J'ai l'impression qu'il suffit d'appliquer le fameux théorème de Wilks:
+
+2 log [ML(y) / p(y)] ~ chi2(k)
+
+valable asymptotiquement SI p(y) APPARTIENT A LA FAMILLE et sous les
+conditions usuelles d'échantillonnage simple. Wilks nous dit alors que
+la log-vraisemblance profile sur-estime le score du modèle par la
+moitié d'un chi2 à k degrés de liberté. En prenant l'espérance de
+l'expression ci-dessus, les choses deviennent très claires:
+
+S* = E[log ML(y)] - k/2
+
+Ainsi, la quantité:
+
+log ML(y) - k/2
+
+fournit un estimateur sans biais de S*. C'est presque la correction
+d'Akaike... à un facteur 2 près. Akaike se serait-il planté?
+
+Il semble que cette incohérence vienne du fait qu'Akaike cherche en
+fait à estimer:
+
+S** = int p(y) log p_theta_ML(y) dy
+
+et non S* = max_theta S(p, p_theta), ce qui me semble plus naturel
+mais c'est moi.
+
+Quoiqu'il en soit, tout se passe comme si on définissait l'évidence du
+modèle comme:
+
+q(y) = f(k) ML(y) avec f(k) = exp(-k/2) ou exp(-k)
+
+mais c'est justifié sous l'hypothèse ABSURDE DANS LE CONTEXTE DE LA
+SELECTION DE MODELE que p(y) est dans la famille. Si tous les modèles
+testés sont corrects, il suffit de prendre le plus parcimonieux!
+
+Peut-on généraliser Wilks au cas d'un modèle mal spécifié? Pour cela,
+on peut se reporter au papier de Harts, 1982 et, en recollant les
+morceaux, voir que:
+
+E {2 log [ML(y) / p*(y)]} = trace(B A^-1)
+
+où p* est la projection KL de p sur la famille, avec:
+
+A = E[ d^2 log p_theta / dtheta^2 ] (Hessien de la log-vraisemblance moyenne)
+B = E[ (dlog p_theta / dtheta) (dlog p_theta / dtheta)' ]
+
+Dans le cas où p=p* appartient à la famille, ces deux matrices
+(calculées en theta*) sont égales (à l'information de Fisher), d'où:
+
+trace(B A^-1) = trace(I_k) = k
+
+On retrouve bien le résultat de Wilks. Mais on voit aussi qu'il ne se
+généralise pas trivialement. Le biais dépend de la "vraie"
+distribution des données; et s'il est grand, on pourrait se faire
+berner par un modèle incorrect. On peut l'estimer empiriquement, ce
+biais, si ça rentre dans le budget calculatoire, ou essayer de le
+majorer...
+
+On peut voir que B = A + G avec:
+
+G = E[(d^2 p_theta / dtheta^2) / p_theta]
+
+==> B A^-1 = I_k + G A^-1
+
+==> trace(A B^-1) = k + trace(G A^-1)
+
+Facile de montrer que G=0 si p=p* mais sinon... ?????
+
+Cela étant, le résultat montre que le biais sur la log-vraisemblance
+MOYENNE est en O(1/n), où n est le nombre de points. Ainsi, lorsqu'on
+compare des modèles sur un "grand" échantillon, on peut
+raisonnablement supposer que le biais est négligeable.
+
+En conclusion, l'intérêt majeur de l'approche d'Akaike est, à mon
+sens, de justifier la vraisemblance profile comme mesure d'évidence à
+la limite des grands échantillons. Sous réserve que n soit constant à
+travers les modèles (ce qui n'est pas le cas dans le recalage).
+
+
+*****
+
+LE PARADOXE RECALAGE/APPARIEMENTS
+
+J'ai buté pendant des années sur une difficulté conceptuelle de ma
+formulation statistique du recalage: par simple raffinement de
+l'échantillonnage, on peut rendre une transformation infiniment plus
+vraisemblable qu'une autre et donc rendre l'incertitude bayésienne sur
+le recalage aussi petite qu'on veut.
+
+Ce phénomène vient du fait que la log-vraisemblance d'une
+transformation est proportionnelle au nombre de points appariés. Or ce
+nombre est déterminé par l'échantillonnage et est donc
+arbitraire. Certes, on s'attend à ce que la vraisemblance dépende de
+la représentation des données. Mais à ce point? Cette observation m'a
+fait longtemps douter de l'hypothèse d'indépendance des pixels.
+
+Elle semble en tous cas contradictoire avec un principe élémentaire de
+théorie de l'information. Souviens-toi de l'inégalité fondamentale du
+traitement des données. Notre recalage statistique repose sur un
+pré-traitement des données pour le moins radical qui consiste à
+réduire chaque image à un histogramme (ou, de façon équivalente, une
+liste des valeurs d'intensité dans un ordre aléatoire et ignorant la
+position des points).
+
+En notant X les paramètres de transformation, Y=(I, J) le couple
+d'images et Z=(fI, fJ) sa représentation du pauvre, on a une belle
+chaîne de Markov:
+
+X -> Y -> Z
+
+Le fait que X soit "aussi précis que l'on veut" connaissant Z signifie
+que I(X,Z) est "aussi grand que l'on veut". Or la théorie de
+l'information affirme que I(X,Z) <= I(X,Y) donc I(X,Y) est
+infinie. Toute procédure bayésienne de recalage aurait donc
+nécessairement une incertitude nulle (sauf éventuellement à reposer
+sur une représentation encore plus pauvre que la nôtre). N'est-ce pas
+la preuve irréfutable qu'il y a une faille dans notre raisonnement?
+Comment l'algorithme pourrait-il être certain de ne pas se tromper
+alors que chacun sait qu'il y a toujours des erreurs de recalage?
+
+J'avais noté en 2007 que le paradoxe "disparait" si on s'intéresse à
+des transformations libres. Les paramètres recherchés sont alors des
+appariements et sont dépendants de l'échantillonnage. Le fait que la
+vraisemblance augmente par raffinement de l'échantillonnage est alors
+un simple effet de nombre car les distributions marginales des
+appariements sont inchangées. On ne peut être certain des appariements
+à quelque résolution que ce soit.
+
+Contrairement à l'intuition qui a parfois faussé mon jugement,
+l'indépendance a posteriori des appariements n'est pas le signe d'un
+"excès de confiance" de l'algorithme. Bien au contraire!
+L'indépendance a posteriori, en plus du fait que les lois marginales a
+posteriori sont indépendantes du contexte (c-à-d, n'utilisent pas les
+pixels voisins du point cible orrespondant) illustre bien
+l'information limitée fournie par la représentation. La
+distribution a posteriori pourrait dfficilement être plus
+"entropique"!
+
+Ouf... l'inégalité fondamentale du traitement des données n'est pas
+bafouée, au contraire elle est confirmée dans toute sa gloire.  Mais,
+alors, si l'incertitude sur des transformations libres est "grande",
+comment peut-elle être nulle pour des transformations paramétriques?
+
+Le problème n'a rien à voir avec notre modèle particulier de
+représentation des images. Le simple fait d'imaginer qu'on puisse
+définir une vraisemblance sur des appariements denses conduit au
+"paradoxe".
+
+Si la vraisemblance en question est notée L(Q)=p(Y|Q), que vaut p(Y|X), la
+vraisemblance sur les paramètres de transformation? On suppose une
+chaine de Markov:
+
+X -> Q -> D
+
+autrement dit, que les données sont indépendantes de la transformation
+CONNAISSANT les appariements, ce qui semble évident. On a donc:
+
+p(Y|X) = int p(Y|Q)p(Q|X) dQ
+
+En supposant (pour fixer les idées) une dépendance déterministe X |->
+Q, on a donc, tout simplement:
+
+L(X) = L(Q(X))
+
+Ce qui généralise notre "curse of dimensionality": plus la grille
+sous-jacente à Q est grande, plus l'ordre de grandeur de la
+vraisemblance sur X est grande, et donc plus grands sont les rapports
+de vraisemblances entre transformations testées. 
+
+D'une certaine manière, on dit juste ici que si on a une infinité de
+points de contrôle, on peut estimer exactement (au sens d'une variance
+a posteriori nulle) les paramètres d'une transformation
+paramétrique. On ne dit pas que les appariements sont exacts. S'ils
+l'étaient, un nombre fini suffirait.
+
+Ceci semble paradoxal mais c'est un effet "mécanique" de la
+dimension. Considérons le cas similaire de la régression aux moindres
+carrés, pour laquelle il est bien connu que la variance d'estimation
+est donnée par:
+
+V = s^2 (X'X)^-1
+
+La matrice X'X étant proportionnelle à la fréquence d'échantillonnage,
+V est une fonction décroissante de celle-ci, sauf à considérer que la
+variance du bruit augmente avec la fréquence d'échantillonnage, ce qui
+a du sens physique si le bruit est moyenné dans la période
+d'échantillonnage. Ca n'en a pas pour nous car le "bruit" est ici
+l'incertitude marginale sur chaque appariement et n'a donc aucune
+raison "physique" de varier en fonction de l'échantillonnage.
+
+Force est de conclure que la variance a posteriori sur nos paramètres
+de recalage est virtuellement nulle. Est-ce à dire que le recalage est
+exact? Bien sûr que non!
+
+D'abord, il y a toujours du biais car le modèle de transformation ne
+peut être parfait. Un cerveau n'est pas rigide. La technique
+d'imagerie introduit des distorsions géométriques. Il y aura toujours
+des déformations résiduelles.
+
+Ensuite, notre modèle suppose connues les position des points dans les
+images, que ce soit les pixels "natifs" ou les points
+interpolés. Quand j'attribue à un pixel la position de son centre,
+n'est-ce pas arbitraire? La vraie position n'est-elle pas "quelque
+part dans le pixel"?
+
+Imaginons l'expérience suivante. On prend une fonction constante par
+morceaux, on l'échantillonne (en ajoutant du bruit et en moyennant le
+signal par pixel), puis on interpole le signal échantillonné. Est-ce
+qu'on récupère exactement la fonction originale? Est-ce que les points
+"saillants" (points de contour, coins...) peuvent être localisés avec
+certitude? Evidemment pas.
+
+D'une part, cela signifie qu'il est impossible à un opérateur humain
+d'établir une vérité terrain exacte à partir d'amers repérés à
+l'oeil. D'autre part, l'algorithme de recalage opère sur des images
+qui présentent la réalité d'une manière "floue" non prise en compte
+par notre modèle statistique.
+
+Comment pourrait-il l'être? En introduisant une incertitude sur la
+localisation des points? Question ouverte. 
+
+
+
+
+===========================================================
+
+L'intuition qui est derrière ça est que le max de vraisemblance donne
+une bonne estimée de theta mais celle-ci étant dépendante des données,
+elle ne définit pas un "code" valide. Le regret exprime la différence
+entre un code universel valide et le code "naïf" fourni par
+MV. L'autre idée sous-jacente à NML est qu'on ne suppose pas que la
+"vraie" distribution appartient à la famille. Dès lors, il est naturel
+de considérer le regret maximal comme critère, d'où un problème
+minimax:
+
+Lnml(q) = max_p int p(y) log ML(y)/q(y) dy
+
+==> argmin Lnml(q) = ML(y) / int ML(y) dy
+
+Cette approche fournit une version corrigée de la "vraisemblance
+profile" comme estimation de l'évidence du modèle. Le terme correctif,
+qui exprime la complexité du modèle, ne peut être ignoré que s'il
+s'avère indépendant de x.
+
+Dans le cas de la vraisemblance réduite, ces deux codes sont
+disponibles en version réduite, c-à-d en remplaçant `y` par `z_x`. Ils
+permettent alors de calculer les rapports d'évidence pertinents pour
+estimer p(y|x)/pi(y), sans d'ailleurs connaitre pi(y). C'est toute la
+substantifique moëlle de cette approche qu'est la vraisemblance
+réduite.
+
+
+
+Pour l'instant, on a supposé que theta représente l'état du monde.
+
+
+L(p, theta; q) = int p(y) log p_theta(y) / log q(y) dy = D(p||q) - D(p||p_theta)
+
+min_q max_theta max_p L(p; theta, q)
+
+= min_q max_p Regret(p, q)
+
+= max_p min_q Regret(p, q)
+
+= max_p log Znml
+
+= log Znml
+
+
+Mais sortons un peu du cadre bayésien dont la grande limitation est de
+nécessiter un a priori sur theta et l'intégration qui va avec. 
+*****
+
+EN RESUME
+
+
+
+
+===================
+
+
+L'approche bayésienne "canonique" pour décider de la distribution
+d'une variable est d'utiliser le "log-loss" comme fonction de perte:
+
+L(y, q) = - log q(y)
+
+R(q) = - int pi(theta) p_theta(y) log q(y) dy dtheta
+
+==> argmin L(q) = int pi(theta) p_theta(y) dtheta
+
+On tombe nez à nez avec la marginalisation. 
+
+
+
+Dans le cadre bayésien, si on considère "par définition" qu'un
+paramètre de nuisance n'affecte pas la fonction de perte, alors il est
+toujours éliminé par marginalisation, ce qui fait apparaitre la
+marginalisation comme un sous-produit naturel de l'inférence
+bayésienne. C'est une conséquence évidente de la théorie bayésienne de
+la décision. Gardons cependant à l'esprit que le but d'une décision
+optimale est d'atténuer autant que faire se peut l'incertitude sur
+toutes les variables du problème, à savoir aussi bien les variables
+d'intérêt x que les paramètres de nuisance theta.
+
+L'estimation des paramètres de nuisance n'est pas une fin en
+soi. 
+
+Pour chaque y, on a un problème de décision "sans données" de la
+forme:
+
+L(x, theta, q) = -log q(x)
+R(q) = - int pi(theta) p_theta(x) log q(x) dx dtheta
+
+à la variabilité a posteriori, la décision doit porter non pas sur le
+mode mais sur la distribution a posteriori en tant que telle. Prenons
+un exemple
+
+On sait que l'intégration bayésienne correspond à la minimisation d'un
+certain risque intégré:
+
+
+
+
+==========
+En fait, ce que je suis en train de dire, c'est que le PDF projection
+est un piège. On peut toujours exhiber un modèle global compatible
+avec les modèles "locaux", c'est satisfaisant pour l'esprit, mais ça
+n'est jamais qu'une "supposition éclairée" qui ne saurait masquer
+notre méconnaissance.
+
+On le comprend d'autant mieux en revenant à l'inteprétation par
+maximum d'entropie et la théorie des jeux sous-jacente (cf. Grünwald,
+2005): le PDF projection n'est qu'une solution optimale pour simuler
+des données en l'absence d'un modèle génératif complet. Mais pas pour
+faire de l'inférence. Quel intérêt pour nous? AUCUN. C'est bien beau
+la théorie mais rien ne remplace le bon sens.
+
+Pour conclure, l'approche composite est indiquée quand on n'a pas de
+modèle complet et donc pas de solution classique pour faire de
+l'inférence. Elle est INCOMPATIBLE avec le PDF projection.
+
+J'ai l'impression que l'application "globale" du théorème de de
+Finetti cache un lièvre... Non seulement c'est tordu, mais en plus ça
+révèle encore une fois (comme dans le cas du PDF projection) le désir
+superflu d'un modèle global puisque l'aggrégation d'opinions est
+justement faite pour s'en affranchir. Et c'est d'autant plus
+incohérent dans ce cas que notre modèle global reçoit un traitement
+non-conventionnel...
+
+L'expert FAIT L'HYPOTHESE que l'ensemble des couples appariés par une
+transformation donnée (et donc ordonnés de façon arbitraire) est une
+représentation suffisante pour tester ladite transformation contre une
+transformation "nulle" pour laqelle les appariements sont eux-mêmes
+arbitraires (on peut imaginer une transformation qui apparie des
+régions très éloignées de sorte que les couples de points sont
+statistiquement indépendants).
+
+On a donc un MODELE INCOMPLET. Il n'y a pas d'outil bien établi pour
+traiter ce cas. Dès lors, on a le choix entre la méthode de
+Baggenstoss (basée sur le PDF projection) et la méthode composite que
+nous proposons.
+
+
