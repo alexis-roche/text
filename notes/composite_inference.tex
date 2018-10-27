@@ -1,0 +1,363 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\title{Inf\'erence composite bay\'esienne (ou pas)}
+\author{Alexis Roche}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Le concept de mod\`ele composite... Il faut le voir comme une m\'ethode d'inf\'erence qui proc\`ede par aggr\'egation d'inf\'erences binaires. Chaque inf\'erence binaire est r\'ealis\'ee par un "expert" utilisant {\em sa propre repr\'esentation} et {\em ind\'ependant} au sens o\`u ses r\'esultats ne d\'ependent pas des autres experts. 
+
+Chaque expert "vit" dans un monde des possibles r\'eduit \`a deux hypoth\`eses, dont l'une est commune \`a tous les experts. Plus concr\`etement, sa mission est de calculer un rapport de probabilit\'es entre l'hypoth\`ese dont il est charg\'e et l'hypoth\`ese de r\'ef\'erence commune \`a tous les experts. C'est ensuite au "coordinateur" de construire une fonction de probabilit\'e multi-classes en collectant les r\'eponses des experts. 
+
+La base de donn\'ees d'apprentissage, si elle existe, est centralis\'ee. Tous les experts y ont acc\`es, mais formattent les donn\'ees \`a leur fa\c{c}on, c-\`a-d selon leur repr\'esentation. Chaque expert effectue son apprentissage de fa\c{c}on classique, dans son monde propre, avec sa repr\'esentation propre voire son propre sous-ensemble de donn\'ees. 
+
+Dans le cas de l'apprentissage "\`a la vol\'ee" (qui n'a de sens que dans le cas o\`u chaque expert utilise un mod\`ele g\'en\'eratif), c'est la m\^eme id\'ee de base: chaque expert \'elimine les param\`etres de son mod\`ele selon sa propre repr\'esentation et \'evalue son propre rapport de probabilit\'es que le coordinateur utilise exactement comme dans le cas de l'apprentissage s\'epar\'e. 
+
+En d'autres termes, le coordinateur ne sait pas comment les param\`etres du mod\`ele sont \'elimin\'es. Il en d\'el\`egue la responsabilit\'e aux experts. Sa responsabilit\'e \`a lui est de combiner les rapports de probabilit\'es fournis par les experts. 
+
+
+\section{Lien avec PDF projection}
+
+Il faut d\'ej\`a comprendre en quoi ce paradigme certes intuitif diff\`ere du paradigme classique pour l'inf\'erence multi-classes. Supposons qu'on ait un mod\`ele g\'en\'eratif de la forme: 
+
+$$
+p(y|x) = a(y) b(z_x, x),
+$$ 
+o\`u $zx = z(x, y)$ est un "attribut contextuel", on prouve facilement que cette forme se ram\`ene \`a celle du PDF projection theorem: 
+\begin{equation}
+\label{eq:pdf_proj}
+p(y|x) = \pi(y) \frac{p(z_x|x)}{\pi(z_x)}
+\end{equation}
+
+Une telle structure peut apparaitre naturellement dans un mod\`ele ou r\'esulter de l'application du principe d'entropie maximale si on s\'electionne le mod\`ele en supposant connues les distributions de l'attribut contextuel, $p(z_x|x)$. Notons que dans ce dernier cas, la distribution de r\'ef\'erence $\pi(y)$ est arbitraire.  
+
+Cette strat\'egie d'entropie maximale d\'ecoule en fait d'un probl\`eme de th\'eorie des jeux d\'ecrit par Gr\"unwald, 2005: il s'agit de simuler des donn\'ees en l'absence d'un mod\`ele g\'en\'eratif complet. Le PDF projection n'est donc qu'une solution optimale pour un probl\`eme de synth\`ese de donn\'ees. 
+
+Mais est-ce qu'on peut invoquer le PDF projection pour faire de l'inf\'erence? Dans son article de 2005 (je crois), Baggenstoss observe que le PDF projection est exact si la repr\'esentation est exhaustive. Autrement dit, on peut se passer du principe de maximum d'entropie si on suppose l'exhaustivit\'e de la repr\'esentation. C'est une justification alternative mais plus fondamentale dans le contexte de l'inf\'erence. 
+
+\section{Maximum de vraisemblance compl\`ete: exemple}
+
+Supposons qu'on ait la forme (\ref{eq:pdf_proj}). Si on traite p(y|x) de fa\c{c}on classique, sans tenir compte de cette structure, on voit que l'estimation des param\`etres du mod\`ele par maximum de vraisemblance (par exemple) conduit \`a: 
+
+$$
+\max_{\alpha, \beta} \left[
+\sum_k \log \pi_\alpha(y_k)/\pi_\alpha(z_{x_k}) + \sum_k \log p_\beta(z_{x_k}|x_k)
+\right]
+$$ 
+
+En supposant que les param\`etres alpha de pi et beta des autres lois g\'en\'eratives sont disjoints et que pi est la loi de la classe 0, cela revient \`a maximiser chaque terme ind\'ependamment, donc notamment: 
+
+$$
+\max_\alpha \left[
+\sum_k f_k(\alpha)
+\right]
+$$ 
+avec: $ f_k(\alpha) = \log \pi_\alpha(y_k)$  si $x_k = 0$ et $f_k(\alpha) = \log \pi_\alpha(y_k)/\pi_\alpha(z_{x_k})$ si $x_k > 0$.
+
+Supposons par exemple qu'on a 3 classes et que $y = (z_1, z_2)$ sont ind\'ependants dans la classe 0, {\em i.e.} $\pi(z_1, z_2) = \pi(z_1)p(z_2)$. On a alors: $f_k(\alpha) = \log \pi_\alpha(z_{1k})\pi_\alpha(z_{2k})$ si $x_k=0$, $f_k(\alpha) = \log \pi_\alpha(z_{2k})$ si $x_k=1$,  et $f_k(\alpha) = \log \pi_\alpha(z_{1k})$ si $x_k=2$.
+
+Si on suppose en outre que pi(z1) et pi(z2) correspondent \`a des sous-ensembles disjoints de alpha, on voit que la m\'ethode classique consiste \`a ajuster la distribution "nulle" de z1 (l'attribut "exhaustif" pour la classe 1) sur les donn\'ees issues des classes 0 et 2... 
+
+Que vient faire la classe 2 dans cette histoire??? N'est-il pas absurde d'utiliser des donn\'ees de la classe 2 pour ajuster la loi de la classe 0? 
+
+Non car on peut se rendre compte que le mod\`ele implique que z1 est distribu\'e de la m\^eme fa\c{c}on dans les classes 0 et 2: 
+
+$$p2(z1, z2) = pi(z1) p2(z2) ==> p2(z1) = pi(z1)$$ 
+
+Il est judicieux, dans ce cas, de ne pas se restreindre aux donn\'ees de la classe 0 pour ajuster sa distribution. Sans surprise, la vraisemblance donne lieu \`a une estimation statistiquement efficace \`a d\'efaut d'\^etre calculatoirement simple. Bien s\^ur, si le mod\`ele n'est pas r\'ealiste (en d'autres termes, si l'attribut contextuel n'est pas exhaustif pour chaque classe), alors ce n'est pas une super id\'ee de m\'elanger les donn\'ees, mais ce n'est peut-\^etre pas non plus une super id\'ee d'utiliser l'approche composite... 
+
+
+\section{Limitations de la vraisemblance compl\`ete}
+
+Est-ce \`a dire que le maximum de vraisemblance "compl\`ete" est toujours la meilleure approche? On a d\'ej\`a compris que son application emp\^eche les experts d'\^etre ind\'ependants. En effet, l'ajustement de la loi nulle doit \^etre centralis\'e car il fait intervenir des informations que les experts n'ont pas. Dans l'exemple ci-dessus, l'expert pour la classe 1 ne peut ajuster pi(z1) lui-m\^eme car il a besoin pour \c{c}a des valeurs de z2. 
+
+Pour avoir un mod\`ele complet, on doit avoir une repr\'esentation "originelle" des donn\'ees, c-\`a-d qu'on doit d\'efinir la variable y alors que celle-ci n'a n'a pas lieu d'\^etre dans l'approche composite. L'ajustement des lois $\pi(z_x)$ via la vraisemblance compl\`ete est-il ind\'ependant de la repr\'esentation "originelle"? La r\'eponse est non. Si on inclut dans y un attribut z3 qui a, par exemple, la m\^eme variance que z1 sous l'hypoth\`ese de r\'ef\'erence alors, clairement, l'estimation par maximum de vraisemblance "compl\`ete" de pi(z1) va d\'ependre de z3... c-\`a-d qu'on devra mesurer z3 pour pouvoir ajuster cette loi. 
+
+Ce probl\`eme n'est pas sp\'ecifique \`a notre sujet d'\'etude. On sait bien que toute inf\'erence statistique d\'epend du choix d'une repr\'esentation. Si les maximums de vraisemblance marginale et jointe donnaient les m\^emes r\'esultats, \c{c}a se saurait. Et il est bien naturel que ce ne soit pas le cas car l'int\'er\^et de choisir une repr\'esentation plus riche est justement d'incorporer plus d'information - encore faut-il acqu\'erir les donn\'ees qui vont avec. 
+
+Imaginons maintenant que la repr\'esentation choisie soit de grande dimension et implique des tas de param\`etres additionnels... Est-ce que \c{c}a peut conduire \`a un mauvais ajustement des lois $\pi(z_x)$ \`a cause du curse of dimensionality? Je ne pense pas. 
+
+Reste une difficult\'e conceptuelle avec la vraisemblance compl\`ete: le mod\`ele stipule que tel attribut est suffisant pour tester telle hypoth\`ese. Mais l'estimation des param\`etres remet en cause ce principe. 
+
+
+\section{Vraisemblance r\'eduite}
+
+Mes r\'eflexions de la fin de l'\'et\'e 2017 m'avaient conduit \`a r\'ealiser que l'approche composite \'equivaut \`a une m\'ethode d'\'elimination de param\`etres alternative applicable \`a tout mod\`ele g\'en\'eratif complet d\`es lors qu'il admet une repr\'esentation adaptive r\'eduite (ce qui est toujours le cas, en fait!). Appelons-la vraisemblance r\'eduite. Il y a quelques similitudes avec le concept de vraisemblance restreinte mais ce n'est pas tout-\`a-fait la m\^eme chose. 
+
+La vraisemblance r\'eduite garantit l'exhaustivit\'e EN UN SENS FORT: en clair, elle laisse chaque expert \'eliminer les param\`etres par ses propres moyens. Contrairement \`a la vraisemblance compl\`ete, elle ne fournit pas un estimateur unique des param\`etres de la distribution de r\'ef\'erence (chaque expert y va de son estimateur...). Si les param\`etres des distributions de classe sont li\'es, c'est encore plus le bordel. 
+
+Mais quelle importance si le but assum\'e est d'estimer les rapports de vraisemblance: 
+
+$$R(x) = p(y|x) / pi(y) = pi(z_x|x) / pi(z_x)$$ 
+
+La vraisemblance r\'eduite permet de le faire sans exploiter toute l'information contenue dans les donn\'ees mais avec plusieurs avantages: 
+
+\begin{itemize}
+\item exhaustivit\'e forte 
+\item coh\'erence asymptotique (et oui, c'est maintenu car la vraisemblance   restreinte reste la vraisemblance...) 
+\item ind\'ependance vis-\`a-vis de toute repr\'esentation "universelle" 
+\item flexibilit\'e: ind\'epedendance des experts et donc possibililt\'e de   combiner leurs r\'esultats sans connaitre les donn\'ees utilis\'ees (et   donc notamment s'ils ont utilis\'e des donn\'ees diff\'erentes) 
+\item simplicit\'e calculatoire: on n'a m\^eme pas besoin d'un mod\`ele complet,   il suffit de mod\'eliser les attributs sous chaque hypoth\`ese d'int\'er\^et 
+\end{itemize}
+
+\section{Le cas du recalage}
+
+En recalage, l'exhaustivit\'e forte signifie que la mesure de similarit\'e ne d\'epend que de ce qui se passe dans la zone de recouvrement entre les images. Propri\'et\'e on ne peut plus naturelle, mais qu'on n'obtient pas avec la vraisemblance compl\`ete. 
+
+Je suis d\'esormais convaincu de la validit\'e du mod\`ele g\'en\'eratif "i.i.d" pr\'esent\'e dans ma th\`ese pour le recalage: il est justifi\'e par le th\'eor\`eme d'\'echangeabilit\'e de de Finetti dans la mesure o\`u on suppose que les pixels/voxels sont m\'elang\'es au pr\'ealable, ce qui revient \`a dire que la repr\'esentation "universelle" est un ensemble de pixels (donc sans notion d'ordre). 
+
+On peut soit appliquer le th\'eor\`eme dans la r\'egion de recouvrement des images et obtenir ainsi un mod\`ele incomplet, ou l'appliquer globalement en introduisant des distributions pour les points non-appari\'es et obtenir un mod\`ele qui a l'apparence d'une PDF projection sans en \^etre une. Dans le premier cas, on ne peut pas utiliser la vraisemblance compl\`ete car elle n'existe pas mais on peut utiliser la vraisemblance r\'eduite! 
+
+Cela dit, autant avoir un mod\`ele complet. La vraisemblance compl\`ete est alors applicable et conduit \`a estimer les distributions des points non-appari\'es pr\'ecis\'ement sur les points non-appari\'es. Mais des propri\'et\'es bizarres apparaissent: 
+
+\begin{itemize}
+\item La mesure de similarit\'e d\'epend de pixels ext\'erieurs \`a la zone de   recouvrement... 
+\item Le nombre de points cibles non-appari\'es est potentiellement infini si l'image cible doit \^etre interpol\'ee. La distribution associ\'ee est alors hyper stable vis-\`a-vis de la transformation mais a aussi un poids infini dans la mesure de recalage... 
+\end{itemize}
+
+L'intuition dit qu'il est bien plus naturel d'utiliser la vraisemblance r\'eduite. Tellement plus naturel que c'est une \'evidence. Et c'est ce qui me g\^ene encore un peu dans cette histoire. C'est \'evident mais je n'ai pas d'argument th\'eorique pour rejeter la vraisemblance compl\`ete. 
+
+
+\section{Elimination de param\`etres}
+
+On peut voir l'\'elimination de param\`etres comme un probl\`eme d'approximation ou, si on pr\'ef\`ere, de DECISION, c-\`a-d un probl\`eme de choix d'une valeur unique dans un ensemble. Il s'agit ici de repr\'esenter un mod\`ele param\'etrique par une distribution unique afin d'\'evaluer "l'\'evidence" du mod\`ele, c-\`a-d la probabilit\'e qu'il conf\`ere aux donn\'ees. 
+
+Notons la diff\'erence de perspective avec l'estimation ponctuelle, qui cherche directement \`a estimer la variable d'int\'er\^et, par exemple, dans un cadre bay\'esien, par son mode ou sa moyenne a posteriori. Dans ce cas, les param\`etres de nuisance sont \'elimin\'es par marginalisation car ils n'apparaissent pas dans la fonction de perte associ\'ee au probl\`eme de d\'ecision. 
+
+Ici, l'objectif est en soi d'estimer l'\'evidence de mani\`ere \`a obtenir une FONCTION DE VRAISEMBLANCE de la variable d'int\'er\^et x. On ne se contente pas d'un estimateur ponctuel de x. Celui-ci sera obtenu comme sous-produit de l'\'elimination de param\`etres, mais d'autres sous-produits seront disponibles, par exemple l'incertidude sur x. 
+
+Pour chaque $x$, on repr\'esente donc la famille de distributions sur $y$, $p_\theta(y|x)$, par une distribution unique index\'ee par $x$ qui d\'efinit donc une loi conditionnelle $q(y|x)$ libre de tout param\`etre. Comme on travaille \`a $x$ fix\'e, on peut omettre $x$ dans les notations suivantes par souci de simplicit\'e. Comment choisir cette loi?  
+
+
+\subsection{Elimination bay\'esienne}
+
+Une id\'ee naturelle est de choisir une sorte de centre de la famille, c'est-\`a-dire un \'el\'ement situ\'e \`a faible "distance" de tout autre \'el\'ement. La "distance" en question d\'efinit la fonction de perte et peut \^etre prise, par exemple, au hasard, comme la divergence KL: 
+
+$$L(theta, q) = D(p_theta\|q)$$
+
+Dans une perspective bay\'esienne, on minimise le risque int\'egr\'e par rapport \`a la distribution jointe des donn\'ees et des param\`etres, ce qui suppose la d\'efinition d'un a priori pi(theta). On note que la d\'ecision q est ici ind\'ependante des donn\'ees par contrainte du probl\`eme. Ceci donne: 
+
+$$R(q) = int pi(theta) p_theta(y) log [p_theta(y) / q(y)] dy dtheta$$ 
+
+$$==> argmin R(q) = int pi(theta) p_theta(y) dtheta$$ 
+
+On tombe nez \`a nez avec la marginalisation. Le bon vieux barycentre, quoi... (qui n'appartient pas forc\'ement \`a la famille). Pas besoin d'une grande th\'eorie pour \c{c}a. 
+
+On peut cependant obtenir d'autres strat\'egies tout aussi bay\'esiennes en choisissant d'autres divergences; par exemple, la divergence KL invers\'ee: 
+
+$$L(theta, q) = D(q||p_theta)$$ 
+
+$$
+R(q) = \int pi(\theta)q(y) log[q(y) / p_\theta(y)] dy d\theta = int q(y) log q(y) dy - \int \pi(\theta) q(y) log p_\theta(y) dy d\theta
+$$ 
+
+$$ dR / dq = \log q(y) + 1 - \int \pi(\theta) \log p_\theta(y) dy ==> \arg\min R(q) = K \exp[\int \pi(\theta) \log p_\theta(y) dy ]$$ 
+
+La solution est cette fois la moyenne g\'eom\'etrique. Tout \c{c}a pour dire que la marginalisation n'est PAS NECESSAIREMENT la m\'ethode bay\'esienne de choix pour l'\'elimination des param\`etres de nuisance. Tout d\'epend du probl\`eme de d\'ecision et de la fonction de perte associ\'ee. 
+
+
+\subsection{NML}
+
+Il existe une alternative non-bay\'esienne \`a l'\'elimination de param\`etres issue de la communaut\'e minimum description length (MDL): la normalized maximum likelihood distribution (NML). Sa justification classique (cf. Gr\"unwald ou Rissanen) repose sur la notion de "regret", c-\`a-d la diff\'erence de longueur de code entre la distribution caract\'eristique candidate et la distribution qui compresse le plus l'observation: 
+
+$$L(y, q) = - log q(y) - min_theta [-log p_theta(y)] = -log q(y) + log ML(y)$$ 
+
+avec: $ML(y) = max_theta p_theta(y)$ 
+
+Le maximum de vraisemblance apparait naturellement dans cette formulation en tant que "meilleur mod\`ele" mais c'est un mod\`ele "na\"if" car ML(y) ne d\'efinit pas une distribution pr\'edictive valide \`a cause du couplage entre l'observation et l'estim\'ee MV. 
+
+Une diff\'erence essentielle avec l'approche pr\'ec\'edente est que la fonction de perte d\'epend de l'observation. Tout se passe en fait comme si l'observation rempla\c{c}ait theta comme "\'etat inconnu du monde". Cela a du sens dans la mesure o\`u la distribution caract\'eristique doit \^etre choisie ind\'ependamment de toute observation. En fait, on peut consid\'erer que l'\'etat du monde est donn\'e par le couple $(y, theta)$, ce qui permet de d\'efinir le regret pour tout theta: 
+
+$$L(y, theta; q) = log p_theta(y) / q(y)$$ 
+
+D\`es lors, il est naturel de chercher \`a minimiser le "pire" regret: 
+
+$$R(q) = \max_{y, \theta} L(y, \theta; q)$$ 
+
+en notant au passage qu'on ne fait pas l'hypoth\`ese que $y$ est distribu\'e selon un certain $p_\theta(y)$. Cette approche \'evite de choisir des a priori sur $y$ et $\theta$. Comme c'est classique dans ce type de probl\`emes minimax, on probabilise $y$ en introduisant le risque moyen: 
+
+$$L(p, theta; q) = E_p [L(y, theta; q)] = int p(y) log p_theta(y) / log q(y) dy = D(p||q) - D(p||p_theta) $$ 
+
+On a \'evidemment: 
+
+$$R(q) = max_p max_theta L(p, theta, q) = max_p L(p, q)$$ 
+
+o\`u: 
+
+$$L(p, q) = int p(y) log ML(y) / q(y) dy$$ 
+
+Il suffit alors de montrer que les op\'erateurs min et max commutent:  
+
+$$min_q R(q) = min_q max_p L(p, q) = max_p min_q L(p, q)$$ 
+
+On voit alors que quelque soit p, la distribution de Shtarkov (1987) dite NML minimise TOUJOURS $L(p, q)$: 
+
+$$\arg\min_q L(p, q) = ML(y) / Z_{nml}$$ 
+
+avec en plus la propri\'et\'e que le minimum atteint est ind\'ependant de p: 
+
+$$min_q L(p, q) = log Znml$$ 
+
+Ainsi, la distribution NML est solution de notre probl\`eme! 
+
+Au-del\`a de la nature "Bayes robuste" de cette formulation, on voit qu'elle consiste plus fondamentalement \`a remplacer $D(p_theta\|q)$ dans la 1\`ere formulation par $D(p\|q) - D(p\|p_theta)$ avec l'id\'ee que $(p,\theta)$ repr\'esente l'\'etat du monde. 
+
+
+\subsection{Crit\`ere d'Akaike}
+
+Une autre approche bien connue est celle d'Akaike, 1974. 
+
+L'id\'ee de base est de d\'efinir l'ad\'equation d'un mod\`ele via la divergence KL ou, de fa\c{c}on \'equivalente, la log-vraisemblance moyenne: 
+
+$$S(p, p_theta) = int p(y) log p_theta(y) dy$$ 
+
+plut\^ot que via la notion empirique d'\'evidence. Dans cette perspective, la distribution r\'ealisant le maximum de S sur la famille apparait comme distribution caract\'eristique naturelle et le maximum en question donne une mesure "optimiste" qu'il est naturel de consid\'erer comme log-vraisemblance du mod\`ele: 
+
+$$S* = max_theta S(p, p_theta)$$ 
+
+Tout semble parfait jusqu'au moment o\`u on r\'ealise qu'on ne ne connait pas p, la "vraie" distribution des donn\'ees, et que S* est donc inconnu. Mais Akaike justifie l'approximation: 
+
+$$S* ~ log ML(y) - k$$ 
+
+o\`u k est la dimension de theta. Tr\`es franchement, j'ai du mal \`a suivre son raisonnement... 
+
+J'ai l'impression qu'il suffit d'appliquer le fameux th\'eor\`eme de Wilks: 
+
+$$2 log [ML(y) / p(y)] ~ \chi_2(k)$$ 
+
+valable asymptotiquement SI $p(y)$ APPARTIENT A LA FAMILLE et sous les conditions usuelles d'\'echantillonnage simple. Wilks nous dit alors que la log-vraisemblance profile sur-estime le score du mod\`ele par la moiti\'e d'un $\chi_2$ \`a $k$ degr\'es de libert\'e. En prenant l'esp\'erance de l'expression ci-dessus, les choses deviennent tr\`es claires: 
+
+$$S_\star = E[log ML(y)] - k/2$$ 
+
+Ainsi, la quantit\'e: 
+
+$$log ML(y) - k/2$$ 
+
+fournit un estimateur sans biais de S*. C'est presque la correction d'Akaike... \`a un facteur 2 pr\`es. Akaike se serait-il plant\'e? 
+
+Il semble que cette incoh\'erence vienne du fait qu'Akaike cherche en fait \`a estimer: 
+
+$$S** = int p(y) log p_theta_ML(y) dy$$ 
+
+et non $S* = max_theta S(p, p_theta)$, ce qui me semble plus naturel mais c'est moi. 
+
+Quoiqu'il en soit, tout se passe comme si on d\'efinissait l'\'evidence du mod\`ele comme: 
+
+$$q(y) = f(k) ML(y) avec f(k) = exp(-k/2) ou exp(-k)$$ 
+
+mais c'est justifi\'e sous l'hypoth\`ese ABSURDE DANS LE CONTEXTE DE LA SELECTION DE MODELE que p(y) est dans la famille. Si tous les mod\`eles test\'es sont corrects, il suffit de prendre le plus parcimonieux! 
+
+Peut-on g\'en\'eraliser Wilks au cas d'un mod\`ele mal sp\'ecifi\'e? Pour cela, on peut se reporter au papier de Harts, 1982 et, en recollant les morceaux, voir que: 
+
+$$E {2 log [ML(y) / p*(y)]} = trace(B A^-1)$$ 
+
+o\`u $p*$ est la projection KL de p sur la famille, avec: 
+
+$$A = E[ d^2 log p_\theta / d\theta^2 ] (Hessien de la log-vraisemblance moyenne) B = E[ (d\log p_\theta / d\theta) (d\log p_\theta / d\theta)' ]$$ 
+
+Dans le cas o\`u $p=p_\star$ appartient \`a la famille, ces deux matrices (calcul\'ees en $theta_\star$) sont \'egales (\`a l'information de Fisher), d'o\`u: 
+
+$$trace(B A^-1) = trace(I_k) = k$$ 
+
+On retrouve bien le r\'esultat de Wilks. Mais on voit aussi qu'il ne se g\'en\'eralise pas trivialement. Le biais d\'epend de la "vraie" distribution des donn\'ees; et s'il est grand, on pourrait se faire berner par un mod\`ele incorrect. On peut l'estimer empiriquement, ce biais, si \c{c}a rentre dans le budget calculatoire, ou essayer de le majorer... 
+
+On peut voir que $B = A + G$ avec: 
+
+$$G = E[(d^2 p_theta / dtheta^2) / p_theta]$$ 
+
+$$==> B A^-1 = I_k + G A^-1$$ 
+
+$$==> trace(A B^-1) = k + trace(G A^-1)$$ 
+
+Facile de montrer que $G=0$ si $p=p_\star$ mais sinon... ????? 
+
+Cela \'etant, le r\'esultat montre que le biais sur la log-vraisemblance MOYENNE est en O(1/n), o\`u n est le nombre de points. Ainsi, lorsqu'on compare des mod\`eles sur un "grand" \'echantillon, on peut raisonnablement supposer que le biais est n\'egligeable. 
+
+En conclusion, l'int\'er\^et majeur de l'approche d'Akaike est, \`a mon sens, de justifier la vraisemblance profile comme mesure d'\'evidence \`a la limite des grands \'echantillons. Sous r\'eserve que n soit constant \`a travers les mod\`eles (ce qui n'est pas le cas dans le recalage). 
+
+
+
+
+
+\section{LE PARADOXE RECALAGE/APPARIEMENTS}
+
+
+J'ai but\'e pendant des ann\'ees sur une difficult\'e conceptuelle de ma formulation statistique du recalage: par simple raffinement de l'\'echantillonnage, on peut rendre une transformation infiniment plus vraisemblable qu'une autre et donc rendre l'incertitude bay\'esienne sur le recalage aussi petite qu'on veut. 
+
+Ce ph\'enom\`ene vient du fait que la log-vraisemblance d'une transformation est proportionnelle au nombre de points appari\'es. Or ce nombre est d\'etermin\'e par l'\'echantillonnage et est donc arbitraire. Certes, on s'attend \`a ce que la vraisemblance d\'epende de la repr\'esentation des donn\'ees. Mais \`a ce point? Cette observation m'a fait longtemps douter de l'hypoth\`ese d'ind\'ependance des pixels. 
+
+Elle semble en tous cas contradictoire avec un principe \'el\'ementaire de th\'eorie de l'information. Souviens-toi de l'in\'egalit\'e fondamentale du traitement des donn\'ees. Notre recalage statistique repose sur un pr\'e-traitement des donn\'ees pour le moins radical qui consiste \`a r\'eduire chaque image \`a un histogramme (ou, de fa\c{c}on \'equivalente, une liste des valeurs d'intensit\'e dans un ordre al\'eatoire et ignorant la position des points). 
+
+En notant X les param\`etres de transformation, Y=(I, J) le couple d'images et Z=(fI, fJ) sa repr\'esentation du pauvre, on a une belle cha\^ine de Markov: 
+
+$X \to Y \to Z$ 
+
+Le fait que X soit "aussi pr\'ecis que l'on veut" connaissant Z signifie que I(X,Z) est "aussi grand que l'on veut". Or la th\'eorie de l'information affirme que I(X,Z) <= I(X,Y) donc I(X,Y) est infinie. Toute proc\'edure bay\'esienne de recalage aurait donc n\'ecessairement une incertitude nulle (sauf \'eventuellement \`a reposer sur une repr\'esentation encore plus pauvre que la n\^otre). N'est-ce pas la preuve irr\'efutable qu'il y a une faille dans notre raisonnement? Comment l'algorithme pourrait-il \^etre certain de ne pas se tromper alors que chacun sait qu'il y a toujours des erreurs de recalage? 
+
+J'avais not\'e en 2007 que le paradoxe "disparait" si on s'int\'eresse \`a des transformations libres. Les param\`etres recherch\'es sont alors des appariements et sont d\'ependants de l'\'echantillonnage. Le fait que la vraisemblance augmente par raffinement de l'\'echantillonnage est alors un simple effet de nombre car les distributions marginales des appariements sont inchang\'ees. On ne peut \^etre certain des appariements \`a quelque r\'esolution que ce soit. 
+
+Contrairement \`a l'intuition qui a parfois fauss\'e mon jugement, l'ind\'ependance a posteriori des appariements n'est pas le signe d'un "exc\`es de confiance" de l'algorithme. Bien au contraire! L'ind\'ependance a posteriori, en plus du fait que les lois marginales a posteriori sont ind\'ependantes du contexte (c-\`a-d, n'utilisent pas les pixels voisins du point cible orrespondant) illustre bien l'information limit\'ee fournie par la repr\'esentation. La distribution a posteriori pourrait dfficilement \^etre plus "entropique"! 
+
+Ouf... l'in\'egalit\'e fondamentale du traitement des donn\'ees n'est pas bafou\'ee, au contraire elle est confirm\'ee dans toute sa gloire.  Mais, alors, si l'incertitude sur des transformations libres est "grande", comment peut-elle \^etre nulle pour des transformations param\'etriques? 
+
+Le probl\`eme n'a rien \`a voir avec notre mod\`ele particulier de repr\'esentation des images. Le simple fait d'imaginer qu'on puisse d\'efinir une vraisemblance sur des appariements denses conduit au "paradoxe". 
+
+Si la vraisemblance en question est not\'ee L(Q)=p(Y|Q), que vaut p(Y|X), la vraisemblance sur les param\`etres de transformation? On suppose une chaine de Markov: 
+
+$X \to Q \to D$ 
+
+autrement dit, que les donn\'ees sont ind\'ependantes de la transformation CONNAISSANT les appariements, ce qui semble \'evident. On a donc: 
+
+$p(Y|X) = \int p(Y|Q)p(Q|X) dQ$ 
+
+En supposant (pour fixer les id\'ees) une d\'ependance d\'eterministe X |-> Q, on a donc, tout simplement: 
+
+$L(X) = L(Q(X))$ 
+
+Ce qui g\'en\'eralise notre "curse of dimensionality": plus la grille sous-jacente \`a Q est grande, plus l'ordre de grandeur de la vraisemblance sur X est grande, et donc plus grands sont les rapports de vraisemblances entre transformations test\'ees.  
+
+D'une certaine mani\`ere, on dit juste ici que si on a une infinit\'e de points de contr\^ole, on peut estimer exactement (au sens d'une variance a posteriori nulle) les param\`etres d'une transformation param\'etrique. On ne dit pas que les appariements sont exacts. S'ils l'\'etaient, un nombre fini suffirait. 
+
+Ceci semble paradoxal mais c'est un effet "m\'ecanique" de la dimension. Consid\'erons le cas similaire de la r\'egression aux moindres carr\'es, pour laquelle il est bien connu que la variance d'estimation est donn\'ee par: 
+
+$V = s^2 (X^\top X)^{-1}$ 
+
+La matrice X'X \'etant proportionnelle \`a la fr\'equence d'\'echantillonnage, V est une fonction d\'ecroissante de celle-ci, sauf \`a consid\'erer que la variance du bruit augmente avec la fr\'equence d'\'echantillonnage, ce qui a du sens physique si le bruit est moyenn\'e dans la p\'eriode d'\'echantillonnage. Ca n'en a pas pour nous car le "bruit" est ici l'incertitude marginale sur chaque appariement et n'a donc aucune raison "physique" de varier en fonction de l'\'echantillonnage. 
+
+Force est de conclure que la variance a posteriori sur nos param\`etres de recalage est virtuellement nulle. Est-ce \`a dire que le recalage est exact? Bien s\^ur que non! 
+
+D'abord, il y a toujours du biais car le mod\`ele de transformation ne peut \^etre parfait. Un cerveau n'est pas rigide. La technique d'imagerie introduit des distorsions g\'eom\'etriques. Il y aura toujours des d\'eformations r\'esiduelles. 
+
+Ensuite, notre mod\`ele suppose connues les position des points dans les images, que ce soit les pixels "natifs" ou les points interpol\'es. Quand j'attribue \`a un pixel la position de son centre, n'est-ce pas arbitraire? La vraie position n'est-elle pas "quelque part dans le pixel"? 
+
+Imaginons l'exp\'erience suivante. On prend une fonction constante par morceaux, on l'\'echantillonne (en ajoutant du bruit et en moyennant le signal par pixel), puis on interpole le signal \'echantillonn\'e. Est-ce qu'on r\'ecup\`ere exactement la fonction originale? Est-ce que les points "saillants" (points de contour, coins...) peuvent \^etre localis\'es avec certitude? Evidemment pas. 
+
+D'une part, cela signifie qu'il est impossible \`a un op\'erateur humain d'\'etablir une v\'erit\'e terrain exacte \`a partir d'amers rep\'er\'es \`a l'oeil. D'autre part, l'algorithme de recalage op\`ere sur des images qui pr\'esentent la r\'ealit\'e d'une mani\`ere "floue" non prise en compte par notre mod\`ele statistique. 
+
+Comment pourrait-il l'\^etre? En introduisant une incertitude sur la localisation des points? Question ouverte.  
+
+
+
+
+
+
+
+=========================================================== 
+
+L'intuition qui est derri\`ere \c{c}a est que le max de vraisemblance donne une bonne estim\'ee de theta mais celle-ci \'etant d\'ependante des donn\'ees, elle ne d\'efinit pas un "code" valide. Le regret exprime la diff\'erence entre un code universel valide et le code "na\"if" fourni par MV. L'autre id\'ee sous-jacente \`a NML est qu'on ne suppose pas que la "vraie" distribution appartient \`a la famille. D\`es lors, il est naturel de consid\'erer le regret maximal comme crit\`ere, d'o\`u un probl\`eme minimax: 
+
+$$Lnml(q) = max_p int p(y) log ML(y)/q(y) dy$$ 
+
+$$==> argmin Lnml(q) = ML(y) / int ML(y) dy$$ 
+
+Cette approche fournit une version corrig\'ee de la "vraisemblance profile" comme estimation de l'\'evidence du mod\`ele. Le terme correctif, qui exprime la complexit\'e du mod\`ele, ne peut \^etre ignor\'e que s'il s'av\`ere ind\'ependant de x. 
+
+Dans le cas de la vraisemblance r\'eduite, ces deux codes sont disponibles en version r\'eduite, c-\`a-d en rempla\c{c}ant $y$ par $z_x$. Ils permettent alors de calculer les rapports d'\'evidence pertinents pour estimer $p(y|x)/\pi(y)$, sans d'ailleurs connaitre $\pi(y)$. C'est toute la substantifique mo\"elle de cette approche qu'est la vraisemblance r\'eduite. 
+
+
+\end{document}
