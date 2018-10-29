@@ -21,11 +21,9 @@ def latex_encoding(s):
 	
 class LatexGenerator(object):
 
-    def __init__(self, text_file, author='Alexis Roche'):
-	
-        self.name = os.path.splitext(text_file)[0] + '.tex'
-        
-        f = open(text_file)
+    def __init__(self, input_file, author='Alexis Roche'):
+       
+        f = open(input_file)
         self._text = [l.encode(CODE).decode() for l in f.readlines()]		
         text = [latex_encoding(l) for l in self._text]
         f.close()
@@ -74,5 +72,5 @@ class LatexGenerator(object):
 	    
 
 g = LatexGenerator(sys.argv[1])
-g.save()
+g.save(sys.argv[2])
 
