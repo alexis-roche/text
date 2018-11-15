@@ -41,9 +41,9 @@ This note revisits the concept of composite likelihood from the perspective of p
 \section{Introduction}
 \label{sec:intro}
 
-Frequentist and Bayesian inference are based on the concept of likelihood, which relies on the existence of a statistical data-generating model that is both experimentally plausible and computationally tractable. Because this is challenging for complex data, other paradigms are commonly used in applied science: deliberately misspecified generative models, as in quasi-likelihood methods \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01}; minimum description length \cite{Grunwald-07}; and, last but not least, discriminative models\footnote{A {\em discriminative} model describes the conditional distribution of an unobserved variable of interest given an observable variable, in contrast with a {\em generative} model, which describes the conditional distribution of an observable variable given an unobserved variable.}, which currently dominate the field of artificial intelligence and typically require heavily supervised learning -- these include classical techniques such as maximum entropy classifiers \cite{BergerA-96}, support vector machines \cite{Vapnik-00}, Gaussian processes \cite{Rasmussen-06}, as well as most of deep learning \cite{Lecun-15,Goodfellow-16}.
+Frequentist and Bayesian inference are based on the concept of likelihood, which relies on the existence of a statistical data-generating model that is both experimentally plausible and computationally tractable. Because this is challenging for complex data, other paradigms are commonly used in applied science: deliberately misspecified generative models, as in quasi-likelihood methods \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01}; minimum description length \cite{Grunwald-07}; and, last but not least, discriminative models\footnote{A {\em discriminative} model describes the conditional distribution of an unobserved variable of interest given an observable variable, in contrast with a {\em generative} model, which describes the conditional distribution of an observable variable given an unobserved variable.}, which currently dominate the field of artificial intelligence and typically require heavy supervised learning -- these include classical techniques such as maximum entropy classifiers \cite{BergerA-96}, support vector machines \cite{Vapnik-00}, Gaussian processes \cite{Rasmussen-06}, as well as most of deep learning \cite{Lecun-15,Goodfellow-16}.
 
-A strong limitation of discriminative models is that they are not suitable for unsupervised learning or on-the-fly parameter elimination because they treat the data and the model parameters as marginally independent, meaning that the data conveys no information about the parameters if the variable of interest is not observed. This is illustrated in Figure~\ref{fig:graph_comparison} by the respective oriented graph representations of generative and discriminative models. Due to the relative inefficiency of parameter estimation, discriminative models also tend to be outperformed by generative models in supervised learning tasks from small training sets \cite{Ng-01}. Pure discriminative models are thus of little use outside the context of big labeled data.
+A strong limitation of discriminative models is that they are not suitable for unsupervised learning or on-the-fly parameter elimination because they treat the data and the model parameters as marginally independent, meaning that the data conveys no information about the parameters if the variable of interest is not observed. This is illustrated in Figure~\ref{fig:graph_comparison} by the respective oriented graph representations of generative and discriminative models. For the same reason, supervised learning in discriminative models is less efficient than in comparable generative models, explaining why the latter tend to outperform the former in small training sets \cite{Ng-01}. Pure discriminative models are thus of little use outside the context of big labeled data.
 
 % p(x,y|theta) = p(x|y,theta)p(y|theta)
 
@@ -52,14 +52,14 @@ A strong limitation of discriminative models is that they are not suitable for u
 \subfigure[Generative model]{\includegraphics[width=.25\textwidth]{generative.pdf}\label{fig:generative}}
 \hspace*{.2\textwidth}
 \subfigure[Discriminative model]{\includegraphics[width=.25\textwidth]{discriminative.pdf}\label{fig:discriminative}}
-\caption{Belief networks representing generative and discriminative models, where $X$, $Y$ and $\theta$ respectively represent the variable of interest, the data, and the model parameters. Note the marginal independence of~$Y$ and~$\theta$ in the discriminative model.}
+\caption{Belief networks representing generative and discriminative models, where $X$, $Y$ and $\theta$ respectively denote the variable of interest, the data, and the model parameters. Note the marginal independence of~$Y$ and~$\theta$ in the discriminative model.}
 \label{fig:graph_comparison}
 \end{center}
 \end{figure}
 
-Composite likelihood (CL, see \cite{Varin-11} and the references therein) is a semi-generative approach to statistical inference that extends the familiar notion of likelihood without requiring a full generative model. The key idea is to model an arbitrary set of low-dimensional features separately and then combine them, instead of modeling the data distribution as a whole. This may be viewed as a ``divide and conquer'' method to approximate the true but intractable likelihood. While maximum CL does not inherit the general property of maximum likelihood to yield an asymptotically minimum-variance estimator, it is consistent under mild regularity conditions \cite{Xu-11} and may offer an excellent trade-off between computational and statistical efficiency in practice. 
+Composite likelihood (CL, see \cite{Varin-11} and the references therein) is a semi-generative approach to statistical inference that extends the familiar notion of likelihood without requiring a full generative model. The key idea is to model an arbitrary set of low-dimensional features separately and then combine them, instead of modeling the data distribution as a whole. This may be viewed as a {\em divide and conquer} method to approximate the true but intractable likelihood. While maximum CL does not inherit the general property of maximum likelihood to yield an asymptotically minimum-variance estimator, it is consistent under mild conditions \cite{Xu-11} and may offer an excellent trade-off between computational and statistical efficiency in practice. 
 
-In this note, CL is interpreted as a probabilistic opinion pool of ``agents'' making use of several pieces of information, or clues, extracted from the input data. Each agent acts as an isolated generative model-based statistician and expresses an opinion based on a single clue in the form of a likelihood function of the hidden variables. The agent opinions are then aggregated into a unique probability distribution analogous to a Bayesian posterior.
+In this note, CL is interpreted as a probabilistic opinion pool of ``agents'' making use of different pieces of information, or clues, extracted from the input data. Each agent acts as an isolated generative model-based statistician and expresses an opinion based on a single clue in the form of a likelihood function of the hidden variables. The agent opinions are then aggregated into a unique probability distribution analogous to a Bayesian posterior.
 
 We further argue that a particular log-linear opinion pool yields the best possible predictive distribution in the sense of maximum relative conditional entropy. This perspective entails a method to tune the weights of the different agents from training data as in a typical discriminative learning scenario.
 
@@ -84,13 +84,13 @@ Substituting $L(x)$ with $\ell(x)$ boils down to restricting the sample space, t
 If we see the likelihoods as posterior distributions corresponding to uniform priors, this is a classical problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. We will show in Section~\ref{sec:maxent} that one that is particularly well-suited to our case is the {\em log-linear opinion pool}: 
 \begin{equation}
 \label{eq:log_pool}
-p_\lambda(x|y) = \frac{1}{Z_\lambda(y)} \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i},
+p_\lambda(x|y) = \frac{1}{z_\lambda(y)} \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i},
 \end{equation} 
 where $\pi(x)$ is some reference distribution or prior, and $\lambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights so that the normalizing factor:
 $$
-Z_\lambda(y) = \int \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i} dx
+z_\lambda(y) = \int \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i} dx
 $$
-is finite, which holds whenever $\lambda\succeq 0$, {\em i.e.} all weights are positive, assuming that the agent opinions are always upper bounded. Negative weights should be ruled out as the existence condition $Z_\lambda(y)<\infty$ would then depend on the particular opinions expressed by the agents. Also note that, while it is possible to have the weights depend on~$y$, there is a strong rational for constant weights as we shall see in the sequel. 
+is finite, which holds whenever $\lambda\succeq 0$, {\em i.e.} all weights are positive, assuming that the agent opinions are always upper bounded. Negative weights should be ruled out as the existence condition $z_\lambda(y)<\infty$ would then depend on the particular opinions expressed by the agents. Also note that, while it is possible to have the weights depend on~$y$, there is a strong rational for constant weights as we shall see in the sequel. 
 
 %Strictly positive weights guarantee the so-called 0/1 forcing property, that is, if an hypothesis~$x$ has zero likelihood according to at least one agent, then its consensus probability vanishes too.
 
@@ -106,9 +106,9 @@ plays the same role as a traditional likelihood function. This expression happen
 From~(\ref{eq:comp_lik}), we see that CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, usually referred to as {\em na\"ive Bayes} or {\em simple Bayes} in the machine learning literature, which corresponds to the special case of unitary weights, $\lambda_1=\ldots=\lambda_n= 1$. The clear computational advantage of CL over the true likelihood is that it only requires to evaluate the marginal feature distributions rather than the joint distribution of all features.
 
 
-\section{Classical tuning of composite likelihood weights}
+\section{Tuning composite likelihood weights}
 
-When the features can be considered {\em exchangeable}, it is natural to choose uniform CL weights. The CL function is then a scaled version of the na\"ive Bayes likelihood, the common weight value being irrelevant to the maximum CL estimator (MCLE). The weight may be tuned so as to best adjust the pseudo posterior variance matrix to the asymptotic variance matrix of the MCLE \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, in attempts to match the frequentist and composite Bayesian notions of uncertainty.
+When the features can be considered exchangeable, it is natural to choose uniform CL weights. The CL is then a scaled version of the na\"ive Bayes likelihood, the common weight value being irrelevant to the maximum CL estimator (MCLE). The weight may be tuned so as to best adjust the pseudo posterior variance matrix to the asymptotic variance matrix of the MCLE \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, in attempts to match the frequentist and composite Bayesian notions of uncertainty.
 
 Ignoring such a goal, another frequent recommandation for CL weights is to sum up to one. This can be motivated in various ways. It turns out that the only pooling operator that does not explicitly depend on~$x$ and preserves {\em external Bayesianity} is the log-linear opinion pool with unit sum weights \cite{Genest-86b}. External Bayesianity essentially means that it should not matter whether the prior is incorporated before or after pooling, provided that all agents agree on the same prior. Another appealing property of log-linear pooling with unit sum weights is to minimize the average Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. A maximum relative entropy property is also given in \cite{Wang-14}, Theorem~3.
 
@@ -118,7 +118,6 @@ Unit sum weights, however, correspond to the extreme situation where the feature
 We therefore need a method to tune weights that can automatically adjust to the level of statistical dependence beween features.
 
 %Instead, redundancy between agents is assumed by default, and is effectively encoded by the unit sum constraint on weights\footnote{Nevertheless, features which are {\em known} to be mutually independent can be merged into a single feature. This results in increasing their weights in the log-linear pool.}.
-
 
 
 \section{Maximum entropy derivation of composite likelihood}
@@ -150,19 +149,11 @@ Game theoretic interpretation \cite{Grunwald-04}.
 \section{Discussion}
 \label{sec:discussion}
 
-{\color{red}Product of fucking experts \cite{Hinton-02}. Log-linear pool to build a generative model (assuming in fact independence between experts). Better seen as a ``log-mixture model''. Sounds like each expert is associated with a class, so it's the same as a RBM. Contrastive learning approximates ML parameter estimation. The experts are learning jointly. It's just a generative model.}
+CL is a concept from computational statistics that has mainly been developed so far in a frequentist perspective as a surrogate for the maximum likelihood method. In this note, we have shown a deep connection between CL and  probabilistic inference, thereby establishing CL as a class of discriminative models. The fact that it is built from a set of marginal feature-specific generative distributions makes it a semi-generative, semi-discriminative approach. 
 
-{\color{red}Two-step training: generative phase then discriminative phase. Why is it cool?}
+Two-step training. Why potentially more efficient than pure discriminative training: because generative training is always more efficient than discriminative training if models are comparable. So the key point is that ``we have less parameters in the discriminant phase". 
 
-{\color{red}CBI is just a way to reweight Naive Bayes. What's the big deal? Can we really expect massively superior performance? Are we just talking about realistic credibility sets?}
-
-{\color{red}Boosting.}
-
-CL is a concept from computational statistics that has mainly been developed so far in a frequentist perspective as a surrogate for the maximum likelihood method. In this paper, we have shown (to our best knowledge, for the first time) a deep connection between CL and  probabilistic opinion pooling, thereby establishing CL as a class of discriminative models. 
-
-Any CL~model is fully determined by the marginal generative distributions of some pre-specified features, which may rely on a moderate number of parameters if low-dimensional features are chosen. There are two approaches to deal with these parameters.
-
-One is to estimate them beforehand by supervised learning, if an adequate training dataset is available. This could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimizes parameters for generation of observable features. An important difference, however, is that contrastive pre-training is unsupervised. On the other hand, SCL pre-training relies on weaker assumptions as it does not assume conditional feature independence unlike RBMs. Once pre-training is complete, the SCL~weights may be tuned by maximum~SCL, as shown in Section~\ref{sec:weights}: this second training stage is, again, supervised in essence, but does not require additional training examples since it is fully determined by the feature distributions learned in the pre-training step.
+First training phase. Supervised or unsupervised. This could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimizes parameters for generation of observable features. The main difference is that the two learning phases of CL optimize disjoint subsets of parameters unlike RBMs.  CL pre-training relies on weaker assumptions as it does not assume conditional feature independence unlike RBMs. Once pre-training is complete, the CL~weights may be tuned: this second training stage is, again, supervised in essence, but does not require additional training examples since it is fully determined by the feature distributions learned in the pre-training step.
 
 %{\color{red} Moreover, while RBM parameters are typically refined in a supervised discriminative learning step, disjoint set of parameters for SCL. Dunno how to say that.} 
 
@@ -171,14 +162,7 @@ One is to estimate them beforehand by supervised learning, if an adequate traini
 
 %%, hence alleviating the need for heavily supervised model training
 
-The other approach to deal with feature distribution parameters is to consider them as nuisance parameters, as proposed in Section~\ref{sec:nuisance_params}, thereby avoiding pre-training. The method then becomes completely unsupervised. The weights can be tuned by maximizing the log-SCL integrated over the prior on nuisance parameters (see Section~\ref{sec:nuisance_weights}), which requires no training dataset whatsoever, and the nuisance parameters can be eliminated by substituting the~SCL function with a {\em super composite evidence} (see Section~\ref{sec:nuisance_integration}). In this version, SCL~essentially generalizes Bayesian integration. 
-
-The potential of SCL for unsupervised learning is perhaps suprising considering that it is a discriminative model. This stems from the fact that, unlike classical discriminative models, SCL~exploits direct information conveyed by the data about both the parameters of interest and the nuisance parameters, reflecting the generative nature of the underlying feature distribution models. This essential difference is illustrated in Figure~\ref{fig:dgraph}: the factor graph model underlying CL in its parametric version (see Figure~\ref{fig:fgraph5}) is not reducible to a belief network of the type represented in Figure~\ref{fig:dgraph2}, in which the data and the nuisance parameter are marginally independent. In contrast, the data is informative about the nuisance parameter in a CL model, as shown in Figure~\ref{fig:dgraph3}.
-
-
-In summary, CL has the potential to yield weakly supervised or unsupervised Bayesian-like inference procedures depending on the particular task at hand. This property reflects the encoding of statistical relationships between the data and {\em all} unknown parameters. CL thus appears as a trade-off between generative models, which are optimal for unsupervised learning but possibly intractable, and traditional discriminative models (logistic regression, Gaussian processes \cite{Rasmussen-06}, maximum entropy models \cite{BergerA-96}, etc.), which are inherently supervised. CL models are discriminative models assembled from atomic generative models and, from this point of view, may be considered as {\em semi-generative} models.
-
-
+%In summary, CL has the potential to yield weakly supervised or unsupervised Bayesian-like inference procedures depending on the particular task at hand. This property reflects the encoding of statistical relationships between the data and {\em all} unknown parameters. CL thus appears as a trade-off between generative models, which are optimal for unsupervised learning but possibly intractable, and traditional discriminative models (logistic regression, Gaussian processes \cite{Rasmussen-06}, maximum entropy models \cite{BergerA-96}, etc.), which are inherently supervised. CL models are discriminative models assembled from atomic generative models and, from this point of view, may be considered as {\em semi-generative} models.
 
 %CL may be considered as a {\em semi-generative} model: a discriminative model assembled from partial generative models.
 
@@ -190,7 +174,13 @@ In summary, CL has the potential to yield weakly supervised or unsupervised Baye
 % * Pivotality argument.
 % * Bayes is a special case of composite Bayes.
 
-%{\color{red} {\em Mardi 12 avril 2016.} Je laisse reposer la version actuelle 3-4 semaines avant mise \`a jour sur arxiv. La plupart des points qui restaient obscurs en f\'evrier ont, me semble-t-il, \'et\'e lev\'es: lien avec les neural networks/RBM, strat\'egies d'apprentissage, optimisation des poids, int\'er\^et du super composite (multi-class problems). Sur l'optimisation des poids, il reste une petite zone d'ombre: faut-il r\'egulariser d'apprentissage de mani\`ere \`a \'eviter une pond\'eration \'eparse? L'argument pour serait d'acc\'el\'erer la convergence stochastique de la SCL vers l'utilit\'e th\'eorique. On en parle d\'ej\`a un peu dans la version actuelle en disant que si 2 attributs sont aussi informatifs l'un que l'autre, alors le mieux est de leur donner le m\^eme poids. Plus g\'en\'eralement, on pourrait aborder cet aspect via: 1) des contraintes de r\'epartition ``d\'emocratique'' des poids pour \'eviter une situation ``winner-take-all'' (eg, avec une p\'enalisation quadratique des poids); ou alors, 2) des contraintes de variations impos\'ees aux colomnes de la matrice de poids, ce qui donnerait une esp\`ece de compromis entre CL classique et SCL... mais je ne suis pas certain de l'int\'er\^et.}
+{\color{red}Product of fucking experts \cite{Hinton-02}. Log-linear pool to build a generative model (assuming in fact independence between experts). Better seen as a ``log-mixture model''. Sounds like each expert is associated with a class, so it's the same as a RBM. Contrastive learning approximates ML parameter estimation. The experts are learning jointly. It's just a generative model.}
+
+{\color{red}Two-step training: generative phase then discriminative phase. Why is it cool?}
+
+{\color{red}CBI is just a way to reweight Naive Bayes. What's the big deal? Can we really expect massively superior performance? Are we just talking about realistic credibility sets?}
+
+{\color{red}Boosting.}
 
 
 \appendix
@@ -198,7 +188,7 @@ In summary, CL has the potential to yield weakly supervised or unsupervised Baye
 \section{Conditional composite likelihood}
 \label{sec:conditional}
 
-As a straightforward  extension of marginal CL, each feature-based likelihood $\ell_i(x)=p(z_i|x)$ may be conditioned by an additional ``independent'' feature $z^c_i = f^c_i(y)$ considered as a predictor of the ``dependent'' feature, $z_i=f_i(y)$, yielding the more general form:
+As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $z^c_i = f^c_i(y)$ considered as a predictor of the ``dependent'' feature, $z_i=f_i(y)$, yielding the more general form:
 \begin{equation}
 \label{eq:cond_feat_lik}
 \ell_i(x) = p(z_i|x,z^c_i).
