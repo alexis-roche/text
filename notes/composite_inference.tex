@@ -454,10 +454,30 @@ It would be like doing a double inversion... pretty stupid, isn't it? Nonetheles
 
 Can we at least claim that $p(x,y)$ is not a realistic generative model? That would sound very picky if $\pi(y)$ is some large sample-based empirical distribution (we don't compute it in practice, but let's imagine...) and $p(x|y)$ is a reasonable predictive distribution. 
 
-Again, what is the matter? The {\em real} difference between generative and discriminative models is that the former have all their parameters describing $p(y|x)$ while the latter have all their parameters describing $p(x|y)$. It's a question of parameters at the end of the day.
+Again, what is the matter? The {\em real} difference between generative and discriminative models is that the former have all their parameters describing $p(y|x)$ while the latter have all their parameters describing $p(x|y)$. Is it a question of parameters at the end of the day?
 
-Therefore, it's a question of learning. We can argue that generative models can ``learn faster'' than discriminative ones and it's because the learning process involves ``understanding the data''. When you model data by an empirical distribution, you clearly don't understand a shit about the data. You can make fairly good predictions but you're like a monkey.
+No, it's a question of what the models describe. A generative model describes the process of acquiring data, it has to reflect some physical understanding. A discriminative model describes a convenient approximating family for the recovery of a state, there is no physics involved. As a by-product, the generative model might well produce a good predictive distribution for the data, but it does that without understanding anything about the data. 
 
+Just like an histogram is a pretty dumb but good predictor if we have a shit load of data to compute it. Instead, you can have a parametric model that reflects some understanding of what the distribution is. It takes much less data.
+
+La vraie question, c'est de savoir quel est le lien de cause \`a effet entre $x$ et $y$. Si $x$ est la ``cause'' de $y$, alors le mod\`ele g\'en\'eratif est naturel. Si c'est l'inverse, alors le mod\`ele discriminant est une \'evidence. 
+
+Par exemple, supposons que $y$ soit une vitesse moyenne et $x$ la distance parcourue en un temps donn\'e. On a $x=t y$ et c'est m\^eme d\'eterministe, donc aucune question \`a se poser: ce mod\`ele purement discriminant dans ce contexte donne la r\'eponse. 
+
+On peut se dire que la vitesse est la cause de la distance parcourue, mais la vitesse se d\'eduit tout aussi bien de la distance: $y=x/t$. Donc on pourrait aussi s'en sortir avec un mod\`ele g\'en\'eratif. 
+
+Si maintenant notre mesure $y$ est bruit\'ee, il n'y a plus d'ambigu\"it\'e: on \'ecrit $y=x/t+\epsilon$, c'est-\`a-dire qu'on travaille avec un mod\`ele g\'en\'eratif. La vitesse mesur\'ee devient la ``cons\'equence'' de la distance \`a cause du bruit de mesure. 
+
+On voit bien que la notion de causalit\'e est assez foireuse. 
+
+On voit aussi que la d\'efinition officielle (Wikipedia et cie) de l'inf\'erence statistique est tr\`es restrictive: tirer des conclusions sur une population \`a partir d'un \'echantillon. C'est minable. Mais la d\'efinition permet de se mettre dans le cadre rassurant de l'\'echantillonnage. L'\'echantillon $y$ est bien ``g\'en\'er\'e'' \`a partir de la population.
+
+Je pr\'ef\`ere la d\'efinition de Floyd Bullard: ``Statistical inference means drawing conclusions based on data''.
+
+De mani\`ere g\'en\'erale, il y a l'id\'ee que les donn\'ees, ce qu'on mesure, peut \^etre pr\'edit par l\'etat du monde. Oui, il y a bien un lien de causali\'e implicite et la mesure arrive toujours en bout de cha\^ine.
+
+Dans l'exemple pr\'ec\'edent, l'\'etat du monde c'est $(v,x)$ la vraie vitesse et la vraie distance. On a $y=v+\epsilon$ mais par bonheur il existe une relation entre $x$ et $v$, 
+$p(x,v)=\delta(x-tv)p(v)$. Autrement dit le param\`etre de nuisance $v$ est facilement \'elimin\'e. Plus fondamentalement, les donn\'ees apportent une information sur l'\'etat du monde qui permet de mettre \`a jour sa connaissance.
 
 
 \section{Blablabla...}
