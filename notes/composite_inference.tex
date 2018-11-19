@@ -433,6 +433,64 @@ C'est ici que je brille de mille feux. Le bouquet final.
 
 \section{Maximum entropie}
 
+$$
+D(p,m) 
+= \int p(x,y) \log \frac{p(x,y)}{\pi(x)m(y)} dxdy
+- \int p(x,y)dx dy
++ \int m(y) dy
+$$
+
+Assume $\int\pi(x)dx=1$.
+
+Goal is to minimize $D(p,m)$ s.t. mean-value constraints on $p$. 
+
+Lagrangian:
+$$
+{\cal L}(p,m,\lambda) = D(p,m) -\lambda^\top (\int p(x,y)f(x,y)dxdy - \bar{f})
+$$
+
+Optimal $m$:
+$$
+\frac{\partial{\cal L}}{\partial m}
+=
+- \frac{p(y)}{m(y)} + 1
+= 0
+\quad
+\Rightarrow
+\quad
+m_{p,\lambda}(y) = p(y)
+$$
+
+Optimal $p$:
+$$
+\frac{\partial{\cal L}}{\partial p}
+=
+\log \frac{p(x,y)}{\pi(x)m(y)} - \lambda^\top f(x,y)
+= 0
+\quad
+\Rightarrow
+\quad
+p_{m,\lambda}(x,y) = \pi(x)m(y) e^{\lambda^\top f(x,y)}
+$$
+
+Dual at fixed $m$:
+$$
+\psi(\lambda,m) = \lambda^\top \bar{f} - \int \pi(x)m(y) e^{\lambda^\top  f(x,y)} dxdy + \int m(y) dy
+$$
+
+$$
+\psi(\lambda,m) = \lambda^\top \bar{f} - \int z(\lambda, y) m(y) dy + \int m(y) dy
+$$
+
+with:
+$$
+z(\lambda,y) = \int \pi(x) e^{\lambda^\top f(x,y)} dx
+$$
+
+$$
+-z(\lambda,y) + 1 =  0
+$$
+
 
 \section{Are discriminative models Bayesian?}
 
