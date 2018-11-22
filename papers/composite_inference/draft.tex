@@ -136,15 +136,14 @@ $$
 E[\log p(z_i|x)] \geq c_i \equiv \int p(z_i|x) \log p(z_i|x) dx
 $$
 
-What does the constraint mean? It means that a model is admissible if it compresses the data at least as well as all my agents. So we are not assuming that the generative models are {\em true}. We only assume that they are useful to compress the (reduced) data. Obvious connection to MDL. 
+What does the constraint mean? It means that a model is admissible if it compresses the data at least as well as all my agents. So we are not assuming that the generative models are {\em true}. We only assume that they are useful to compress the (reduced) data. Connection to MDL. 
 
-Intuition behind weights: Lagrange multipliers to enforce a constraint... Notion of feature relevance. But does $\lambda_1>\lambda_2$ imply that $z_1$ is more relevant than $z_2$? 
+Intuition behind weights: Lagrange multipliers to enforce a constraint... Notion ofR feature relevance. But does $\lambda_1>\lambda_2$ imply that $z_1$ is more relevant than $z_2$? 
 
 Game theoretic interpretation \cite{Grunwald-04}.
 
-The max entropy training turns out to be unsupervised since the moment
-constraints are determined by the 1st learning phase. We have to
-interpret that!!!
+The dual function amounts to the famous cross-entropy.
+
 
 % Accounting here for Xi'An comment on xianblog.wordpress.com
 % The sum of the powers is constrained to be equal to one, even though
@@ -164,9 +163,11 @@ CL is a concept from computational statistics that has mainly been developed so 
 A purely discriminative learning could be used instead but...
 Why potentially more efficient than pure discriminative training: because generative training is always more efficient than discriminative training if models are comparable. So the key point is that ``we have less parameters in the discriminant phase". Good in small datasets. But also in asymptotic regime if the features are weakly or highly correlated (???).
 
-The first training phase is easier if supervised but could be unsupervised too (using mixture models). 
+Logistic regression / naive Bayes example. Under homoscedasticity (assuming that each feature has class-independent variance), CBI is equivalent to logistic regression -- because the predictive distribution family is the same. This is a case where BCI brings nothing. But consider heteroscedasticity, then BCI yields a quadratic classifier. Compared to a fully discriminative model, the number of parameters to learned in the discriminative phase is reduced by half.
 
-This first learning phase could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimizes parameters for generation of observable features. The main difference is that the two learning phases of CL optimize disjoint subsets of parameters unlike RBMs.  CL pre-training relies on weaker assumptions as it does not assume conditional feature independence unlike RBMs. Once pre-training is complete, the CL~weights may be tuned: this second training stage is, again, supervised in essence, but does not require additional training examples since it is fully determined by the feature distributions learned in the pre-training step.
+The first training phase is easier if supervised but could be unsupervised too (using mixture models). How do we then deal with label switching issues? Can we safely assume conditional feature independence {\em in the generative training phase}? I believe so provided that the marginal distribution parameters are disjoint. It's obvious in the supervised learning scenario.
+
+If unsupervised, the first learning phase could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features. BCI is comparable with an RBM with a single output unit (which is just a generative model assuming conditionial feature independence). The key difference is that the RBM is a full generative model while BCI only deals with marginal models, hence relying on weaker assumptions. This won't change anything in the pre-training phase but RBMs have to deal with more parameters in the generative learning phase. In fully supervised context, RBM pre-training is pointless since all parameters learned in the first phase will be overwritten. In BCI, pre-training is crucial even in supervised context because the parameters learned in the discriminative phase (the feature weighs) describe a sub-manifold of the predictive distribution family.
 
 Needs features. Not a representation learning method, but could be coupled why not.
 
