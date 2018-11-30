@@ -190,7 +190,7 @@ $$
 L(p, \theta; q) 
 = E_p [L(y, \theta; q)] 
 = \int p(y) \log \frac{p_\theta(y)}{q(y)} dy 
-= D(p\|q) - D(p\|p_theta) 
+= D(p\|q) - D(p\|p_\theta) 
 $$ 
 
 On a \'evidemment: 
@@ -220,9 +220,9 @@ $$S(p, p_\theta) = \int p(y) \log p_\theta(y) dy$$
 plut\^ot que via la notion empirique d'\'evidence. Dans cette perspective, la distribution r\'ealisant le maximum de~$S$ sur la famille apparait comme distribution caract\'eristique naturelle et le maximum en question donne une mesure {\em optimiste} qu'il est naturel de consid\'erer comme log-vraisemblance du mod\`ele: 
 $$S_\star = \max_\theta S(p, p_\theta)$$ 
 
-Tout semble parfait jusqu'au moment o\`u on r\'ealise qu'on ne ne connait pas p, la ``vraie'' distribution des donn\'ees, et que $S_\star$ est donc inconnu. Mais Akaike justifie l'approximation: 
+Tout semble parfait jusqu'au moment o\`u on r\'ealise qu'on ne ne connait pas $p$, la ``vraie'' distribution des donn\'ees, et que $S_\star$ est donc inconnu. Mais Akaike justifie l'approximation: 
 $$S_\star \approx \log \ell_\star(y) - k$$ 
-o\`u k est la dimension de $\theta$. Tr\`es franchement, j'ai du mal \`a suivre son raisonnement... 
+o\`u $k$ est la dimension de $\theta$. Tr\`es franchement, j'ai du mal \`a suivre son raisonnement... 
 J'ai l'impression qu'il suffit d'appliquer le fameux th\'eor\`eme de Wilks: 
 $$2 \log \frac{\ell_\star(y)}{p(y)} \sim \chi_2(k)$$ 
 valable asymptotiquement {\em si $p(y)$ appartient \`a la famille} et sous les conditions usuelles d'\'echantillonnage simple. Wilks nous dit alors que la log-vraisemblance profile sur-estime le score du mod\`ele par la moiti\'e d'un $\chi_2$ \`a $k$ degr\'es de libert\'e. En prenant l'esp\'erance de l'expression ci-dessus, les choses deviennent tr\`es claires: 
@@ -355,9 +355,7 @@ C'est d\^u \`a la contrainte de poids de somme unitaire, directement h\'erit\'ee
 
 Il y a quelque chose qui ne colle pas dans cette affaire. L'intuition du Bayes na\"if, aka vraisemblance composite classique (avec poids non-adaptatifs), est que chaque attribut apporte une contribution utile \`a l'inf\'erence, m\^eme s'il existe une certaine redondance entre attributs. 
 
-Or, si on essaie d'apprendre les poids plut\^ot que de les choisir {\em a priori}, il faudrait alors prendre des poids adaptatifs selon ma th\'eorie... pour le r\'esultat qu'on conna\^it. Conclusion: la vraisemblance composite n'a aucun sens. 
-
-C'est bien s\^ur absurde. Si, par exemple, les attributs sont vraiment ind\'ependants, cette m\'ethode fournit une pond\'eration totalement sous-optimale. Car elle suppose implicitement une sorte de "redondance maximale" entre les attributs qui n'est pas la r\'ealit\'e.
+Or, si on essaie d'apprendre les poids plut\^ot que de les choisir {\em a priori}, il faudrait alors prendre des poids adaptatifs selon ma th\'eorie... pour le r\'esultat qu'on conna\^it. C'est bien s\^ur absurde. Si, par exemple, les attributs sont vraiment ind\'ependants, cette m\'ethode fournit une pond\'eration totalement sous-optimale. Car elle suppose implicitement une sorte de "redondance maximale" entre les attributs qui n'est pas la r\'ealit\'e.
 
 Revenons \`a l'aggr\'egation de vraisemblances. Si j'ai plusieurs $p(z_i|x)$, il est naturel de former une {\em somme} g\'eom\'etrique (log-linear pooling):
 $$
@@ -390,13 +388,15 @@ ce qui revient \`a assimiler les moments $\bar{\ell}_i$ \`a leurs moyennes empir
 
 Plusieurs remarques s'imposent:
 \begin{enumerate}
-    \item L'aggr\'egation d'opinions n'est autre qu'un classifieur MaxEnt d'un genre un peu particulier o\`u les contraintes de moments incorporent des mod\`eles g\'en\'eratifs plut\^ot que des quantit\'es arbitraires.
-    \item  Une fois r\'ealis\'e le premier apprentissage, le deuxi\`eme apprentissage est d\'etermin\'e par les distributions g\'en\'eratives apprises et par la distribution marginale empirique $h(y)$, cf.~ma note {\tt oct14.pdf}.
-    \item On peut voir le MaxEnt conditionnel comme la recherche d'une distribution jointe $p(x,y)$. Il n'y a pas unicit\'e de la solution. Toute distribution de la forme $h(y)p_\star(x|y)$, o\`u $h(y)$ est la marginale d'une distribution $h(x,y)$ compatible avec les contraintes, est optimale.
+    \item L'aggr\'egation d'opinions n'est autre qu'un classifieur MaxEnt d'un genre un peu particulier o\`u les contraintes de moments incorporent des mod\`eles g\'en\'eratifs appris au pr\'ealable plut\^ot que des quantit\'es arbitraires.
+    \item  Une fois r\'ealis\'e le premier apprentissage, le deuxi\`eme apprentissage est d\'etermin\'e par les distributions g\'en\'eratives apprises et par la distribution marginale empirique $h(y)$, cf.~ma note {\tt oct14.pdf} qui contient par ailleurs des erreurs.
+    \item On peut voir le MaxEnt conditionnel comme un MaxEnt relatif standard sur une distribution jointe de marginale connue $h(y)$, donc de la forme $p(x,y)=h(y)p(x|y)$, et par rapport \`a une loi de r\'ef\'erence de la forme $\pi(x,y)=\pi(x)h(y)$. Il est donc capital d'avoir une estim\'ee de la marginale $h(y)$.
     \item Le choix d'un {\em a priori} sur $x$ est n\'ecessaire pour d\'efinir les contraintes. Il est naturel de choisir $\pi(x)$ (qui est uniforme dans la pr\'esentation de Berger), ce qui revient \`a poser que la distribution empirique des donn\'ees ajust\'ee pour avoir $h(x)=\pi(x)$ est dans l'espace de recherche.
+    \item L'espace de recherche est d\'efini par des contraintes portant sur les log-vraisemblances moyennes  qui sont {\em moins fortes} que supposer connues les distributions des attributs. Elles expriment l'id\'ee tr\`es MDL-esque que ce qui est important avec un mod\`ele, ce n'est pas qu'il soit exact, mais le taux de compression qu'il permet d'atteindre. 
+    \item Doit-on utiliser des contraintes d'\'egalit\'e ou d'in\'egalit\'e? Les premi\`eres sont plus naturelles mais permettent des poids n\'egatifs... ce qui est malvenu pour des ``opinions''. 
     \item Toutefois, la m\'ethode n'impose pas que les distributions admissibles aient $\pi(x)$ comme loi marginale. En d'autres termes, tout mod\`ele ayant un fort pouvoir pr\'edictif est susceptible de nous int\'eresser qu'il utilise un {\em a priori} farfelu ou pas. C'est pragmatique \`a d\'efaut d'\^etre bay\'esien.
     \item Cela \'etant, on peut voir la r\`egle d'aggr\'egation comme une g\'en\'eralisation de la loi de Bayes dans laquelle $\pi(x)$ joue le r\^ole d'{\em a priori}. On pourrait dire un {\em a priori} composite.
-    \item Une variante du MaxEnt, le principe MIL (Yuan et Clarke, 1999), permet d'imposer la contrainte $\pi(x)=p(x)$. Elle conduit \`a estimer en alternance les distributions marginale et conditionnelle $p(y)$ et $p(y|x)$ via l'algorithme de Blahut-Arimoto. Cette approche est adapt\'ee \`a des contraintes de moments arbitraires mais aurait peu de sens coupl\'ee avec le pr\'e-apprentissage "g\'en\'eratif". Le MIL est une s\'election de mod\`ele pour une inf\'erence authentiquement bay\'esienne et non composite.
+    \item Une g\'en\'eralisation du MaxEnt conditionnel, le MIL (Yuan et Clarke, 1999) permet de rel\^acher la contrainte que $p(y)$ est connue et (\'eventuellement) d'imposer la contrainte $\pi(x)=p(x)$. Elle conduit \`a estimer en alternance les distributions marginale et conditionnelle $p(y)$ et $p(y|x)$ via l'algorithme de Blahut-Arimoto. \c Ca semble indiqu\'e si on n'a pas confiance dans la distribution empirique $h(y)$ mais, dans ce cas, pourquoi avoir confiance dans les moments? 
 \end{enumerate}
 
 Au final, la diff\'erence entre l'inf\'erence composite et un bon vieux classifieur MaxEnt (qui comprend notamment la r\'egression logistique comme cas particulier) tient au type de contraintes. Quel avantage potentiel a l'inf\'erence composite? C'est LA question.
@@ -423,6 +423,28 @@ On peut imaginer des variantes avec des a priori (conjugu\'es de pr\'ef\'erence)
 
 Dans le r\'egime {\em big data}, \`a repr\'esentation fixe, on a l'option MIL quitte \`a balancer des attributs \`a la pelle dans l'entonnoir. Question ouverte. 
 
+
+\section{Compression}
+
+Let $X\sim p_\star(x)$ and consider a model $q(x)$. Assume we know the compression rate of $q$, but don't know $p_\star$. Does it make sense to consider admissible any distribution $p(x)$ for which the compression rate is at least as large, hence satisfying the following inequality:
+$$
+L(p,q) \geq L(p_\star,q),
+$$
+with:
+$$
+L(p,q) = \int p(x)\log q(x) dx 
+$$
+
+This is weird because if we somehow know $L(p_\star,q)$, we know for sure that it can't be larger than what it is, right? So why not using an equality constraint? Unless what we think we know happens to be a lower bound. 
+
+
+$$
+\max_q\min_{p\in P} L(p,q) 
+=
+\min_{p\in P} \max_q L(p,q)
+= \min_{p\in P} L(p,p)
+= -\max_{p\in P} H(p)
+$$
 
 
 
