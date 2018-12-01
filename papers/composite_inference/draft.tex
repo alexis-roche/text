@@ -151,6 +151,25 @@ Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(
 
 Which brings another question: in this case, the (unique) weight is insensitive to the prior -- is it true in general? The answer is no. The weights generally depend on the prior. Hence the maxent composite likelihood is prior-dependent. This is an important conceptual difference with the classical notion of likelihood.
 
+\section{Super composite likelihood}
+\label{sec:super}
+
+When chosen for computational simplicity, clues may not only convey limited information at individual level: their informativeness may also be very much hypothesis-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovascular disease -- and conversely for, say, blood pressure.
+
+This motivates a more general setting where clues can be weighted differently depending on hypotheses.
+
+What happens if we use mean-values constraints conditional on $x$ instead of jointly averaged over $x$ and $y$? This boils down to picking functions of the form:
+$$
+\chi(x-a)\ell_i(x,y)
+$$
+
+The answer is that the maxent solution has the form:
+$$
+p_\lambda(x|y) = \pi(x) \prod_i p(z_i|x)^{\lambda_i(x)}
+$$
+
+In other words, the weights become dependent on the variable of interest. This is the super composite likelihood idea.
+
 
 \section{Composite EM algorithm for unsupervised learning}
 \label{sec:gem}
