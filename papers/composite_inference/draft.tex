@@ -34,16 +34,34 @@
 \maketitle
 
 \begin{abstract}
-This note revisits the concept of composite likelihood from the perspective of probabilistic inference, and advocates a machine learning approach to tune the associated ``weights'', which stems naturally from a connection with the maximum entropy principle: the predictive distribution that maximizes conditional entropy relative to a given prior and subject to multiple mean log-likelihood inequality constraints is, up to a normalizing factor, the prior multiplied by a particular composite likelihood function, hence providing a ``composite'' extension of Bayes rule. We argue that composite Bayesian inference is a middle way between generative and discriminative approaches to statistical inference, which can be powerful in shallow learning and transfer learning problems.
+This note revisits the concept of composite likelihood as a method to make a probabilistic inference by aggregation of multiple Bayesian agents. Our view makes it natural to use a machine learning approach to calibrate composite likelihood, that is, tune the associated weights. For instance, the weights can be set to minimize cross-entropy on a labeled training dataset, as is a typical supervised learning strategy, yielding an easy-to-solve convex problem. We argue that composite Bayesian inference is a middle way between generative and discriminative modeling approaches that trades off between interpretability and prediction performance, both of which are crucial to some artificial intelligence tasks.
 \end{abstract}
+
+% which stems naturally from a connection with the maximum entropy principle: the predictive distribution that maximizes conditional entropy relative to a given prior and subject to multiple mean log-likelihood inequality constraints is, up to a normalizing factor, the prior multiplied by a particular composite likelihood function, hence providing a ``composite'' extension of Bayes rule. {\color{red} Confusing: we simply maximize cross-entropy, which turns out to have a conditional maxent interpretation.} We argue that composite Bayesian inference is a middle way between generative and discriminative approaches to statistical inference, which can be powerful in shallow learning and transfer learning problems. {\color{red} Rephrase this: extends Bayes and keeps introspection ability, which is crucial in some AI problems.
 
 
 \section{Introduction}
 \label{sec:intro}
 
-Classical frequentist and Bayesian inference paradigms rest upon the existence of a probabilistic data-generating model that is both empirically valid and computationally tractable. Because this is challenging for complex data, other inference models are commonly used in applied science: deliberately misspecified generative models, as in quasi-likelihood methods \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01}; data compression models as in minimum description length \cite{Grunwald-07}; and discriminative models\footnote{A {\em discriminative} model is a parametric family that describes the distribution of a variable of interest conditional on data, in contrast with a {\em generative} model, which describes the conditional distribution of data given the variable of interest.}, which currently dominate the field of artificial intelligence and typically require massive supervised learning -- these include classical techniques (maximum entropy classifiers \cite{BergerA-96}, support vector machines \cite{Vapnik-00}, Gaussian processes \cite{Rasmussen-06}) as well as most deep learning techniques \cite{Lecun-15,Goodfellow-16} with the exception of deep belief networks \cite{Hinton-06,Fischer-14}. 
+Classical frequentist and Bayesian inference paradigms rest upon the existence of a probabilistic data-generating model that is both empirically valid and computationally tractable. Because this is challenging for complex data, other inference models are commonly used in applied science: deliberately misspecified generative models, as in quasi-likelihood methods \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01}; data compression models as in minimum description length \cite{Grunwald-07}; and discriminative models\footnote{A {\em discriminative} model is a parametric family that describes the distribution of a variable of interest conditional on data, in contrast with a {\em generative} model, which describes the conditional distribution of data given the variable of interest.}, which currently dominate artificial intelligence (AI) and typically require supervised learning on large training sets, including ``shallow'' learning techniques (maximum entropy classifiers \cite{BergerA-96}, support vector machines \cite{Vapnik-00}, Gaussian processes \cite{Rasmussen-06}) as well as most deep learning techniques \cite{Lecun-15,Goodfellow-16} with the exception of deep belief networks \cite{Hinton-06,Fischer-14}. 
 
-A strong limitation of discriminative models is that they are not suitable for unsupervised learning or on-the-fly parameter estimation because they treat the data and the model parameters as {\em marginally independent}, meaning that the data conveys no information about the parameters unless the variable of interest is observed. This is illustrated in Figure~\ref{fig:graph_comparison} by the respective directed graph representations of generative and discriminative models. For the same reason, supervised learning in a discriminative model is less precise than in a generative model spanning the same family of posteriors, hence it is less effective in small training sets \cite{Ng-01}. Overall, pure discriminative models are of little use outside the context of big labeled data.
+A common criticism of discriminative models is that they are ``black boxes'' in that they can provide a valuable answer to an inference problem, but no explanation to support it. This is problematic in application fields such as medical diagnosis, where AI is intended as a tool to assist humans in a decision making process, but decision is not delegated to AI. Automated disease predictions should therefore be corroborated by empirical evidence -- in other words, AI systems should be able to justify their opinion just like human experts. Unlike discriminative models, simple methods based on range analysis of univariate biomarkers can provide useful clues to clinicians despite being less powerful in terms of prediction performance.
+
+%Decision making is not about pooling opinions, it is about pooling empirical observations and find which hypothesis they point to.
+
+%Need to emphasize why we need generative models. Below are some valid reasons: unsupervised learning, potentially better performance on small training datasets... But the \#1 reason is that discriminative models are black boxes: they provide an answer but no explanation to support it. Truth is, they perform better in supervised big data context in the sense of accuracy, cross-entropy, and so on, no question about that -- but they are mere inference recipes. Is that what AI should be? Sometimes, yes. But there are application fields where this clearly cannot work, for instance medical diagnosis. 
+
+%Imagine a doctor telling a patient: ``Sorry, sir, you have Alzheimer's disease because this fancy AI software said so''. Unless the said software is 100\% reliable, which is practically impossible, this would obviously be unacceptable. Acceptable would be to corroborate the diagnosis with some key quantitative empirical observations: low memory test scores, hippocampal atrophy, etc. In other words, inference has to come with some insight. An AI system is but one expert relying on hypotheses which may be invalid, as any expert, and is therefore prone to error. A typical error source is to train a classifier on a subset of classes from the real world. We cannot avoid inference errors but we can safeguard against them by being able to interrogate the system: why do you think what you think? To achieve that, the system should be capable of {\em introspection.
+
+%Vapnik: ``one should solve the classification problem directly and never solve a more general problem as an intermediate step''. True if the goal is classification only. Wrong if introspection is needed because the problem is then more general in nature.
+
+%Human inference does not work in a pre-determined universe of ``causes''. We confront theories with reality to evaluate how likely they are, while knowing that none of the theories considered so far may be ``right''. In fact, we are not looking for the truth, but for a conving enough theory. 
+
+%Composite likelihood seen as a pool of experts comes with a potential introspection mechanism: first sort experts by decreasing influence on the predictive distribution, see how likely the different classes are to the most influential experts.
+
+Another limitation of discriminative models is that they are not suitable for unsupervised learning or on-the-fly parameter estimation because they treat the data and the model parameters as marginally independent, meaning that the data conveys no information about the parameters unless the variable of interest is observed. This is illustrated in Figure~\ref{fig:graph_comparison} by the respective directed graph representations of generative and discriminative models. For the same reason, supervised learning in a discriminative model is less precise than in a generative model spanning the same family of posteriors, hence it is less effective in small training sets \cite{Ng-01}. 
+
+%Overall, pure discriminative models are of little use outside the context of big labeled data.
 
 % p(x,y|theta) = p(x|y,theta)p(y|theta)
 
@@ -52,18 +70,25 @@ A strong limitation of discriminative models is that they are not suitable for u
 \subfigure[Generative model]{\includegraphics[width=.25\textwidth]{generative.pdf}\label{fig:generative}}
 \hspace*{.2\textwidth}
 \subfigure[Discriminative model]{\includegraphics[width=.25\textwidth]{discriminative.pdf}\label{fig:discriminative}}
-\caption{Bayesian networks representing generative and discriminative models, where $X$, $Y$ and $\theta$ respectively denote the variable of interest, the data, and the model parameters. Note the marginal independence of~$Y$ and~$\theta$ in the discriminative model.}
+\caption{Bayesian networks representing generative and discriminative models, where $X$, $Y$ and $\theta$ respectively denote the variable of interest, the data, and the model parameters. Note the marginal independence of data and parameters in the discriminative model.}
 \label{fig:graph_comparison}
 \end{center}
 \end{figure}
 
-Composite likelihood (CL, see \cite{Varin-11} and the references therein) is a semi-generative approach to statistical inference that extends the familiar notion of likelihood without requiring a full generative model. The key idea is to model an arbitrary set of low-dimensional features separately and then combine them, instead of modeling the data distribution as a whole. This may be viewed as a {\em divide and conquer} method to approximate the true but intractable likelihood. While maximum CL does not inherit the general property of maximum likelihood to yield an asymptotically minimum-variance estimator, it is consistent under mild conditions \cite{Xu-11} and may offer an excellent trade-off between computational and statistical efficiency in practice. 
+Composite likelihood (CL, see \cite{Varin-11} and the references therein) is a semi-generative approach to statistical inference that extends the familiar notion of likelihood without requiring a full generative model. The key idea is to model an arbitrary set of low-dimensional features separately and then combine them, instead of modeling the data distribution as a whole. This may be viewed as a ``divide and conquer'' method to approximate the true but intractable likelihood. While maximum CL does not inherit the general property of maximum likelihood to yield an asymptotically minimum-variance estimator, it is consistent under mild conditions \cite{Xu-11} and may offer an excellent trade-off between computational and statistical efficiency in practice. 
 
-In this note, CL is interpreted as a probabilistic opinion pool of ``agents'' making use of different pieces of information, or clues, extracted from the input data. Each agent acts as an isolated generative model-based statistician and expresses an opinion based on a single clue in the form of a likelihood function of the hidden variables. The agent opinions are then aggregated into a probability distribution on the hidden variables analogous to a Bayesian posterior.
+In this note, CL is interpreted as a probabilistic log-linear opinion pool of ``agents'' making use of different pieces of information extracted from the input data. Each agent acts as an isolated statistician using a generative model of a single feature to express an opinion in the form of a likelihood function of the hidden variables. The agent opinions are then aggregated into a predictive probability distribution analogous to a Bayesian posterior.
 
-We further argue that a particular log-linear opinion pool yields the best possible predictive distribution in the sense of maximum relative conditional entropy. This perspective entails a method to optimize the weights of the different agents from training data as in a typical discriminative learning scenario. 
+The relevance of each feature in the opinion pool is determined by an arbitrary weight used to scale the associated likelihood. For classification performance, the weights can be tuned in a typical supervised learning scenario so as to concurrently maximize discriminative likelihood (or, equivalently, minimize cross-entropy), thereby making the method hybrid between generative and discriminative modeling approaches. We shall note that this particular training strategy amounts to building a maximum entropy classifier \cite{BergerA-96} that uses the feature-based log-likelihoods as basis functions.
+
+{\color{red} Still, note that the likelihood functions themselves are trained beforehand so this is slightly different from a standard maxent classifier aka logistic regression. Double training phase.}
+
+{\color{red} Interpretability of composite likelihood. Obvious from the construction. Can achieve prediction performance comparable with fully discriminative models while maintaining the interpretability of generative models.}
+
+%We further argue that a particular log-linear opinion pool yields the best possible predictive distribution in the sense of maximum relative conditional entropy. This perspective entails a method to optimize the weights of the different agents from training data as in a typical discriminative learning scenario. 
 
 %Something for true statisticians. Maybe we could clarify that we use the term ``Bayesian'' in the sense of ``empirical Bayesian'', implying that the parameters $\theta$ are to be estimated somehow contrary to a ``full Bayesian'' approach where they would be integrated out at inference time.
+
 
 
 \section{Composite likelihood as opinion pooling}
@@ -119,6 +144,13 @@ Unit sum weights, however, correspond to the extreme situation where the feature
 {\color{red} Why is it important to fine-tune the weights?}
 We therefore need a method to tune weights that can automatically adjust to the level of statistical dependence beween features.
 
+From a machine learning perspective, it is natural to tune the weights so as to minimize some prediction error, for example conditional cross-entropy. This brings the question: why then do it with ``pre-learned'' likelihood functions rather than with basis functions spanning the same predictive distribution family? Because of potential overfitting. The whole point of this note is that it may be better to run two learning phases than a single fully blown discriminative learning due to overfitting. It is a kind of tradeoff between pure generative and pure discriminative learning. 
+
+The ``hybrid'' strategy necessarily achieves a larger cross-entropy than the pure discriminative one on the training dataset, but might generalize better. Should show examples of this. 
+
+The rest of the discussion, i.e. the link with maximum entropy, is less important beside showing that the composite likelihood form is somehow optimal given some knowledge. 
+
+
 %Instead, redundancy between agents is assumed by default, and is effectively encoded by the unit sum constraint on weights\footnote{Nevertheless, features which are {\em known} to be mutually independent can be merged into a single feature. This results in increasing their weights in the log-linear pool.}.
 
 \section{Maxent composite likelihood}
@@ -130,10 +162,11 @@ A cheap MaxEnt argument was already given by \cite{Wang-14}  (standard, non-cond
 
 What we do here is maximum {\em conditional} entropy. It's slightly more complex than a simple $I$-projection. The search space is a set of predictive distributions compatible with mean log-likelihood contraints. If I know the generative distribution, I know the expected log-likelihood.
 
-We work with inequality constraints to force $\lambda\geq 0$:
+We could work with inequality constraints to force $\lambda\geq 0$:
 $$
-E[\log p(z_i|x)] \geq c_i \equiv \int \pi(x)p(z_i|x) \log p(z_i|x) dx dy
+E[\log p(z_i|x)] \geq \bar{\ell}_i \equiv \int h(x)p(z_i|x) \log p(z_i|x) dx dy
 $$
+where $h(x)$ is the marginal distribution of labels.
 
 What does the constraint mean? It means that a model is admissible if it compresses the data at least as well as all my agents. So we are not assuming that the generative models are {\em true}. We only assume that they are useful to compress the (reduced) data. Connection to MDL. 
 
@@ -145,81 +178,58 @@ The derivation assumed the marginal distribution of the data $h(y)$ to be known.
 
 Game theoretic interpretation \cite{Grunwald-04}.
 
-The dual function boils down to the famous cross-entropy.
+The dual function boils down to the familiar notions of cross-entropy, log-likelihood, KL divergence...
+$$
+\psi(\lambda)
+= \int h(x,y) \log \frac{p_\lambda(x|y)}{\pi(x)} dx dy
+$$
+
+If we introduce $p_\lambda(x,y)=p_\lambda(x|y)h(y)$, it is even clearer that this is a most classical distribution fitting problem:
+$$
+\psi(\lambda)
+= \int h(x,y) \log \frac{p_\lambda(x,y)}{\pi(x)h(y)} dx dy
+$$
+(we can obviously drop the reference distribution here). So the Maxent justifies the composite likelihood concept as a somewhat optimal parametric form but the remainder of the story is most classical.
 
 Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(x)p(y|x)^\lambda$. We expect to have $\lambda=1$ but it's not necessarily the case. It is if $h(y)=\int\pi(x)p(y|x)dx$ because then $h(y)p(x|y)=\pi(x)p(y|x)$ so the constraint is verified (and active). This also tells us that the data marginal should be consistent with the prior on labels for this much expected consistency property to hold. So, either weight datapoints so as to match a desired prior (e.g., uniform) or take the empirical distribution of labels as the ``prior''. 
 
 Which brings another question: in this case, the (unique) weight is insensitive to the prior -- is it true in general? The answer is no. The weights generally depend on the prior. Hence the maxent composite likelihood is prior-dependent. This is an important conceptual difference with the classical notion of likelihood.
 
-\section{Super composite likelihood}
+
+\subsection{Data weighting}
+
+The distribution $h(x)$ is the marginal of the labels, which is natural to approximate via their empirical distribution. We may then have a discrepancy between $h(x)$ and $\pi(x)$, which makes little sense if it is believed that $h(x)$ is a ``good encoder''. 
+
+To correct for this, we may adjust the empirical distribution of labels and data so as to match the target prior, $\pi(x)$, leading to weight the data points as a preprocessing step:
+$$
+h(y) = \sum_i w_i \delta(y-y_i),
+\qquad
+w_i = \frac{\pi(x_i)}{h(x_i)}
+$$
+
+Are the two methods equivalent? No. The feature-based parameter estimates are obviously the same in both cases, but the search space for the predictive distribution is different, hence we can't get the same answer. Which one of the two methods is best? The one that allows you to choose your own prior makes more sense to me because the distribution of classes in your training dataset may be completely different from the one that you will deal with in practice. For instance, it be weird to say that someone with all the symptoms of a very rare disease does not have it because it is very rare. 
+
+
+\subsection{Super composite likelihood}
 \label{sec:super}
 
-When chosen for computational simplicity, clues may not only convey limited information at individual level: their informativeness may also be very much hypothesis-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovascular disease -- and conversely for, say, blood pressure.
-
-This motivates a more general setting where clues can be weighted differently depending on hypotheses.
-
-What happens if we use mean-values constraints conditional on $x$ instead of jointly averaged over $x$ and $y$? This boils down to picking functions of the form:
-$$
-\chi(x-a)\ell_i(x,y)
-$$
+What happens if we use mean-values constraints conditional on $x$ instead of jointly averaged over $x$ and $y$? This boils down to picking functions of the form $\chi(x-a)\ell_i(x,y)$ and equate their expectation
 
 The answer is that the maxent solution has the form:
 $$
 p_\lambda(x|y) = \pi(x) \prod_i p(z_i|x)^{\lambda_i(x)}
 $$
 
-In other words, the weights become dependent on the variable of interest. This is the super composite likelihood idea.
+In other words, the weights become dependent on the variable of interest. This is the super composite likelihood idea in a nutshell.
 
+In 2016, I wrote:
+\begin{quote}
+When chosen for computational simplicity, clues may not only convey limited information at individual level: their informativeness may also be very much hypothesis-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovascular disease -- and conversely for, say, blood pressure.
+This motivates a more general setting where clues can be weighted differently depending on hypotheses.
+\end{quote}
 
-\section{Composite EM algorithm for unsupervised learning}
-\label{sec:gem}
+However, I was thinking about the unit sum weight version... The diagnosis example could be one in which clues are independent, in which case $\lambda_i(x)\equiv 1$ would be optimal, making any super composite trick irrelevant. Also see that with hypothesis-dependent weights, we may lose the estimation consistency. At the end of the day, the super composite idea looks like a pretty pointless sophistication.
 
-In a nutshell: alternate unsupervised learning of partial model parameters ($M$-step) and re-estimation of label posteriors via maxent ($E$-step). 
-
-$M$-step: given a posterior estimate $q(x|y)$, do just as if the features were independent and solve: 
-$$
-\max_\theta
-\int \sum_i h(y)q(x|y) \log p_\theta(z_i,x) dx dy
-$$
-
-Note we can estimate cross-feature parameters such as class proportions.
-
-Surrogate $E$-step: given generative parameters, recompute the moment constraints and update $q(x|y)$ according to the conditional maxent principle:
-$$
-\min_q
-\int h(y)q(x|y) \log \frac{q(x|y)}{\pi(x)} dx dy
-$$
-s.t.
-$$
-\int h(y)q(x|y)\log p_\theta(z_i|x) dx dy \geq \int \pi(x)p_\theta(z_i|x)\log p_\theta(z_i|x) dx dy
-$$
-
-However, there is an important issue: how is $h(y)$ defined in both the $M$- and $E$-steps? In supervised context, $h(x,y)$ can be defined beforehand as the prior-corrected empirical distribution:
-$$
-h(x,y) = \pi(x) \frac{h_0(x,y)}{h_0(x)},
-$$
-where $h_0(x,y)$ is the raw empirical distribution. In unsupervised context, the best we can do is to replace $h_0(x,y)$ with $h_0(y)q(x|y)$, implying that the empirical distribution of $y$ is reweighted according to:
-$$
-h(y) = \sum_i w_i\delta(y-y_i),
-\qquad
-w_i = \int \pi(x)\frac{q(x|y_i)}{\sum_j q(x|y_j)} dx,
-$$
-which needs to be done each time $q(x|y)$ is updated, that is, after each $E$-step.
-
-The other option is to keep $h(y)$ constant throughout the iterations but adapt $\pi(x)$ as the marginal distribution of labels learned in the $M$-step. In this case, it's no longer a ``prior''. 
-
-Are we minimizing a unique functional as in the variational EM algorithm? Possibly not. We may see this generalization as a two-player game. One player tries to predict several data features independently. The other player tries to predict labels. Together, they find patterns (clusters) in unlabeled data. Does the more general version converge? Does the game have a value? And so on.
-
-In the case of a single feature, is this the well-known EM? The $M$-step is clearly the same, what about the $E$-step? It is the same if $h(y)p_\theta(x|y)=p_\theta(y|x)\pi(x)$. However, this condition won't hold if $h(y)$ is an empirical distribution... In this special case, the ``E player'' could use the data distribution model produced by the ``M player'' instead of the empirical one but, more generally, there is no data distribution model so he has to stick to the empirical one.
-
-The maxent is a surrogate for the $E$-step. It reflects the lack of a full model $p_\theta(x,y)$.
-
-% Accounting here for Xi'An comment on xianblog.wordpress.com
-% The sum of the powers is constrained to be equal to one, even though
-% I do not understand why the dimensions of the projections play nog
-% role in this constraint. Simplicity is advanced as an argument,
-% which sounds rather weak…
-%This simple constraint is implied by the external Bayesianity requirement: as it turns out, the only aggregation operator which is both externally Bayesian and independent from $x$ boils down to plugging a composite likelihood with unit sum weights into Bayes rule, hence extending the classical notion of likelihood in Bayesian analysis.
 
 
 \section{Discussion}
