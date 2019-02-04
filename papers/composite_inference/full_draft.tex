@@ -36,6 +36,8 @@
 We revisit the concept of composite likelihood as a method to make a probabilistic inference by aggregation of multiple Bayesian agents. This view makes it natural to use a machine learning approach to calibrate the weights associated with composite likelihood. For instance, they can be tuned in a typical supervised learning stage so as to minimize cross-entropy on a labeled training dataset, yielding a convex problem. We argue that composite Bayesian inference is a middle way between generative and discriminative modeling approaches that trades off between interpretability and prediction performance, both of which are crucial to many artificial intelligence tasks.
 \end{abstract}
 
+% which stems naturally from a connection with the maximum entropy principle: the predictive distribution that maximizes conditional entropy relative to a given prior and subject to multiple mean log-likelihood inequality constraints is, up to a normalizing factor, the prior multiplied by a particular composite likelihood function, hence providing a ``composite'' extension of Bayes rule. {\color{red} Confusing: we simply maximize cross-entropy, which turns out to have a conditional maxent interpretation.} We argue that composite Bayesian inference is a middle way between generative and discriminative approaches to statistical inference, which can be powerful in shallow learning and transfer learning problems. {\color{red} Rephrase this: extends Bayes and keeps introspection ability, which is crucial in some AI problems.
+
 
 \section{Introduction}
 \label{sec:intro}
@@ -47,14 +49,13 @@ Textbook statistical inference (frequentist or Bayesian) rests upon the existenc
 %Local Interpretability for a Single Prediction: Why did the model make a certain prediction for an instance?
 %What about sensitivity analysis: study the prediction as a function of a single feature...
 
-% Justification = Need causality link between data instance and prediction
-% A discriminative model has no internal representation that sauce pans tend to be deeper than frying pans 
+Discriminative models, however, are mere inference recipes and lack the built-in ability to ``support'' their predictions. Consider as a straightforward example the problem of deciding whether a pan is a sauce pan or a frying pan based on shape measurements. A simple threshold on the pan depth could work well in most practical cases, but only makes sense if known the fact that sauce pans tend to be deeper than frying pans, which is generative information left implicit in the decision rule. For multi-dimensional features, it quickly becomes impossible to relate adjusted boundaries between classes to generative information {\em a posteriori}.
 
-% Discriminative models, however, are mere inference recipes and lack the built-in ability to ``support'' their predictions. 
+%Such common knowledge is rarely available in real-world apps.
 
-Discriminative models, however, lack the ability to establish causality links between data instances and predictions, and therefore cannnot ``support'' their own predictions in a built-in manner. Consider as a straightforward example the problem of deciding whether a pan is a sauce pan or a frying pan based on its depth. A discriminative model can learn an optimal threshold that correctly classifies most pans in practice, but it cannot gain an internal representation that sauce pans tend to be deeper than frying pans, which is {\em why} the thresholding works. To understand why a discriminative model works, we need to ``reverse engineer'' it, which quickly becomes impossible in multi-dimensional feature spaces. 
+% merely trace boundaries between classes in the data representation space and therefore lack built-in information to interpret their predictions. 
 
-There is growing awareness that AI should be interpretable in life-impacting applications~\cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision making processes. For instance, in medical diagnosis, automated disease predictions should always be corroborated by individual findings to bring real clinical value -- in other words, there is no interest for ``black boxes'' but for AI systems that can justify their opinions just like human experts. Clinicians have long used simple generative model-based methods, such as range analysis of univariate biomarkers, that can provide decisive clues for diagnosis despite being less powerful than discriminative models for disease prediction.
+There is growing awareness that AI should be interpretable in life-impacting applications~\cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision making processes. For instance, in medical diagnosis, automated disease predictions should always be corroborated by individual findings to bring real clinical value -- in other words, there is no interest for ``black boxes'' but for AI systems that can justify their opinions just like clinicians. Clinicians have long used methods based on simple generative models, such as range analysis of univariate biomarkers, that can provide decisive clues for diagnosis despite being outperformed by discriminative models for blind disease prediction.
 
 %, {\em e.g.}, by pinpointing biomarkers that deviate from healthy reference ranges.
 
