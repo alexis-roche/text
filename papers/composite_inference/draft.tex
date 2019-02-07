@@ -42,9 +42,9 @@ We revisit the concept of composite likelihood as a method to make a probabilist
 
 Textbook statistical inference (frequentist or Bayesian) rests upon the existence of a probabilistic data-generating model that is both empirically valid and computationally tractable. Because this double requirement may be very challenging for multi-dimensional data, other inference models have been developed in applied science: deliberately misspecified generative models, as in quasi-likelihood \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01} methods; data compression models as in the minimum description length paradigm \cite{Grunwald-07}; and discriminative models\footnote{A {\em discriminative} model is a parametric family that describes the distribution of a target variable conditional on the data, in contrast with a {\em generative} model, which describes the conditional distribution of the data given the target variable.}, which currently dominate the field of artificial intelligence (AI) and typically require supervised learning on large datasets -- these include ``shallow'' learning \cite{Ho-95,BergerA-96,Vapnik-00,Rasmussen-06} and deep learning \cite{Lecun-15,Goodfellow-16} techniques (with the exception of deep belief networks \cite{Hinton-06}).
 
-Discriminative models, however, lack the ability to establish causality links between data instances and predictions, and therefore cannnot ``support'' their own predictions in a built-in manner. Consider as a straightforward example the problem of deciding whether a pan is a sauce pan or a frying pan based on its depth. A discriminative model can learn an optimal threshold that correctly classifies most pans in practice, but it cannot gain an internal representation that sauce pans tend to be deeper than frying pans, which is {\em why} the thresholding works. To understand a discriminative model, we need to ``reverse engineer'' it using external knowledge, which quickly becomes an impossible task as the data dimension increases.
+Discriminative models, however, lack the ability to establish causality links between data instances and predictions, and therefore cannnot ``support'' their own predictions in a built-in manner. Consider as a straightforward example the problem of deciding whether a pan is a sauce pan or a frying pan based on its depth. A discriminative model can learn an optimal threshold that correctly classifies most pans in practice, but it cannot gain an internal representation that sauce pans tend to be deeper than frying pans, which is {\em why} the thresholding works. To interpret a discriminative model means to ``reverse engineer'' it using external knowledge, which quickly becomes an impossible task as the data dimension increases.
 
-There is growing awareness that AI should be interpretable in life-impacting applications~\cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision making processes. For instance, in medical diagnosis, automated disease predictions should always be corroborated by individualized findings to bring communicable clinical value -- in other words, there is no interest for ``black boxes'' but for AI systems that can justify their opinions just like human experts. Clinicians have long used reference range analysis for diagnosis, which stems from simple univariate generative models.
+There is growing awareness that AI should be interpretable in life-impacting applications~\cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision making processes. For instance, in medical diagnosis, automated disease predictions should always be corroborated by individualized findings to be communicable and thus be taken into consideration by clinicians -- in other words, there is no interest for ``black boxes'' but for AI systems that can justify their opinions just like human experts. Clinicians have long used reference range analysis for diagnosis, which stems from simple univariate generative models.
 
 %, {\em e.g.}, by pinpointing biomarkers that deviate from healthy reference ranges.
 
@@ -137,152 +137,117 @@ where the distribution $\pi(x)$ plays the role of a prior, and the function:
 \label{eq:comp_lik}
 L^c_\lda(x) \equiv \prod_{i=1}^n \ell_i (x)^{\lambda_i}
 \end{equation} 
-plays that of a likelihood function. The expression~(\ref{eq:comp_lik}) happens to be known in computational statistics as a {\em marginal composite likelihood} \cite{Varin-11}. The slightly more general {\em conditional composite likelihood} form can be derived in the same way as above by conditioning all probabilities on confounding variables, see Appendix~\ref{sec:conditional}. The computational advantage of CL over a genuine likelihood function stems from the fact that it is more efficient to evaluate the marginal distributions of each feature than the joint distribution of all features.
+plays that of a likelihood function. The expression~(\ref{eq:comp_lik}) happens to be known in computational statistics as a {\em marginal composite likelihood} \cite{Varin-11}. The slightly more general {\em conditional composite likelihood} form can be derived in the same way as above by conditioning all probabilities on confounding variables, see Appendix~\ref{appendix:conditional}. The computational advantage of CL over a genuine likelihood function stems from the fact that it is more efficient to evaluate the marginal distributions of each feature than the joint distribution of all features.
 
 CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, usually referred to as {\em na\"ive Bayes} or {\em simple Bayes} in the machine learning literature, which corresponds to the special case of unitary weights, $\lda\equiv 1$. While the above derivation does not assume feature independence, it yields an alternative interpretation of na\"ive Bayes as a general feature aggregation method. However, unitary CL weights do not guarantee optimal prediction performance.
 
 
 \section{Prediction interpretation}
 
-A compelling advantage of the composite approach is to make it easy to interpret a prediction for any instance~$y$. Given two target values $x_0$ and $x_1$, the log-probability ratio of $x_1$ vs~$x_0$ simply adds up single-feature contributions: 
+A compelling advantage of the composite approach is to make it easy to interpret a prediction for any instance~$y$. Given two putative target values $x_0$ and $x_1$, the log-probability ratio of $x_1$ vs~$x_0$ is computed by simply adding up single-feature contributions: 
 $$
 \log \frac{p_\lda(x_1|y)}{p_\lda(x_0|y)}
 = 
 \underbrace{\log \frac{\pi(x_1)}{\pi(x_0)}}_{\text{offset}}
 + \sum_i \underbrace{\lambda_i \log \frac{p(z_i|x_1)}{p(z_i|x_0)}}_{\text{feature contribution}},
 $$
-therefore it is straightforward to assess which features contribute most (either positively or negatively), see possible disagreements between features, and corroborate the overall prediction with feature-level testable information. 
+therefore it is straightforward to assess which features contribute most to a particular hypothesis comparison (either positively or negatively), see possible disagreements between features, and corroborate predictive probabilities with feature-level testable information. 
 
-Each feature contributes proportionally to its associated log-likelihood ratio test statistic for the comparison $x_1$ vs~$x_0$. Contrary to statistical hypothesis testing, likelihood ratio test statistics are not converted into $p$-values but are directly combined into a predictive probability ratio. Non-unitary composite weights reinforce or inhibit features compared to na\"ive Bayes prediction ($\lda\equiv 1$), and may therefore account for mutual feature dependence if tuned appropriately. Keeping the analogy with hypothesis testing, composite weights may be thought of as the counterpart of multiple testing correction \cite{Benjamini-10}.
+Each feature contributes to an hypothesis comparison proportionally to its associated log-likelihood ratio test statistic. Contrary to statistical hypothesis testing, likelihood ratios are not converted into $p$-values but are directly combined into a predictive probability ratio. Non-unitary composite weights reinforce or inhibit features compared to na\"ive Bayes prediction ($\lda\equiv 1$), and may therefore account for mutual feature dependence if tuned appropriately. Keeping the analogy with hypothesis testing, composite weights may be thought of as the counterpart of multiple testing correction \cite{Benjamini-10}.
 
+To interpret the predictive distribution globally, the user(s) may go through successive pairwise hypothesis comparisons in a dynamic way, starting by comparing the automated prediction, {\em i.e.} the most probable target, to some educated guess or reference class (for instance, normality in medical diagnosis). Next, depending on the feature contributions highlighted by the comparison, they may submit another hypothesis for comparison to the automated prediction. This process may be repeated until the composite prediction is subjectively understood by the user(s), yielding a form of human machine dialog.
 
-% For instance, we can get insight such as: ``this patient is more likely to be AD than healthy because his hippocampus is severly atrophied even though his memory tests are quite normal.''
-
-%So, if a feature yields a significant test but has low weight, it may have little influence on the comparison. 
-
-%How about overall feature influence? Well, if we want to really interpret the prediction, we shall go through each target comparison that is deemed important for the decision. For instance, the system says AD more likely than normal, but is AD more likely than MCI? To answer this, we need to apply the procedure to AD vs MCI, and maybe other features will pop up.
-
-To interpret the predictive distribution, the user(s) may go through successive pairwise comparisons of target values in a dynamic way. They may start comparing the most probable target, {\em i.e.} the automated prediction, to some educated guess or reference class (for instance, normality in medical diagnosis). Next, depending on the feature contributions highlighted by the comparison, they may submit another hypothesis for comparison to the automated prediction. This process, which can be thought of as a human machine dialog, may be repeated until the composite prediction is subjectively understood by the user(s).
-
-%See if the automated prediction makes sense. If not, stop, otherwise consider what other class the interpretation could suggest and ask for comparison. Repeat the process until all other possibilities are subjectively ruled out or the user decides to reject the prediction. Think about this as a human AI dialog. 
-
-%This is a recipe for {\em local} interpretation (why did the system make a particular prediction), but what about {\em global} interpretation (how does the system make predictions). The thing is, we may not care about global interpretation. The only thing we need to know is that the system uses a bunch of features that all potentially contribute to the predictions. We could investigate which features tend to contribute most notably and which ones do not {\em on the average} but this would only be interesting design purposes, i.e. if we are prepared to use another representation. 
-
-%We may represent feature influence by a $K\times K$ matrix with general element $\lambda_i r_i(x_k,x_\ell)$. 
-
-%This recipe addresses {\em local} interpretation (why did the system make a particular prediction) as opposed to {\em global} interpretation (how does the system make predictions in general). 
 
 
 \section{Composite weight tuning}
 \label{sec:weight_tuning}
 
-Let us now turn to the problem of tuning the weights~$\lda=(\lambda_1,\ldots,\lambda_n)$ in the composite predictive distribution~(\ref{eq:log_pool}).
+%So far, we have assumed that the composite weights~$\lda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) are known. 
+
+Let us now turn to the problem of tuning the composite weights~$\lda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) as part of the method calibration. It is assumed at this stage that the feature generative models are known, which may require a pre-training stage that should not cause technical difficulties as it may use standard parameter estimation techniques. 
+
 
 \subsection{Agnostic calibration}
 
-In the absence of knowledge, a default rule is to choose constant CL weights. The CL function is then a scaled version of the na\"ive Bayes likelihood, the common weight value being irrelevant to the maximum CL estimator (MCLE). To get meaningful predictive probabilities, it may be tuned empirically so as to best adjust the pseudo posterior variance matrix to the asymptotic variance matrix of the MCLE \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, in attempts to match frequentist and composite Bayesian notions of uncertainty.
+In the absence of knowledge, a default rule is to choose constant weights. The CL function is then a scaled version of the na\"ive Bayes likelihood, the common weight value being irrelevant to the maximum CL estimator (MCLE). To get meaningful predictive probabilities, it may be tuned empirically so as to best adjust the pseudo posterior variance matrix to the asymptotic MCLE variance matrix \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, in attempts to match frequentist and composite Bayesian notions of uncertainty.
 
-Another simpler recommendation for log-linear pooling weights is to sum up to one. This may be motivated by the fact that the only pooling operator that preserves {\em external Bayesianity} is the log-linear opinion pool with unit sum weights \cite{Genest-86b}. External Bayesianity essentially means that it should not matter whether the prior is incorporated before or after pooling opinions, provided that all agents agree on the same prior. A further justification given in \cite{Garg-04} is that the log-linear pool with unit sum weights minimizes the sum of Kullback-Leibler (KL) divergences to the agent opinions (see also \cite{Wang-14}, Theorem~3, for a related optimality argument).
+Another simpler recommendation for log-linear pooling weights is to sum up to one. This may be motivated by the fact that the only pooling operator that preserves {\em external Bayesianity} is the log-linear opinion pool with unit sum weights \cite{Genest-86b}. External Bayesianity essentially means that it should not matter whether the prior is incorporated before or after pooling agent opinions, provided that all agents agree on the same prior. A further justification given in \cite{Garg-04} is that the log-linear pool with unit sum weights minimizes the sum of Kullback-Leibler (KL) divergences to the agent opinions (see also \cite{Wang-14}, Theorem~3, for a related optimality argument).
 
 Unit sum weights, however, implicitly assume strong redundancy between features and thus tend to produce over-conservative predictions when features are weakly correlated, as is generally the case in practice since features are supposed to be chosen to be complementary. An ideal method to tune weights is one that can capture and adjust for the pattern of statistical dependences between features. This calls for a training approach, which, as we will see, is unlikely to pick constant or unit sum weights.
 
 
 \subsection{Training}
 
-Given a labeled training dataset ${\cal D}=\{(x_k, y_k), k=1,\ldots,N\}$, the most direct approach to optimize the CL weights is to maximize their likelihood (or, equivalently, minimize their ``cross-entropy'')  under the composite predictive distribution:
-$$
-\max_{\lda\succeq 0} {\cal L}(\lda)
+Given a labeled training dataset ${\cal D}=\{(x_k, y_k), k=1,\ldots,N\}$, the most direct approach to tune the composite weights is to maximize their likelihood (or, equivalently, minimize their ``cross-entropy'') under the composite predictive distribution:
+\begin{equation}
+\label{eq:train_likelihood}
+\max_{\lda\succeq 0} U(\lda)
 \equiv\sum_{k=1}^N \log p_\lda(x_k|y_k).
-$$
+\end{equation}
 
-From~(\ref{eq:log_pool}), we see that the set of conditional distributions $p_\lda(x|y)$ spanned by the weights~$\lda$ is an exponential family with natural parameter~$\lda$:
+From~(\ref{eq:log_pool}), we see that the set of conditional distributions $p_\lda(x|y)$ spanned by the weights~$\lda$ is the exponential family with natural parameter~$\lda$ and basis functions given by the feature-based log-likelihoods:
 $$
-p_\lda(x|y) = \pi(x) \exp[\lda^\top \mathbf{f}(x,y) - A(\lda,y)],
+p_\lda(x|y) = \pi(x) \exp[\lda^\top \mathbf{L}(x,y) - A(\lda,y)],
 $$
 with:
 $$
-f_i(x,y) \equiv \log p(z_i|x),
+L_i(x,y) \equiv \log p(z_i|x),
 \qquad
-A(\lda, y) \equiv \log \int \pi(x) e^{\lda^\top \mathbf{f}(x,y)} dx.
+A(\lda, y) \equiv \log \sum_{x\in{\cal X}} \pi(x) e^{\lda^\top \mathbf{F}(x,y)}.
 $$
 
-It follows that ${\cal L}(\lambda)$ is a concave function as a general property of likelihood in exponential families, hence the training can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}. It also implies that maximizing ${\cal L}(\lambda)$ is dual to a maximum conditional entropy, or minimum conditional KL divergence problem \cite{BergerA-96}:
+It follows that the utility function $U(\lda)$ is concave as a general property of likelihood in exponential families, hence the training can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}, see Appendix~\ref{appendix:maxent} for details. It also implies that maximizing $U(\lda)$ is dual to a minimum KL~divergence problem \cite{Csiszar-84}:
 $$
-\min_{p} \int p(x,y) \log \frac{p(x|y)}{\pi(x)} dx dy,
+\min_{p\in{\cal P}} D(p\|\pi \cdot h) = \sum_{x\in{\cal X}}\sum_{y\in{\cal Y}} p(x,y) \log \frac{p(x,y)}{\pi(x)h(y)},
 $$
-subject to the constraints $p(y) = h(y)$ and, $\forall i=1,\ldots,n$, $\E_p[\ell_i]=\E_h[\ell_i]$, 
-where $h(x,y)$ is the joint empirical distribution of targets and data features:
-$$
-h(x,y) = \frac{1}{N} \sum_{k=1}^N \delta(x-x_k)\delta(y-y_k).
-$$
+subject to the constraints $p(y)=h(y)$ and $\E_p[\mathbf{L}] \succeq \E_h[\mathbf{L}]$, where 
+${\cal Y}=\{y_1,\ldots,y_N\}$ is the set of training data values, ${\cal P}$ is the set of joint probability distributions on ${\cal X}\times {\cal Y}$, $h(x,y)$ is the joint empirical distribution of targets and data, and $h(y)$ is the corresponding marginal distribution. 
 
-Maxent defined by constraints given by mean log-likelihood values. Weaker than assuming feature distributed according to agent models. Can be seen in terms of detection threshold: all we care about is that our feature-based log-likelihoods reach guaranteed levels (on the average) for the true class. Hence inequality constraints are more natural than equality ones. Model is admissible if agent compression rates are achieved or surpassed.
+Therefore, the optimal composite model may be interpreted as the $I$-projection of the independence distribution $\pi(x)h(y)$ onto a set of admissible joint distributions defined by two types of contraints. The marginal constraint $p(y)=h(y)$, on the one hand,  ensures that only the conditional distribution $p(x|y)$ is ``updated'', making the $I$-projection a special case of maximum conditional entropy \cite{BergerA-96}. The mean log-likelihood value constraints $\E_p[\mathbf{L}] \succeq \E_h[\mathbf{L}]$, on the other hand, encapsulate dependences between the target and the data, and consider a model admissible if it guarantees the same average log-likelihood levels as observed separately for each feature. This is weaker a constraint than assuming that the features are distributed according to the generative models $p(z_i|x)$: it only assumes that the ``description length'' \cite{Grunwald-07} achieved by each agent is truthworthy.
 
-We know more about the model, so this is relaxation. Doesn't make optimization easier but, I speculate, the solution is more stable than if we were imposing feature-based marginals. Both search spaces are determined by the empirically estimated likelihood parameters, intuitively I would say that the bigger space is less sensitive to estimation errors. We can show an example where weights are much more stable by choosing inequality vs equality constraints.
+A particularly insightful analysis given in \cite{Grunwald-04} shows that the $I$-projection is under broad conditions a minimax strategy for prediction according to the log loss. Hence, any $I$-projection is in some sense a best possible predictive model under particular constraints. Being more specifically a maximum conditional entropy method, trained composite inference belongs to the same family as multinomial logistic regression, only differing by the choice of constraints, which, in the latter case, are not related to feature generative models.
 
-%Brute-force approach: optimize fit for optimal prediction. Discriminative model defined by (\ref{eq:log_pool}). Training objective, weight likelihood (which, in this context, is negated cross-entropy) better than accuracy:
-
-%From a machine learning perspective, it is natural to tune the weights so as to minimize some prediction error, for example conditional cross-entropy. This brings the question: why then do it with ``pre-learned'' likelihood functions rather than with basis functions spanning the same predictive distribution family? Because of potential overfitting. The whole point of this note is that it may be better to run two learning phases than a single fully blown discriminative learning due to overfitting. It is a kind of tradeoff between pure generative and pure discriminative learning. 
-
-%The ``hybrid'' strategy necessarily achieves a larger cross-entropy than the pure discriminative one on the training dataset, but might generalize better. Should show examples of this. 
-
-%The rest of the discussion, i.e. the link with maximum entropy, is less important beside showing that the composite likelihood form is somehow optimal given some knowledge. 
-
-Intuition behind weights: Lagrange multipliers to enforce a constraint... From empirical observation, there is a non-linear correlation between CL weight and feature-level discrimination power (as measure e.g. by maximum KL divergence). Non-linear means that features with average discrimination power may get low weight as they are superseded by the most discriminative features. But some features with low discrimination power may also get large weight, which does not mean that they are very influential in practice (see above). This is illustrated in Figure~\ref{fig:disc_weight_plot} with the UCI breast cancer dataset\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}} used to predict whether breast lumps are benign or malignant based on a set of features extracted from images of fine-needle aspirates. 
+In the $I$-projection framework, the composite weights are the Lagrange multipliers associated with the mean log-likelihood inequality constraints. Weights corresponding to inactive constraints vanish, hence the training has a natural tendency to produce sparse weights. As illustrated in Figure~\ref{fig:disc_weight_plot} on the breast cancer UCI dataset\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}}, there is no clear relation between optimal weights and feature-level discrimination power, showing that the training differs significantly from univariate feature selection as it takes feature redundancy into account.
 
 \begin{figure}[!ht]
   \begin{center}
     \includegraphics[width=.6\textwidth]{disc_weight_plot.pdf}
   \end{center}
-\caption{Distribution of optimal composite weights vs individual feature discrimination power in the breast cancer UCI dataset. Discrimination is measured by the maximum KL divergence between class-conditional generative distributions. The most discriminative feature, `worst concave points', has a moderate weight of $0.34$ while `worst texture' achieves a weight of $0.78$ but is among the least discriminative features.}
+\caption{Distribution of optimal composite weights vs individual feature discrimination power in a binary classification task (breast cancer UCI dataset). Discrimination is measured by the maximum KL divergence between class-conditional generative distributions.}
 \label{fig:disc_weight_plot}
 \end{figure}
 
 
+As is customary and is generally good practice, the training examples may be weighted in~(\ref{eq:train_likelihood}) so that the empirical distribution of classes matches the prior~$\pi(x)$ (obtaining balanced classes if the prior is uniform). This does not affect the above maths provided that the data weights are reflected in the empirical distribution~$h(x,y)$. 
 
-Alternative: equality constraints (negative weights), less interpretable.
+Other variants of the training scheme that we mention here but do not particularly recommend for interpretability include adding basis functions to the exponential family. For instance, class-dependent offsets may be learned concurrently with the composite weights, which amounts to learning the ``prior'' in the training phase. It is also possible to replace the mean log-likelihood inequality constraints with equality constraints: the maximization of $U(\lda)$ is then unconstrained, therefore some trained composite weights may be negative. Finally, the mean log-likelihood constraints may be expressed for each class rather than being averaged wrt the prior: this leads to an extension that we call ``super composite likelihood'', in which weights become class-dependent (see Appendix~\ref{appendix:super}).
 
-Data weights: 
-$$
-w_k = \frac{\pi(x_k)}{n(x_k)}
-$$
 
-Need to weight the data to adjust to prior as a general measure when minimizing cross-entropy, which should yield a conditional model that approximates the ``true'' conditional distribution, $q(x|y)\approx p(x|y)$. So the model will absorb the ``true'' marginal of $x$, which should thus be replaced by the prior if we want the model to mimic ideal Bayesian inference. In our case, it means that the composite likelihood approximates the true likelihood.
+%used to predict whether breast lumps are benign or malignant based on a set of features extracted from fine-needle aspirate images.
 
-{\color{red} To offset or not to offset?}
+%The most discriminative features tend to get large weight, however some quite discriminative features may get low weight if strongly correlated with a more discriminative feature
 
-We can further enforce exact prior matching by including offsets ($K-1$ free parameters), in which case the training phase learns $\pi(x)$ so that it matches the prior $\pi(x)$ in the sense $\int h(y)p_\lambda(x|y)dy = \pi(x)$. This ``deforms'' the prior to improve the training score. But why is it important to enforce this constraint? Again, it all makes things just less interpretable. 
+%Non-linear means that features with average discrimination power may get low weight as they are superseded by the most discriminative features. But some features with low discrimination power may also get large weight, which does not mean that they are very influential in practice (see above). This is illustrated in Figure~\ref{fig:disc_weight_plot} with the UCI breast cancer dataset. 
 
-When including offsets, using homoscedastic generative variance estimation and equality constraints, composite likelihood is equivalent to binomial logistic regression. However, equality constraints are not easily interpretable.
+%{\color{red} Equality constraints (negative weights) are less interpretable.}
+
+%{\color{red} Offsets.}
+
+%{\color{red} Data weights.}
+
+%Need to weight the data to adjust to prior as a general measure when minimizing cross-entropy, which should yield a conditional model that approximates the ``true'' conditional distribution, $q(x|y)\approx p(x|y)$. So the model will absorb the ``true'' marginal of $x$, which should thus be replaced by the prior if we want the model to mimic ideal Bayesian inference. In our case, it means that the composite likelihood approximates the true likelihood.
+
+%We can further enforce exact prior matching by including offsets ($K-1$ free parameters), in which case the training phase learns $\pi(x)$ so that it matches the prior $\pi(x)$ in the sense $\int h(y)p_\lambda(x|y)dy = \pi(x)$. This ``deforms'' the prior to improve the training score. But why is it important to enforce this constraint? Again, it all makes things just less interpretable. 
+
+%When including offsets, using homoscedastic generative variance estimation and equality constraints, composite likelihood is equivalent to binomial logistic regression. However, equality constraints are not easily interpretable.
 
 %In some sense, composite weights replace the multiple testing correction required in the frequentist inference paradigm for proper control of false positives. Here, we don't control false positives, we control prediction accuracy.
 
+%Why not using the feature-based posteriors or Bayes factors rather than the likelihoods? It's a possibility (perhaps a connection here with Gr\"unwald's luckiness). A justification for not doing it is that the coordinator should discard the priors used by the agents. The constraints are not purely evidence-based since the moments depend on the coordinator's prior but it is arguable a mess of priors wouldn't be good.
 
-%\section{Extensions}
+%Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(x)p(y|x)^\lambda$. We expect to have $\lambda=1$ but it's not necessarily the case. It is if $h(y)=\int\pi(x)p(y|x)dx$ because then $h(y)p(x|y)=\pi(x)p(y|x)$ so the constraint is verified (and active). This also tells us that the data marginal should be consistent with the prior on labels for this much expected consistency property to hold. So, either weight datapoints so as to match a desired prior (e.g., uniform) or take the empirical distribution of labels as the ``prior''. 
 
-\section{Super composite likelihood}
-\label{sec:super}
-
-When chosen for computational simplicity, features may not only convey limited information at individual level, their informativeness may also be very much class-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovasc ular disease -- and conversely for, say, blood pressure. This motivates a more general pooling than~(\ref{eq:log_pool}) setting where features can be weighted depending on the target variable:
-$$
-p_\lambda(x|y) \propto \pi(x) \prod_i \left[\frac{p(z_i|x)}{p_0(z_i)}\right]^{\lambda_i(x)}
-$$
-
-$p_0$ is an arbitrary reference (implicit if weights are class-independent as it is then effectless). Can be the feature distribution averaged over all classes (not recommended I would say) or the distribution of a particular class if that makes sense (e.g. healthy population). In this case, the super composite likelihood is equivalent to the standard one in the two-class case.
-
-This is the super composite likelihood idea in a nutshell.
-
-Again, we can train this model and see that it is the same as solving a maxent problem. Difference with above is that the constraints are not averaged over $x$ (basis functions are of the form $\chi(x-a)\rho_i(x,y)$) and that they involve arbitrary log-likelihood ratios vs some reference distribution. Make sense to have a reference as it gives a customizable baseline for detection.
-
-If some classes are merged or split, then the other classes keep the same weights (assuming $h(y)$ is kept constant, so we need to make sure the prior is adapted accordingly)! So if a patient was found to have 10 times more probability to be MCI than healthy (and healthy is the reference class), and we later split AD population into, say, pure AD and mixed AD, the MCI probably ratio fact will remain.
-
-Super composite likelihood is essentially about combining binary versions of composite likelihood. It is analogous to the ``one-versus-rest'' strategy in multiple logistic regression. 
-
-%Link with PDF projection \cite{Baggenstoss-03}.
-
-Advantages: richer model (so better predictions), probabilty ratios stable to class addition. Drawbacks: require a reference, no more consistency. Still interpretable, that's why it is worthwile mentioning.
-
-%I was thinking about the unit sum weight version... The diagnosis example could be one in which clues are independent, in which case $\lambda_i(x)\equiv 1$ would be optimal, making any super composite trick irrelevant. Also see that with hypothesis-dependent weights, we may lose the estimation consistency. At the end of the day, the interest of the super composite idea is questionable.
+%Which brings another question: in this case, the (unique) weight is insensitive to the prior -- is it true in general? The answer is no. The weights generally depend on the prior. Hence the maxent composite likelihood is prior-dependent. This is an important conceptual difference with the classical notion of likelihood.
 
 
 
@@ -295,9 +260,14 @@ Advantages: richer model (so better predictions), probabilty ratios stable to cl
 
 {\color{red} Semi-generative method. Good for shallow learning or transfer learning. Still need representation learning methods.}
 
-{\color{red} It is easy to build a good classifier. You just need to pick a parametric family that is big enough to produce a good fit yet small enough to avoid overfitting. Less easy is to interpret what the classifier does. Deep learning is cool but it is relevant to AI only  if the representations it learns are generic enough to be used in other problems, i.e. it should ultimately be validated via transfer learning.}
+{\color{red} It is easy to build a good classifier. You just need to pick a parametric family that is big enough to produce a good fit yet small enough to avoid overfitting. Less easy is to interpret what the classifier does. Deep learning is cool but it is relevant to AI only if the representations it learns are generic enough to be used in other problems, i.e. it should ultimately be validated via transfer learning.}
 
 {\color{red} Composite Bayes is invariant by affine transformation of the data (unlike multinomial LR, which is problematic when damping is applied).}
+
+{\color{red} Is damping important? (it guarantees training cost is stricly convex).}
+
+{\color{red} Can we use the same dataset to learn both the feature generative distributions and the composite weights? In principle, nothing speaks about that.} 
+
 
 Some experimental observations. In the iris dataset (historical data used by Fisher to demonstrate linear discriminant analysis), composite Bayes finds that petal length is the most relevant feature followed by petal width, while sepal length and width get zero weight. In the wine dataset, the flavanoids is the most relevant feature for standard composite Bayes, but it's color intensity closely followed by flavanoids for the super composite version. In the breast cancer, both approaches are equivalent since it is a binary problem, weights are very sparse: only 13/30 are non-zero with worst area the most relevant. In the digits prolem, the most relevant features tend to be in the image center; composite Bayes can achieve similar performance to multinomial logistic regression with about 10 times less parameters.
 
@@ -346,11 +316,13 @@ Needs features. Not a representation learning method, but could be coupled why n
 
 {\color{red}CBI is just a way to reweight Naive Bayes. What's the big deal? Can we really expect massively superior performance? Are we just talking about realistic credibility sets?}
 
+Future work: can we collapse generative and discriminative training into a single step? Maybe using the concept of {\em minimally informative likelihood} \cite{Yuan-99b}.
+
 
 \appendix
 
 \section{Conditional composite likelihood}
-\label{sec:conditional}
+\label{appendix:conditional}
 
 As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $z^c_i = f^c_i(y)$ considered as a predictor of the ``dependent'' feature, $z_i=f_i(y)$, yielding the more general form:
 \begin{equation}
@@ -360,79 +332,11 @@ As a straightforward  extension of marginal CL, each feature-based likelihood ma
 
 Conditioning may be useful if it is believed that $z^c_i$ alone is little or not informative about $x$, but can provide relevant information when considered jointly with $x$, as in the case of regression covariates, for instance. Equation~(\ref{eq:comp_lik}) then amounts to conditional CL \cite{Varin-11}, a more general form of CL also including Besag's historical {\em pseudo-likelihood} \cite{Besag-74} developed for image segmentation.
 
-\section{Maxent}
-
-\subsection{Training}
-\label{sec:maxent}
-
-{\color{red}This stuff should move to the appendix. It is not critical to understand the Maxent connection of trained composite likelihood, althought it gives some insight. Essentially, agents report compressing rates using feature-based models and we either trust them (equality constraints) or assume that they are underestimated (inequality constraints). Why underestimated? Well, it's just more general. Overestimated leads nowhere, we have to assume something.}
-
-We can derive composite likelihood from the conditional maximum entropy principle \cite{BergerA-96}. It comes with a method of tuning weights, hence a particular composite likelihood function that we call maxent composite likelihood (MCL).
-
-A cheap MaxEnt argument was already given by \cite{Wang-14}  (standard, non-conditional MaxEnt at fixed $y$, hence just an existence result but no feasible weight tuning).
-
-What we do here is maximum {\em conditional} entropy. It's slightly more complex than a simple $I$-projection. The search space is a set of predictive distributions compatible with mean log-likelihood contraints. If I know the generative distribution, I know the expected log-likelihood.
-
-We could work with inequality constraints to force $\lambda\geq 0$:
-$$
-E[\log p(z_i|x)] \geq \bar{\ell}_i \equiv \int h(x)p(z_i|x) \log p(z_i|x) dx dy
-$$
-where $h(x)$ is the marginal distribution of labels.
-
-What does the inequality constraint mean? It means that a model is admissible if it jointly allows for all agents to achieve the same compression rate {\em or better} than achieved individually. Somewhow, we forget that there should exist a true distribution that is consistent with the agent constraints both jointly and individually. We forget that not because it is not true but because we deem it irrelevant. Connection to MDL? We are reminded of these words by Rissanen:
-\begin{quote}
-No statistical model is ``true" or ``false", ``right" or ``wrong"; the models just have varying performance, which can be assessed.  
-\end{quote}
-
-Importantly, no agent will be proven wrong since individual performance is at least as good as announced. But if it is strictly better, it means that the agent is simply discarded (getting a zero weight rather than a difficult-to-intepret negative weight).  
-
-We could also consider inequality constraints as a relaxation: explicitly making it easier for Nature to screw us up, but for a good cause. Not to make optimization easier, to make it easier to intepret. Why? Because we know that a posteriori from the fact that we get $\lambda_i\geq 0$. But a priori?
-
-%Okay, but then it's not ``nature'' playing, is it? The game is between a ``generator'' G and a ``predictor'' P. G tries to make it as difficult as possible to predict outcomes using an admissible model. We could argue that true models are at the boundaries of the admissible space, but G is not restricted to true models as long as it maintains the agents performance level.
-
-%In fact, P is the agent coordinator and G could be seen as some sort of test controller. Inequality constraints add some further robustness to the model. 
-
-Why not using the feature-based posteriors or Bayes factors rather than the likelihoods? It's a possibility (perhaps a connection here with Gr\"unwald's luckiness). A justification for not doing it is that the coordinator should discard the priors used by the agents. The constraints are not purely evidence-based since the moments depend on the coordinator's prior but it is arguable a mess of priors wouldn't be good.
-
-The derivation assumed the marginal distribution of the data $h(y)$ to be known. In practice, it is estimated by the empirical distribution just like the moments are estimated.
-
-Game theoretic interpretation \cite{Grunwald-04}.
-
-The dual function boils down to the familiar notions of cross-entropy, log-likelihood, KL divergence...
-$$
-\psi(\lambda)
-= \int h(x,y) \log \frac{p_\lambda(x|y)}{\pi(x)} dx dy
-$$
-
-If we introduce $p_\lambda(x,y)=p_\lambda(x|y)h(y)$, it is even clearer that this is a most classical distribution fitting problem:
-$$
-\psi(\lambda)
-= \int h(x,y) \log \frac{p_\lambda(x,y)}{\pi(x)h(y)} dx dy
-$$
-(we can obviously drop the reference distribution here). So the Maxent justifies the composite likelihood concept as a somewhat optimal parametric form but the remainder of the story is most classical.
-
-Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(x)p(y|x)^\lambda$. We expect to have $\lambda=1$ but it's not necessarily the case. It is if $h(y)=\int\pi(x)p(y|x)dx$ because then $h(y)p(x|y)=\pi(x)p(y|x)$ so the constraint is verified (and active). This also tells us that the data marginal should be consistent with the prior on labels for this much expected consistency property to hold. So, either weight datapoints so as to match a desired prior (e.g., uniform) or take the empirical distribution of labels as the ``prior''. 
-
-Which brings another question: in this case, the (unique) weight is insensitive to the prior -- is it true in general? The answer is no. The weights generally depend on the prior. Hence the maxent composite likelihood is prior-dependent. This is an important conceptual difference with the classical notion of likelihood.
-
-
-
-
-\subsection{Data weighting}
-
-The distribution $h(x)$ is the marginal of the labels, which is natural to approximate via their empirical distribution. We may then have a discrepancy between $h(x)$ and $\pi(x)$, which makes little sense if it is believed that $h(x)$ is a ``good encoder''. 
-
-To correct for this, we may adjust the empirical distribution of labels and data so as to match the target prior, $\pi(x)$, leading to weight the data points as a preprocessing step:
-$$
-h(y) = \sum_i w_i \delta(y-y_i),
-\qquad
-w_i = \frac{\pi(x_i)}{h(x_i)}
-$$
-
-Are the two methods equivalent? No. The feature-based parameter estimates are obviously the same in both cases, but the search space for the predictive distribution is different, hence we can't get the same answer. Which one of the two methods is best? The one that allows you to choose your own prior makes more sense to me because the distribution of classes in your training dataset may be completely different from the one that you will deal with in practice. For instance, it be weird to say that someone with all the symptoms of a very rare disease does not have it because it is very rare. 
-
 
 \section{Optimal predictive model}
+\label{appendix:maxent}
+
+{\color{red} Need cleaning up. Note offsets imply we minimize mutual information. But let's not discuss MIL here.}
 
 Let $\pi(x)$ some prior distribution on~$X$. Optimal prediction aims to select the joint distribution $p(x,y)$ that minimizes the KL divergence $D(p(x,y)\|\pi(x)p(y))$:
 $$
@@ -444,7 +348,11 @@ $$
 
 Note that with some constraints of this type, we can enforce $p(x)=\pi(x)$. In this case, the best predictive model minimizes the mutual information between the data and the target.
 
-One important special case of this problem arises when imposing the additional constraint that $p(y)=h(y)$ is known. This is the {\em maximum conditional entropy} method \cite{BergerA-96} which we review hereafter. We will also treat the case where the marginal constraint is not assumed, which corresponds to the {\em minimally informative likelihood} method \cite{Yuan-99b,Yuan-99}.
+One important special case of this problem arises when imposing the additional constraint that $p(y)=h(y)$ is known. This is the {\em maximum conditional entropy} method \cite{BergerA-96} which we review hereafter. 
+
+
+
+%We will also treat the case where the marginal constraint is not assumed, which corresponds to the {\em minimally informative likelihood} method \cite{Yuan-99b,Yuan-99}.
 
 %We could say that MIL enforces the prior constraint explicitly while Maxent does it implicitly by pre-weighting the data. So it's a soft constraint in the Maxent case (which ends up being loosely satisfied if the model fits the empirical distribution well enough), and it's a hard constraint in the MIL case. On the other hand, the MIL formulation does not exploit the  empirical marginal at all (it only exploits the moments). Which one do we prefer?
 
@@ -671,8 +579,48 @@ hence $m$ is determined by a finite set of weights $w_k$. In practice, the optim
 {\color{red} Big fat speculation: wouldn't MIL make more sense when passing generative mean-value constraints, i.e. empirical mean and variance per class? This could avoid the double learning stage! We don't do it with Maxent because we want feature-based generative models for interpretation purposes (if we did, it would be logistic regression). But using MIL, we get a full generative model for free... which is a game changer. It's no longer composite! The trouble is, this model is kinda degenerate (due to its ``empirical'' style, which is needed for computational reasons): the likelihood of any new~$y$ is almost surely zero. So not very good to do hypothesis testing. We have an interpolation problem, Houston. And that interpolation problem is the very reason why we trashed discriminative models from the start! So maybe not the way to go.}
 
 
+\subsection{Data weighting}
+
+The distribution $h(x)$ is the marginal of the labels, which is natural to approximate via their empirical distribution. We may then have a discrepancy between $h(x)$ and $\pi(x)$, which makes little sense if it is believed that $h(x)$ is a ``good encoder''. 
+
+To correct for this, we may adjust the empirical distribution of labels and data so as to match the target prior, $\pi(x)$, leading to weight the data points as a preprocessing step:
+$$
+h(y) = \sum_i w_i \delta(y-y_i),
+\qquad
+w_i = \frac{\pi(x_i)}{h(x_i)}
+$$
+
+Are the two methods equivalent? No. The feature-based parameter estimates are obviously the same in both cases, but the search space for the predictive distribution is different, hence we can't get the same answer. Which one of the two methods is best? The one that allows you to choose your own prior makes more sense to me because the distribution of classes in your training dataset may be completely different from the one that you will deal with in practice. For instance, it be weird to say that someone with all the symptoms of a very rare disease does not have it because it is very rare. 
+
+
+
+\section{Super composite likelihood}
+\label{appendix:super}
+
+When chosen for computational simplicity, features may not only convey limited information at individual level, their informativeness may also be very much class-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovasc ular disease -- and conversely for, say, blood pressure. This motivates a more general pooling than~(\ref{eq:log_pool}) setting where features can be weighted depending on the target variable:
+$$
+p_\lambda(x|y) \propto \pi(x) \prod_i \left[\frac{p(z_i|x)}{p_0(z_i)}\right]^{\lambda_i(x)}
+$$
+
+$p_0$ is an arbitrary reference (implicit if weights are class-independent as it is then effectless). Can be the feature distribution averaged over all classes (not recommended I would say) or the distribution of a particular class if that makes sense (e.g. healthy population). In this case, the super composite likelihood is equivalent to the standard one in the two-class case.
+
+This is the super composite likelihood idea in a nutshell.
+
+Again, we can train this model and see that it is the same as solving a maxent problem. Difference with above is that the constraints are not averaged over $x$ (basis functions are of the form $\chi(x-a)\rho_i(x,y)$) and that they involve arbitrary log-likelihood ratios vs some reference distribution. Make sense to have a reference as it gives a customizable baseline for detection.
+
+If some classes are merged or split, then the other classes keep the same weights (assuming $h(y)$ is kept constant, so we need to make sure the prior is adapted accordingly)! So if a patient was found to have 10 times more probability to be MCI than healthy (and healthy is the reference class), and we later split AD population into, say, pure AD and mixed AD, the MCI probably ratio fact will remain.
+
+Super composite likelihood is essentially about combining binary versions of composite likelihood. It is analogous to the ``one-versus-rest'' strategy in multiple logistic regression. 
+
+%Link with PDF projection \cite{Baggenstoss-03}.
+
+Advantages: richer model (so better predictions), probabilty ratios stable to class addition. Drawbacks: require a reference, no more consistency. Still interpretable, that's why it is worthwile mentioning.
+
+%I was thinking about the unit sum weight version... The diagnosis example could be one in which clues are independent, in which case $\lambda_i(x)\equiv 1$ would be optimal, making any super composite trick irrelevant. Also see that with hypothesis-dependent weights, we may lose the estimation consistency. At the end of the day, the interest of the super composite idea is questionable.
+
+
 \section{Data reduction inequality}
-\label{sec:reduction_inequality}
+\label{appendix:reduction_inequality}
 
 A fundamental property of the Kullback-Leibler divergence is that it decreases under feature extraction, {\em i.e.}, application of a deterministic transformation. This comes as a consequence of the logarithmic sum inequality \cite{Cover-06} (and also follows as a straightforward corollary of the PDF~projection theorem \cite{Minka-04,Baggenstoss-15}). 
 
@@ -711,7 +659,7 @@ Since it is a well-known fact that $D(\tilde{p}\|\tilde{\pi})\geq 0$ as any KL~d
 
 
 \section{Basic asymptotic properties of composite likelihood}
-\label{sec:asymptotic}
+\label{appendix:asymptotic}
 
 It follows from the double inequality~(\ref{eq:reduction_inequality}) that, for any extracted feature~$z_i$ and for any hypothesis~$\theta$,
 $$
