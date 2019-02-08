@@ -18,11 +18,13 @@
 \date{}
 \author{Alexis Roche\thanks{\url{alexis.roche@centraliens.net}}}
 
+\def\x{{\mathbf{x}}}
+\def\y{{\mathbf{y}}}
+\def\y{{\mathbf{z}}}
+\newcommand{\blambda}{{\boldsymbol{\lambda}}}
+\newcommand{\bell}{{\boldsymbol{\ell}}}
 \newcommand{\E}{\mathbb{E}}
-\newcommand{\lda}{{\boldsymbol{\lambda}}}
 %\newcommand{\matphi}{\boldsymbol{\Phi}} 
-%\def\x{{\mathbf{x}}}
-%\def\u{{\mathbf{u}}}
 %\def\p{{\bar{\mathbf{p}}}}
 %\def\q{{\bar{\mathbf{q}}}}
 
@@ -70,8 +72,6 @@ Another limitation of discriminative models is that they are not suitable for un
 
 %Overall, pure discriminative models are of little use outside the context of big labeled data.
 
-% p(x,y|theta) = p(x|y,theta)p(y|theta)
-
 \begin{figure}[!ht]
 \begin{center}
 \subfigure[Generative model]{\includegraphics[width=.25\textwidth]{generative.pdf}\label{fig:generative}}
@@ -95,29 +95,29 @@ Technical details are given in the remainder.
 \section{Composite likelihood as opinion pooling}
 \label{sec:log_pool}
 
-Let $Y$ an observable multivariate random variable with sampling distribution $p(y|x)$ conditional on some unobserved variable of interest, $X\in{\cal X}$, where ${\cal X}$ is assumed to be a finite set for simplicity. Given an experimental outcome $y$, the likelihood is the sampling distribution evaluated at $y$, seen as a function of $x$:
+Let $\mathbf{Y}$ an observable multivariate random variable with sampling distribution $p(\y|x)$ conditional on some unobserved variable of interest, $X\in{\cal X}$, where ${\cal X}$ is assumed to be a finite set for simplicity. Given an experimental outcome $\y$, the likelihood is the sampling distribution evaluated at $\y$, seen as a function of $x$:
 $$
-L(x) = p(y|x)
+L(x) = p(\y|x)
 .
 $$
 
-This requires a plausible generative model which, for complex data, may be out of reach or involve too many parameters to be estimated. A natural workaround known as data reduction is to extract some lower-dimensional representation $z=f(y)$, where $f$ is a many-to-one mapping, and consider the potentially more convenient likelihood function:
+This requires a plausible generative model which, for complex data, may be out of reach or involve too many parameters to be estimated. A natural workaround known as data reduction is to extract some lower-dimensional representation $z=f(\y)$, where $f$ is a many-to-one mapping, and consider the potentially more convenient likelihood function:
 $$
 \ell(x) = p(z|x)
 .
 $$
 
-Substituting $L(x)$ with $\ell(x)$ boils down to restricting the feature space, thereby  ``delegating'' statistical inference to an ``agent'' provided with partial information. While it is valid for such an agent observing~$z$ only to consider $\ell(x)$ as the likelihood function of the problem, the drawback is that $\ell(x)$ might yield too vague a prediction of~$X$ due to the information loss incurred by data reduction. To make the trick statistically more efficient, we may extract several features, $z_i=f_i(y)$ for $i=1,2,\ldots,n$, and try to combine the likelihood functions $\ell_i(x) = p(z_i|x)$ that they elicit.
+Substituting $L(x)$ with $\ell(x)$ boils down to restricting the feature space, thereby  ``delegating'' statistical inference to an ``agent'' provided with partial information. While it is valid for such an agent observing~$z$ only to consider $\ell(x)$ as the likelihood function of the problem, the drawback is that $\ell(x)$ might yield too vague a prediction of~$X$ due to the information loss incurred by data reduction. To make the trick statistically more efficient, we may extract several features, $z_i=f_i(\y)$ for $i=1,2,\ldots,n$, and try to combine the likelihood functions $\ell_i(x) = p(z_i|x)$ that they elicit.
 
 If we see the likelihoods as posterior distributions corresponding to uniform priors, this is a classical problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. One that is appealing as it tends to produce single peaked distributions is the {\em generalized logarithmic opinion pool}:
 \begin{equation}
 \label{eq:log_pool}
-p_\lda(x|y) \propto \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i},
+p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n p(z_i|x)^{\lambda_i},
 \end{equation} 
-where $\pi(x)$ is a prior distribution, and $\lda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, then the consensus probabilities should always satisfy $p_\lda(x_1|y)\leq p_\lda(x_2|y)$. Also note that it is possible to have the weights depend on the data~$y$, but this would make the method considerably more complex and less interpretable. 
+where $\pi(x)$ is a prior distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, then the consensus probabilities should always satisfy $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. Also note that it is possible to have the weights depend on the data~$y$, but this would make the method considerably more complex and less interpretable. 
 
 
-%This condition holds whenever all weights are positive ($\lambda\succeq 0$), assuming that the agent opinions are upper bounded. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, then the consensus probabilities should always satisfy $p_\lambda(x_1|y)\leq p_\lambda(x_2|y)$. Note that it is possible to have the weights depend on the data~$y$, but this would make the method considerably more complex and less interpretable. 
+%This condition holds whenever all weights are positive ($\lambda\succeq 0$), assuming that the agent opinions are upper bounded. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, then the consensus probabilities should always satisfy $p_\lambda(x_1|\y)\leq p_\lambda(x_2|\y)$. Note that it is possible to have the weights depend on the data~$y$, but this would make the method considerably more complex and less interpretable. 
 
 
 %Strictly positive weights guarantee the so-called 0/1 forcing property, that is, if an hypothesis~$x$ has zero likelihood according to at least one agent, then its consensus probability vanishes too.
@@ -130,30 +130,30 @@ where $\pi(x)$ is a prior distribution, and $\lda=(\lambda_1,\ldots,\lambda_n)$ 
 
 The log-linear pool~(\ref{eq:log_pool}) bears a striking similarity to Bayes rule, yielding  the form: 
 $$
-p_\lda(x|y)\propto \pi(x) L^c_\lda(x),
+p_\blambda(x|\y)\propto \pi(x) L^c_\blambda(x),
 $$
 where the distribution $\pi(x)$ plays the role of a prior, and the function:
 \begin{equation}
 \label{eq:comp_lik}
-L^c_\lda(x) \equiv \prod_{i=1}^n \ell_i (x)^{\lambda_i}
+L^c_\blambda(x) \equiv \prod_{i=1}^n \ell_i (x)^{\lambda_i}
 \end{equation} 
 plays that of a likelihood function. The expression~(\ref{eq:comp_lik}) happens to be known in computational statistics as a {\em marginal composite likelihood} \cite{Varin-11}. The slightly more general {\em conditional composite likelihood} form can be derived in the same way as above by conditioning all probabilities on confounding variables, see Appendix~\ref{appendix:conditional}. The computational advantage of CL over a genuine likelihood function stems from the fact that it is more efficient to evaluate the marginal distributions of each feature than the joint distribution of all features.
 
-CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, usually referred to as {\em na\"ive Bayes} or {\em simple Bayes} in the machine learning literature, which corresponds to the special case of unitary weights, $\lda\equiv 1$. While the above derivation does not assume feature independence, it yields an alternative interpretation of na\"ive Bayes as a general feature aggregation method. However, unitary CL weights do not guarantee optimal prediction performance.
+CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, usually referred to as {\em na\"ive Bayes} or {\em simple Bayes} in the machine learning literature, which corresponds to the special case of unitary weights, $\blambda\equiv 1$. While the above derivation does not assume feature independence, it yields an alternative interpretation of na\"ive Bayes as a general feature aggregation method. However, unitary CL weights do not guarantee optimal prediction performance.
 
 
 \section{Prediction interpretation}
 
 A compelling advantage of the composite approach is to make it easy to interpret a prediction for any instance~$y$. Given two putative target values $x_0$ and $x_1$, the log-probability ratio of $x_1$ vs~$x_0$ is computed by simply adding up single-feature contributions: 
 $$
-\log \frac{p_\lda(x_1|y)}{p_\lda(x_0|y)}
+\log \frac{p_\blambda(x_1|\y)}{p_\blambda(x_0|\y)}
 = 
 \underbrace{\log \frac{\pi(x_1)}{\pi(x_0)}}_{\text{offset}}
 + \sum_i \underbrace{\lambda_i \log \frac{p(z_i|x_1)}{p(z_i|x_0)}}_{\text{feature contribution}},
 $$
 therefore it is straightforward to assess which features contribute most to a particular hypothesis comparison (either positively or negatively), see possible disagreements between features, and corroborate predictive probabilities with feature-level testable information. 
 
-Each feature contributes to an hypothesis comparison proportionally to its associated log-likelihood ratio test statistic. Contrary to statistical hypothesis testing, likelihood ratios are not converted into $p$-values but are directly combined into a predictive probability ratio. Non-unitary composite weights reinforce or inhibit features compared to na\"ive Bayes prediction ($\lda\equiv 1$), and may therefore account for mutual feature dependence if tuned appropriately. Keeping the analogy with hypothesis testing, composite weights may be thought of as the counterpart of multiple testing correction \cite{Benjamini-10}.
+Each feature contributes to an hypothesis comparison proportionally to its associated log-likelihood ratio test statistic. Contrary to statistical hypothesis testing, likelihood ratios are not converted into $p$-values but are directly combined into a predictive probability ratio. Non-unitary composite weights reinforce or inhibit features compared to na\"ive Bayes prediction ($\blambda\equiv 1$), and may therefore account for mutual feature dependence if tuned appropriately. Keeping the analogy with hypothesis testing, composite weights may be thought of as the counterpart of multiple testing correction \cite{Benjamini-10}.
 
 To interpret the predictive distribution globally, the user(s) may go through successive pairwise hypothesis comparisons in a dynamic way, starting by comparing the automated prediction, {\em i.e.} the most probable target, to some educated guess or reference class (for instance, normality in medical diagnosis). Next, depending on the feature contributions highlighted by the comparison, they may submit another hypothesis for comparison to the automated prediction. This process may be repeated until the composite prediction is subjectively understood by the user(s), yielding a form of human machine dialog.
 
@@ -162,9 +162,9 @@ To interpret the predictive distribution globally, the user(s) may go through su
 \section{Composite weight tuning}
 \label{sec:weight_tuning}
 
-%So far, we have assumed that the composite weights~$\lda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) are known. 
+%So far, we have assumed that the composite weights~$\blambda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) are known. 
 
-Let us now turn to the problem of tuning the composite weights~$\lda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) as part of the method calibration. It is assumed at this stage that the feature generative models are known, which may require a pre-training stage that should not cause technical difficulties as it may use standard parameter estimation techniques. 
+Let us now turn to the problem of tuning the composite weights~$\blambda=(\lambda_1,\ldots,\lambda_n)$ in~(\ref{eq:log_pool}) as part of the method calibration. It is assumed at this stage that the feature generative models are known, which may require a pre-training stage that should not cause technical difficulties as it may use standard parameter estimation techniques. 
 
 
 \subsection{Agnostic calibration}
@@ -178,32 +178,32 @@ Unit sum weights, however, implicitly assume strong redundancy between features 
 
 \subsection{Training}
 
-Given a labeled training dataset ${\cal D}=\{(x_k, y_k), k=1,\ldots,N\}$, the most direct approach to tune the composite weights is to maximize their likelihood (or, equivalently, minimize their ``cross-entropy'') under the composite predictive distribution:
+Given a labeled training dataset ${\cal D}=\{(x_k,\y_k), k=1,\ldots,N\}$, the most direct approach to tune the composite weights is to maximize their likelihood (or, equivalently, minimize their ``cross-entropy'') under the composite predictive distribution:
 \begin{equation}
 \label{eq:train_likelihood}
-\max_{\lda\succeq 0} U(\lda)
-\equiv\sum_{k=1}^N \log p_\lda(x_k|y_k).
+\max_{\blambda\succeq 0} U(\blambda)
+\equiv\sum_{k=1}^N \log p_\blambda(x_k|\y_k).
 \end{equation}
 
-From~(\ref{eq:log_pool}), we see that the set of conditional distributions $p_\lda(x|y)$ spanned by the weights~$\lda$ is the exponential family with natural parameter~$\lda$ and basis functions given by the feature-based log-likelihoods:
+From~(\ref{eq:log_pool}), we see that the set of conditional distributions $p_\blambda(x|\y)$ spanned by the weights~$\blambda$ is the exponential family with natural parameter~$\blambda$ and basis functions given by the feature-based log-likelihoods:
 $$
-p_\lda(x|y) = \pi(x) \exp[\lda^\top \mathbf{L}(x,y) - A(\lda,y)],
+p_\blambda(x|\y) = \pi(x) \exp[\blambda^\top \bell(x,\y) - A(\blambda,y)],
 $$
 with:
 $$
-L_i(x,y) \equiv \log p(z_i|x),
+\ell_i(x,\y) \equiv \log p(z_i|x),
 \qquad
-A(\lda, y) \equiv \log \sum_{x\in{\cal X}} \pi(x) e^{\lda^\top \mathbf{F}(x,y)}.
+A(\blambda, y) \equiv \log \sum_{x\in{\cal X}} \pi(x) e^{\blambda^\top \bell(x,\y)}.
 $$
 
-It follows that the utility function $U(\lda)$ is concave as a general property of likelihood in exponential families, hence the training can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}, see Appendix~\ref{appendix:maxent} for details. It also implies that maximizing $U(\lda)$ is dual to a minimum KL~divergence problem \cite{Csiszar-84}:
+It follows that the utility function $U(\blambda)$ is concave as a general property of likelihood in exponential families, hence the training can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}, see Appendix~\ref{appendix:maxent} for details. It also implies that maximizing $U(\blambda)$ is dual to a minimum KL~divergence problem \cite{Csiszar-84}:
 $$
-\min_{p\in{\cal P}} D(p\|\pi \cdot h) = \sum_{x\in{\cal X}}\sum_{y\in{\cal Y}} p(x,y) \log \frac{p(x,y)}{\pi(x)h(y)},
+\min_{p\in{\cal P}} D(p\|\pi \cdot h) = \sum_{x\in{\cal X}}\sum_{y\in{\cal Y}} p(x,\y) \log \frac{p(x,\y)}{\pi(x)h(\y)},
 $$
-subject to the constraints $p(y)=h(y)$ and $\E_p[\mathbf{L}] \succeq \E_h[\mathbf{L}]$, where 
-${\cal Y}=\{y_1,\ldots,y_N\}$ is the set of training data values, ${\cal P}$ is the set of joint probability distributions on ${\cal X}\times {\cal Y}$, $h(x,y)$ is the joint empirical distribution of targets and data, and $h(y)$ is the corresponding marginal distribution. 
+subject to the constraints $p(\y)=h(\y)$ and $\E_p[\bell] \succeq \E_h[\bell]$, where 
+${\cal Y}=\{\y_1,\ldots,\y_N\}$ is the set of training data values, ${\cal P}$ is the set of joint probability distributions on ${\cal X}\times {\cal Y}$, $h(x,\y)$ is the joint empirical distribution of targets and data, and $h(\y)$ is the corresponding marginal distribution. 
 
-Therefore, the optimal composite model may be interpreted as the $I$-projection of the independence distribution $\pi(x)h(y)$ onto a set of admissible joint distributions defined by two types of contraints. The marginal constraint $p(y)=h(y)$, on the one hand,  ensures that only the conditional distribution $p(x|y)$ is ``updated'', making the $I$-projection a special case of maximum conditional entropy \cite{BergerA-96}. The mean log-likelihood value constraints $\E_p[\mathbf{L}] \succeq \E_h[\mathbf{L}]$, on the other hand, encapsulate dependences between the target and the data, and consider a model admissible if it guarantees the same average log-likelihood levels as observed separately for each feature. This is weaker a constraint than assuming that the features are distributed according to the generative models $p(z_i|x)$: it only assumes that the ``description length'' \cite{Grunwald-07} achieved by each agent is truthworthy.
+Therefore, the optimal composite model may be interpreted as the $I$-projection of the independence distribution $\pi(x)h(\y)$ onto a set of admissible joint distributions defined by two types of contraints. The marginal constraint $p(\y)=h(\y)$, on the one hand,  ensures that only the conditional distribution $p(x|\y)$ is ``updated'', making the $I$-projection a special case of maximum conditional entropy \cite{BergerA-96}. The mean log-likelihood value constraints $\E_p[\bell] \succeq \E_h[\bell]$, on the other hand, encapsulate dependences between the target and the data, and consider a model admissible if it guarantees the same average log-likelihood levels as observed separately for each feature. This is weaker a constraint than assuming that the features are distributed according to the generative models $p(z_i|x)$: it only assumes that the ``description length'' \cite{Grunwald-07} achieved by each agent is truthworthy.
 
 A particularly insightful analysis given in \cite{Grunwald-04} shows that the $I$-projection is under broad conditions a minimax strategy for prediction according to the log loss. Hence, any $I$-projection is in some sense a best possible predictive model under particular constraints. Being more specifically a maximum conditional entropy method, trained composite inference belongs to the same family as multinomial logistic regression, only differing by the choice of constraints, which, in the latter case, are not related to feature generative models.
 
@@ -218,9 +218,9 @@ In the $I$-projection framework, the composite weights are the Lagrange multipli
 \end{figure}
 
 
-As is customary and is generally good practice, the training examples may be weighted in~(\ref{eq:train_likelihood}) so that the empirical distribution of classes matches the prior~$\pi(x)$ (obtaining balanced classes if the prior is uniform). This does not affect the above maths provided that the data weights are reflected in the empirical distribution~$h(x,y)$. 
+As is customary and is generally good practice, the training examples may be weighted in~(\ref{eq:train_likelihood}) so that the empirical distribution of classes matches the prior~$\pi(x)$ (obtaining balanced classes if the prior is uniform). This does not affect the above maths provided that the data weights are reflected in the empirical distribution~$h(x,\y)$. 
 
-Other variants of the training scheme that we mention here but do not particularly recommend for interpretability include adding basis functions to the exponential family. For instance, class-dependent offsets may be learned concurrently with the composite weights, which amounts to learning the ``prior'' in the training phase. It is also possible to replace the mean log-likelihood inequality constraints with equality constraints: the maximization of $U(\lda)$ is then unconstrained, therefore some trained composite weights may be negative. Finally, the mean log-likelihood constraints may be expressed for each class rather than being averaged wrt the prior: this leads to an extension that we call ``super composite likelihood'', in which weights become class-dependent (see Appendix~\ref{appendix:super}).
+Other variants of the training scheme that we mention here but do not particularly recommend for interpretability include adding basis functions to the exponential family. For instance, class-dependent offsets may be learned concurrently with the composite weights, which amounts to learning the ``prior'' in the training phase. It is also possible to replace the mean log-likelihood inequality constraints with equality constraints: the maximization of $U(\blambda)$ is then unconstrained, therefore some trained composite weights may be negative. Finally, the mean log-likelihood constraints may be expressed for each class rather than being averaged wrt the prior: this leads to an extension that we call ``super composite likelihood'', in which weights become class-dependent (see Appendix~\ref{appendix:super}).
 
 
 %used to predict whether breast lumps are benign or malignant based on a set of features extracted from fine-needle aspirate images.
@@ -237,7 +237,7 @@ Other variants of the training scheme that we mention here but do not particular
 
 %Need to weight the data to adjust to prior as a general measure when minimizing cross-entropy, which should yield a conditional model that approximates the ``true'' conditional distribution, $q(x|y)\approx p(x|y)$. So the model will absorb the ``true'' marginal of $x$, which should thus be replaced by the prior if we want the model to mimic ideal Bayesian inference. In our case, it means that the composite likelihood approximates the true likelihood.
 
-%We can further enforce exact prior matching by including offsets ($K-1$ free parameters), in which case the training phase learns $\pi(x)$ so that it matches the prior $\pi(x)$ in the sense $\int h(y)p_\lambda(x|y)dy = \pi(x)$. This ``deforms'' the prior to improve the training score. But why is it important to enforce this constraint? Again, it all makes things just less interpretable. 
+%We can further enforce exact prior matching by including offsets ($K-1$ free parameters), in which case the training phase learns $\pi(x)$ so that it matches the prior $\pi(x)$ in the sense $\int h(\y)p_\lambda(x|y)dy = \pi(x)$. This ``deforms'' the prior to improve the training score. But why is it important to enforce this constraint? Again, it all makes things just less interpretable. 
 
 %When including offsets, using homoscedastic generative variance estimation and equality constraints, composite likelihood is equivalent to binomial logistic regression. However, equality constraints are not easily interpretable.
 
@@ -245,7 +245,7 @@ Other variants of the training scheme that we mention here but do not particular
 
 %Why not using the feature-based posteriors or Bayes factors rather than the likelihoods? It's a possibility (perhaps a connection here with Gr\"unwald's luckiness). A justification for not doing it is that the coordinator should discard the priors used by the agents. The constraints are not purely evidence-based since the moments depend on the coordinator's prior but it is arguable a mess of priors wouldn't be good.
 
-%Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(x)p(y|x)^\lambda$. We expect to have $\lambda=1$ but it's not necessarily the case. It is if $h(y)=\int\pi(x)p(y|x)dx$ because then $h(y)p(x|y)=\pi(x)p(y|x)$ so the constraint is verified (and active). This also tells us that the data marginal should be consistent with the prior on labels for this much expected consistency property to hold. So, either weight datapoints so as to match a desired prior (e.g., uniform) or take the empirical distribution of labels as the ``prior''. 
+%Single feature case ($y=z$): the maxent solution has the form $p(x|y)\propto\pi(x)p(\y|x)^\lambda$. We expect to have $\lambda=1$ but it's not necessarily the case. It is if $h(\y)=\int\pi(x)p(\y|x)dx$ because then $h(\y)p(x|y)=\pi(x)p(\y|x)$ so the constraint is verified (and active). This also tells us that the data marginal should be consistent with the prior on labels for this much expected consistency property to hold. So, either weight datapoints so as to match a desired prior (e.g., uniform) or take the empirical distribution of labels as the ``prior''. 
 
 %Which brings another question: in this case, the (unique) weight is insensitive to the prior -- is it true in general? The answer is no. The weights generally depend on the prior. Hence the maxent composite likelihood is prior-dependent. This is an important conceptual difference with the classical notion of likelihood.
 
@@ -324,7 +324,7 @@ Future work: can we collapse generative and discriminative training into a singl
 \section{Conditional composite likelihood}
 \label{appendix:conditional}
 
-As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $z^c_i = f^c_i(y)$ considered as a predictor of the ``dependent'' feature, $z_i=f_i(y)$, yielding the more general form:
+As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $z^c_i = f^c_i(\y)$ considered as a predictor of the ``dependent'' feature, $z_i=f_i(\y)$, yielding the more general form:
 \begin{equation}
 \label{eq:cond_feat_lik}
 \ell_i(x) = p(z_i|x,z^c_i).
@@ -338,17 +338,17 @@ Conditioning may be useful if it is believed that $z^c_i$ alone is little or not
 
 {\color{red} Need cleaning up. Note offsets imply we minimize mutual information. But let's not discuss MIL here.}
 
-Let $\pi(x)$ some prior distribution on~$X$. Optimal prediction aims to select the joint distribution $p(x,y)$ that minimizes the KL divergence $D(p(x,y)\|\pi(x)p(y))$:
+Let $\pi(x)$ some prior distribution on~$X$. Optimal prediction aims to select the joint distribution $p(x,\y)$ that minimizes the KL divergence $D(p(x,\y)\|\pi(x)p(\y))$:
 $$
-D(p) = -\int p(x,y) \log \frac{p(x|y)}{\pi(x)} dx dy,
+D(p) = -\int p(x,\y) \log \frac{p(x|\y)}{\pi(x)} dx d\y,
 $$ subject to feature mean-value constraints of the form:
 $$
-\int p(x,y) f(x,y) dx dy = \mu.
+\int p(x,\y) f(x,\y) dx d\y = \mu.
 $$
 
 Note that with some constraints of this type, we can enforce $p(x)=\pi(x)$. In this case, the best predictive model minimizes the mutual information between the data and the target.
 
-One important special case of this problem arises when imposing the additional constraint that $p(y)=h(y)$ is known. This is the {\em maximum conditional entropy} method \cite{BergerA-96} which we review hereafter. 
+One important special case of this problem arises when imposing the additional constraint that $p(\y)=h(\y)$ is known. This is the {\em maximum conditional entropy} method \cite{BergerA-96} which we review hereafter. 
 
 
 
@@ -360,24 +360,24 @@ One important special case of this problem arises when imposing the additional c
 \subsection{Maximum conditional entropy}
 
 $$
-D(p) = -\int h(y)p(x|y) \log \frac{p(x|y)}{\pi(x)} dxdy
+D(p) = -\int h(\y)p(x|\y) \log \frac{p(x|\y)}{\pi(x)} dxdy
 $$
 
 Lagrangian:
 $$
-{\cal L}(p,\lambda) = D(p) + \lambda^\top (\int h(y)p(x|y)f(x,y)dxdy - \mu)
+{\cal L}(p,\lambda) = D(p) + \lambda^\top (\int h(\y)p(x|\y)f(x,y)dxdy - \mu)
 $$
 
 Optimal $p$ at fixed $\lambda$:
 $$
 \frac{\partial{\cal L}}{\partial p}
 =
-- h(y) \log \frac{p(x|y)}{\pi(x)} + h(y) \lambda^\top f(x,y) + (\kappa(y)-1)h(y)
+- h(\y) \log \frac{p(x|\y)}{\pi(x)} + h(\y) \lambda^\top f(x,y) + (\kappa(\y)-1)h(\y)
 $$
 $$
 \Rightarrow
 \quad
-p_{\lambda}(x|y) = \frac{\pi(x)}{z(\lambda,y)} e^{\lambda^\top f(x,y)}
+p_{\lambda}(x|\y) = \frac{\pi(x)}{z(\lambda,y)} e^{\lambda^\top f(x,y)}
 $$
 with:
 $$
@@ -386,7 +386,7 @@ $$
 
 Dual:
 $$
-\psi(\lambda) = \lambda^\top \mu - \int h(y) \log z(\lambda, y) dy 
+\psi(\lambda) = \lambda^\top \mu - \int h(\y) \log z(\lambda, y) dy 
 $$
 
 $$
@@ -403,12 +403,12 @@ $$
 
 $$
 \nabla\psi
-= \mu - \int h(y) \frac{\nabla z}{z} dy
+= \mu - \int h(\y) \frac{\nabla z}{z} dy
 $$
 
 $$
 \nabla\nabla^\top\psi
-= - \int h(y) \left(
+= - \int h(\y) \left(
 \frac{\nabla \nabla^\top z}{z} 
 - \frac{\nabla z \nabla z^\top}{z^2}
 \right)
@@ -419,8 +419,8 @@ Note the equivalent expression of the dual function as:
 $$
 \psi(\lambda)
 =
-\int h(x,y) \log \frac{p_\lambda(x|y)}{\pi(x)} dx dy
-= D(h\|\pi(x)h(y)) - D(h\|p_\lambda)
+\int h(x,y) \log \frac{p_\lambda(x|\y)}{\pi(x)} dx dy
+= D(h\|\pi(x)h(\y)) - D(h\|p_\lambda)
 $$
 
 
@@ -445,7 +445,7 @@ $$
 $$
 so the Hessian is a variance matrix and is therefore positive, which proves convexity. How about definite positiveness? To stand a chance, we need the number of features to be less than the number of labels otherwise the basis vectors are linearly dependent.
 
-Let $m_F(y)$ and $V_F(y)$ respectively denote the mean and variance of $f(x,y)$ conditional on~$y$. Denoting by $\langle \rangle$ the empirical mean wrt $y$:
+Let $m_F(\y)$ and $V_F(\y)$ respectively denote the mean and variance of $f(x,y)$ conditional on~$y$. Denoting by $\langle \rangle$ the empirical mean wrt $y$:
 $$
 \nabla \psi = \mu - \langle m_F \rangle
 $$
@@ -454,7 +454,7 @@ $$
 \nabla \nabla^\top \psi = - \langle V_F \rangle
 $$
 
-In general, we have more features than classes for good prediction performance so each matrix $V_F(y)$ is singular and tends to be smaller (in terms of spectral radius) as the number of features increases. The Hessian is a sample average of these matrices and will thus follow the same trend.
+In general, we have more features than classes for good prediction performance so each matrix $V_F(\y)$ is singular and tends to be smaller (in terms of spectral radius) as the number of features increases. The Hessian is a sample average of these matrices and will thus follow the same trend.
 
 In practice, it looks like the problem is always nearly singular so we may need regularization!
 
@@ -472,32 +472,32 @@ This implements a callback force towards the prior $\pi(x)$. Can be interpreted 
 
 Let us consider a reference target value $x_0$. By definition,
 $$
-p_\lambda(x_0|y) = \frac{\pi(x_0)}{z(\lambda,y)} e^{\lambda^\top f(x_0,y)}
+p_\lambda(x_0|\y) = \frac{\pi(x_0)}{z(\lambda,y)} e^{\lambda^\top f(x_0,y)}
 $$
 
 Therefore,
 $$
-\log z(\lambda,y) = \lambda^\top f(x_0,y) - \log \frac{p_\lambda(x_0|y)}{\pi(x_0)}
+\log z(\lambda,y) = \lambda^\top f(x_0,y) - \log \frac{p_\lambda(x_0|\y)}{\pi(x_0)}
 $$
 
 We can use this fact to rewrite the dual function:
 $$
-\psi(\lambda) = \lambda^\top (\mu - \mu_0) + \int h(y) \log \frac{p_\lambda(x_0|y)}{\pi(x_0)} dy
+\psi(\lambda) = \lambda^\top (\mu - \mu_0) + \int h(\y) \log \frac{p_\lambda(x_0|\y)}{\pi(x_0)} dy
 $$
 with: 
 $$
-\mu_0 = \int h(y) f(x_0, y) dy
+\mu_0 = \int h(\y) f(x_0, y) dy
 $$
 
-The first term $\lambda^\top (\mu-\mu_0)$ is essentially the same thing as the utility considered in my previous version of composite likelihood training (which was maximized on the simplex). Utility is label-dependent as it involves the moments. If the basis consists of feature-based log-likelihood functions, it measures the discrepancy vs the reference and pushes towards large coefficient values. Cross-entropy appears here as a regularized version of utility. The regularization term $E[\log p_\lambda(x_0|y)$ replaces the hard constraint that $\lambda$ lie in the simplex: it forces the reference class to be probable for any input, so it will tend to discard predictions that are peaked on a single class if it's not $x_0$. This term acts as a callback force.
+The first term $\lambda^\top (\mu-\mu_0)$ is essentially the same thing as the utility considered in my previous version of composite likelihood training (which was maximized on the simplex). Utility is label-dependent as it involves the moments. If the basis consists of feature-based log-likelihood functions, it measures the discrepancy vs the reference and pushes towards large coefficient values. Cross-entropy appears here as a regularized version of utility. The regularization term $E[\log p_\lambda(x_0|\y)$ replaces the hard constraint that $\lambda$ lie in the simplex: it forces the reference class to be probable for any input, so it will tend to discard predictions that are peaked on a single class if it's not $x_0$. This term acts as a callback force.
 
 
 
 \subsection{Minimally informative likelihood}
 
-In this case, the constraint $p(y)=h(y)$ no longer applies. Consider:
+In this case, the constraint $p(\y)=h(\y)$ no longer applies. Consider:
 $$
-D(p,m) = \int p(x,y) \log \frac{p(x,y)}{\pi(x)m(y)} dx dy
+D(p,m) = \int p(x,y) \log \frac{p(x,y)}{\pi(x)m(\y)} dx dy
 $$
 and note that the prediction objective is: $D(p) = \min_m D(p,m)$. This is the Blahut-Arimoto trick, which enables us to consider an alternate optimization strategy wrt $p$ and $m$, respectively. 
 
@@ -505,7 +505,7 @@ At fixed $p$, this is a maximum (joint) relative entropy problem. Lagrangian...
 $$
 {\cal L}(p,m,\lambda)
 =
-- \int p(x,y) \log \frac{p(x,y)}{\pi(x)m(y)} dxdy
+- \int p(x,y) \log \frac{p(x,y)}{\pi(x)m(\y)} dxdy
 +
 \lambda^\top \left( 
 \int p(x,y) f(x,y) dydy - \mu 
@@ -516,19 +516,19 @@ The derivative is given by:
 $$
 \frac{\partial\cal L}{\partial p(x,y)}
 = 
-- \log \frac{p(x,y)}{\pi(x)m(y)} - 1
+- \log \frac{p(x,y)}{\pi(x)m(\y)} - 1
 + \lambda^\top f(x,y)
 $$
 hence the optimal model at fixed $m$ has the form:
 $$
-p_{\lambda,m}(x,y) = \frac{1}{z(\lambda,m)} \pi(x) m(y) e^{\lambda^\top f(x,y)} 
+p_{\lambda,m}(x,y) = \frac{1}{z(\lambda,m)} \pi(x) m(\y) e^{\lambda^\top f(x,y)} 
 $$
 with:
 $$
-z(\lambda,m) = \int \pi(x) m(y) e^{\lambda^\top f(x,y)} dx dy
+z(\lambda,m) = \int \pi(x) m(\y) e^{\lambda^\top f(x,y)} dx dy
 $$
 
-Note that the induced posterior distribution $p_{\lambda,m}(x|y)\propto \pi(x)p_{\lambda,m}(y|x)$ has the same form as in the conditional maxent case (if using the very same moment constraints).
+Note that the induced posterior distribution $p_{\lambda,m}(x|\y)\propto \pi(x)p_{\lambda,m}(\y|x)$ has the same form as in the conditional maxent case (if using the very same moment constraints).
 
 Dual function...
 $$
@@ -537,11 +537,11 @@ $$
 $$
 
 $$
-\nabla z = \int \pi(x) m(y) f(x,y) e^{\lambda^\top f(x,y)} dx dy
+\nabla z = \int \pi(x) m(\y) f(x,y) e^{\lambda^\top f(x,y)} dx dy
 $$
 
 $$
-\nabla\nabla^\top z = \int \pi(x)m(y) f(x,y) f(x,y)^\top e^{\lambda^\top f(x,y)} dxdy
+\nabla\nabla^\top z = \int \pi(x)m(\y) f(x,y) f(x,y)^\top e^{\lambda^\top f(x,y)} dxdy
 $$
 
 $$
@@ -560,19 +560,19 @@ Equivalently, for any distribution $h(x,y)$ that satisfies the moment constraint
 $$
 \psi(\lambda,m) 
 =
-\int h(x,y) \log \frac{p_{\lambda,m}(x,y)}{\pi(x)m(y)} dxdy
+\int h(x,y) \log \frac{p_{\lambda,m}(x,y)}{\pi(x)m(\y)} dxdy
 = D(h\|\pi_xm_y) - D(h\|p_{\lambda,m})
 $$
 showing that this is a generative learning problem!
 
 The BA algorithm alternates between estimating $\lambda$ at fixed $m$ via the maximization of $\psi(\lambda,m)$ and estimating $m$ at fixed $\lambda$ by marginalization:
 $$
-m(y) = \int p_{\lambda,m}(x,y) dx
+m(\y) = \int p_{\lambda,m}(x,y) dx
 $$
 
-The MIL seems intractable if we don't impose constraints on $m(y)$. It becomes feasible by restricting $m(y)$ to have a support limited to the training data, similarly to the conditional maxent implementation:
+The MIL seems intractable if we don't impose constraints on $m(\y)$. It becomes feasible by restricting $m(\y)$ to have a support limited to the training data, similarly to the conditional maxent implementation:
 $$
-m(y) = \sum_k w_k \delta(y-y_k),
+m(\y) = \sum_k w_k \delta(\y-\y_k),
 $$
 hence $m$ is determined by a finite set of weights $w_k$. In practice, the optimal weights look very sparse.
 
@@ -585,7 +585,7 @@ The distribution $h(x)$ is the marginal of the labels, which is natural to appro
 
 To correct for this, we may adjust the empirical distribution of labels and data so as to match the target prior, $\pi(x)$, leading to weight the data points as a preprocessing step:
 $$
-h(y) = \sum_i w_i \delta(y-y_i),
+h(\y) = \sum_i w_i \delta(\y-\y_i),
 \qquad
 w_i = \frac{\pi(x_i)}{h(x_i)}
 $$
@@ -599,7 +599,7 @@ Are the two methods equivalent? No. The feature-based parameter estimates are ob
 
 When chosen for computational simplicity, features may not only convey limited information at individual level, their informativeness may also be very much class-dependent. Consider, for instance, diagnosing a disease from a routine medical checkup. Body temperature may point to a bacterial infection by comparison with normality, but would not help detecting a non-infectious cardiovasc ular disease -- and conversely for, say, blood pressure. This motivates a more general pooling than~(\ref{eq:log_pool}) setting where features can be weighted depending on the target variable:
 $$
-p_\lambda(x|y) \propto \pi(x) \prod_i \left[\frac{p(z_i|x)}{p_0(z_i)}\right]^{\lambda_i(x)}
+p_\lambda(x|\y) \propto \pi(x) \prod_i \left[\frac{p(z_i|x)}{p_0(z_i)}\right]^{\lambda_i(x)}
 $$
 
 $p_0$ is an arbitrary reference (implicit if weights are class-independent as it is then effectless). Can be the feature distribution averaged over all classes (not recommended I would say) or the distribution of a particular class if that makes sense (e.g. healthy population). In this case, the super composite likelihood is equivalent to the standard one in the two-class case.
@@ -608,7 +608,7 @@ This is the super composite likelihood idea in a nutshell.
 
 Again, we can train this model and see that it is the same as solving a maxent problem. Difference with above is that the constraints are not averaged over $x$ (basis functions are of the form $\chi(x-a)\rho_i(x,y)$) and that they involve arbitrary log-likelihood ratios vs some reference distribution. Make sense to have a reference as it gives a customizable baseline for detection.
 
-If some classes are merged or split, then the other classes keep the same weights (assuming $h(y)$ is kept constant, so we need to make sure the prior is adapted accordingly)! So if a patient was found to have 10 times more probability to be MCI than healthy (and healthy is the reference class), and we later split AD population into, say, pure AD and mixed AD, the MCI probably ratio fact will remain.
+If some classes are merged or split, then the other classes keep the same weights (assuming $h(\y)$ is kept constant, so we need to make sure the prior is adapted accordingly)! So if a patient was found to have 10 times more probability to be MCI than healthy (and healthy is the reference class), and we later split AD population into, say, pure AD and mixed AD, the MCI probably ratio fact will remain.
 
 Super composite likelihood is essentially about combining binary versions of composite likelihood. It is analogous to the ``one-versus-rest'' strategy in multiple logistic regression. 
 
@@ -784,7 +784,7 @@ $$
 
 Let $x_0$ a reference class and consider the log-probability ratio:
 $$
-\alpha = \log \frac{p_\lambda(x|y)}{p_\lambda(x_0|y)}
+\alpha = \log \frac{p_\lambda(x|\y)}{p_\lambda(x_0|\y)}
 $$
 
 The larger $\alpha$ for a given $x_0$, the happier we are. Let us average $\alpha$ wrt $x$ and $y$ as well as $x_0\sim \pi(x_0)$, which in this context may be interpreted as the outcome of a random classifier. Ignoring offsets, we have:
