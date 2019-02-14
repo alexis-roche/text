@@ -172,13 +172,13 @@ In the absence of knowledge, a default rule is to choose constant weights. The C
 
 Another justifiable recommendation for log-linear pooling weights is to sum up to one. This may be motivated by the fact that the only pooling operator that preserves {\em external Bayesianity} is the log-linear opinion pool with unit sum weights \cite{Genest-86b}. External Bayesianity essentially means that it should not matter whether the prior is incorporated before or after pooling agent opinions, provided that all agents agree on the same prior. A further justification given in \cite{Garg-04} is that the log-linear pool with unit sum weights minimizes the sum of Kullback-Leibler (KL) divergences to the agent opinions (see also \cite{Wang-14}, Theorem~3, for a related optimality argument).
 
-Unit sum weights, however, implicitly assume strong redundancy between features and thus tend to produce over-conservative predictions when features are weakly correlated, as is generally the case in practice since features are supposed to be chosen for complementarity. An ideal method to tune weights is one that can capture and adjust for the pattern of statistical dependences between features. This calls for a training approach, which, as we will see, is very unlikely to pick constant or unit sum weights.
+Unit sum weights, however, implicitly assume strong redundancy between features and thus tend to produce over-conservative predictions when features are weakly correlated (see Appendix~\ref{appendix:frequentist}), as is generally the case in practice since features are usually chosen for complementarity. An ideal method to weight features is one that can capture feature redundancy and balance it with feature relevance \cite{Peng-05}. This may be tackled using a learning approach, which, as we will see, is unlikely to pick constant or unit sum weights.
 
 
 \subsection{Maximum likelihood training}
 \label{sec:training}
 
-Given a labeled training dataset ${\cal D}=\{(x_k,\y_k), k=1,\ldots,N\}$, the most direct approach to tune the composite weights is to maximize their likelihood (or, equivalently, minimize their ``cross-entropy'') under the composite predictive distribution:
+Given a labeled training dataset ${\cal D}=\{(x_k,\y_k), k=1,\ldots,N\}$, the most direct way to tune the composite weights is to maximize their likelihood under the composite predictive distribution (or, equivalently, minimize their ``cross-entropy''):
 \begin{equation}
 \label{eq:train_likelihood}
 \max_{\blambda\succeq 0} U(\blambda),
@@ -192,14 +192,14 @@ p_\blambda(x|\y) = \pi(x) \exp[\blambda^\top \bell(x,\y) - a(\blambda,y)],
 $$
 with:
 $$
-\ell_i(x,\y) \equiv \log p(z_i|x),
+\ell_i(x,\y) = \log p(z_i|x),
 \qquad
-a(\blambda, y) \equiv \log \sum_{x\in{\cal X}} \pi(x) e^{\blambda^\top \bell(x,\y)}.
+a(\blambda, \y) \equiv \log \sum_{x\in{\cal X}} \pi(x) e^{\blambda^\top \bell(x,\y)}.
 $$
 
-It follows that the utility function $U(\blambda)$ is concave as a general property of likelihood in exponential families, hence the training can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}, see Appendix~\ref{appendix:training} for details. 
+It follows that the utility function $U(\blambda)$ in~(\ref{eq:train_likelihood}) is concave as a general property of likelihood in exponential families, hence the training of weights can be implemented using a standard convex optimization scheme such as the limited-memory BFGS algorithm \cite{Byrd-95}, see Appendix~\ref{appendix:training} for details. 
 
-Because some positive weight constraints may turn out inactive, the training has a natural tendency to produce sparse weights. As illustrated in Figure~\ref{fig:disc_weight_plot} on the breast cancer UCI dataset\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}}, there is no clear relation between optimal weights and feature-level discrimination power, clearly showing that maximum likelihood training differs from univariate feature selection as it takes feature redundancy into account.
+Because some positive weight constraints may turn out inactive, the optimization has a natural tendency to produce sparse weights. As illustrated in Figure~\ref{fig:disc_weight_plot} on the breast cancer UCI dataset\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}}, there is no clear relation between optimal weights and feature-level discrimination power, showing that maximum likelihood training differs from univariate feature selection as it implicitly takes feature redundancy into account via joint weight optimization.
 
 \begin{figure}[!ht]
   \begin{center}
@@ -209,28 +209,29 @@ Because some positive weight constraints may turn out inactive, the training has
 \label{fig:disc_weight_plot}
 \end{figure}
 
-As is customary and is generally good practice, the training examples may be weighted in~(\ref{eq:train_likelihood}) so that the empirical distribution of classes matches the prior~$\pi(x)$ (enforcing balanced classes if the prior is uniform). Also, some regularization may be useful for stability: we shall in practice maximize $U(\lambda)-\alpha \|\blambda\|^2$, where $\alpha>0$ is a small damping factor. 
+As is customary and is generally good practice, the training examples may be weighted in~(\ref{eq:train_likelihood}) so that the empirical distribution of classes matches the prior~$\pi(x)$ (enforcing balanced classes if the prior is uniform). Also, some regularization may be useful for stability: we shall in practice maximize $U(\lambda)-\alpha \|\blambda\|^2$, where $\alpha>0$ is a small damping factor.
 
-Other training variants that we mention here but do not particularly recommend for interpretability include adding basis functions to the exponential family. For instance, class-dependent offsets may be added, hence learning the ``prior'' together with the composite weights. It is also possible to perform unconstrained optimization to achieve higher training likelihood, meaning that some composite weights are then negative.
+Other training variants that we mention here but do not particularly recommend for interpretability include adding basis functions to the exponential family. For instance, class-dependent offsets may be added so as to learn the ``prior'' together with the composite weights. It is also possible to perform unconstrained optimization to achieve higher training likelihood, meaning that some composite weights are then negative.
 
 
 \subsection{Maximum entropy interpretation}
 
 Exponential family properties also imply that maximum likelihood training~(\ref{eq:train_likelihood}) is dual to a maximum entropy problem or, more precisely, an $I$-projection \cite{Csiszar-84}:
-$$
+\begin{equation}
+\label{eq:maxent}
 \min_{p\in{\cal P}} D(p\|\pi \cdot h) = \sum_{x\in{\cal X}}\sum_{y\in{\cal Y}} p(x,\y) \log \frac{p(x,\y)}{\pi(x)h(\y)},
-$$
+\end{equation}
 subject to the constraints $p(\y)=h(\y)$ and $\E_p[\bell] \succeq \E_h[\bell]$, where 
 ${\cal P}$ is the set of joint probability distributions on ${\cal X}\times {\cal Y}$
 with ${\cal Y}=\{\y_1,\ldots,\y_N\}$ the set of training data values, $h(x,\y)$ is the joint empirical distribution of targets and data, and $h(\y)$ is the corresponding marginal data distribution. Note that the constraints implicitly approximate the data marginal and the mean log-likelihood values by empirical estimates, suggesting the need for regularization on small training sets.
 
-The marginal constraint $p(\y)=h(\y)$ makes the $I$-projection a special case of maximum entropy classifier \cite{BergerA-96}, ensuring that only the conditional distribution $p(x|\y)$ is optimized. The mean log-likelihood constraints $\E_p[\bell] \succeq \E_h[\bell]$ encapsulate dependences between the target and the data, and consider a model admissible if it guarantees the same average log-likelihood levels as observed separately for each feature. This is weaker a constraint than assuming that the feature generative models $p(z_i|x)$ are true: it only assumes that the ``description length'' \cite{Grunwald-07} achieved by each agent is truthworthy.
+The marginal constraint $p(\y)=h(\y)$ makes the $I$-projection equivalent to a maximum entropy classifier \cite{BergerA-96}, ensuring that only the conditional distribution $p(x|\y)$ is optimized. The mean log-likelihood constraints $\E_p[\bell] \succeq \E_h[\bell]$ encapsulate dependences between the target and the data, and consider a model admissible if it guarantees the same average log-likelihood levels as observed separately for each feature. This is weaker a constraint than assuming that the feature generative models $p(z_i|x)$ are true: it only assumes that the ``description length'' \cite{Grunwald-07} achieved by each agent is truthworthy.
 
 %In the $I$-projection framework, the composite weights are the Lagrange multipliers associated with the mean log-likelihood inequality constraints.
 
-A particularly insightful analysis given in \cite{Grunwald-04} shows that the $I$-projection is under broad conditions a minimax strategy for prediction according to the log loss. Hence, any $I$-projection is in some sense a best possible predictive model under particular constraints (in the limit of validity of empirical approximations). Our training of composite weights belongs to the same family as multinomial logistic regression, another maximum entropy classifier, only differing by the choice of constraints, which, in the latter case, are not related to generative models.
+A particularly insightful analysis given in \cite{Grunwald-04} shows that the $I$-projection is under broad conditions a minimax strategy for prediction according to the log loss. Hence, any $I$-projection is in some sense a best possible predictive model under particular constraints (in the limit of validity of empirical approximations). Our training of composite weights relates to multinomial logistic regression, another maximum entropy classifier, only differing by the choice of constraints, which, in the latter case, are not related to generative models.
 
-As an alternative to the strategy considered here, the mean log-likelihood constraints may be expressed for each class rather than being averaged w.r.t.~the prior, leading to a more general predictive model that we call ``super composite likelihood'', in which the weights become class-dependent (see Appendix~\ref{appendix:super}). This variant has the potential for higher prediction performance, but poses some conceptual difficulties, in particular that of having to define an arbitrary reference class. 
+As an alternative to the strategy considered here, the mean log-likelihood constraints may be expressed for each class rather than being averaged with respect to the prior, leading to a more general predictive model that we call ``super composite likelihood'', in which the weights become class-dependent (see Appendix~\ref{appendix:super}). This variant has the potential for higher prediction performance, but poses some conceptual difficulties, in particular that of having to define an arbitrary reference class. 
 
 %used to predict whether breast lumps are benign or malignant based on a set of features extracted from fine-needle aspirate images.
 
@@ -263,11 +264,13 @@ As an alternative to the strategy considered here, the mean log-likelihood const
 \section{Discussion}
 \label{sec:discussion}
 
-{\color{red} It is easy to build a good classifier. You just need to pick a parametric family that is big enough to produce a good fit yet small enough to avoid overfitting. Less easy is to interpret what the classifier does. Deep learning is cool but it is relevant to AI only if the representations it learns are generic enough to be used in other problems, i.e. it should ultimately be validated via transfer learning.}
+It is easy to build a good classifier. You just need to pick a parametric family that is big enough to produce a good fit yet small enough to avoid overfitting. Less easy is to interpret what the classifier does. Deep learning is cool but it is relevant to AI only if the representations it learns are generic enough to be used in other problems, i.e. it should ultimately be validated via transfer learning.
 
 {\color{red} Why prediction performance is still important? Because it validates (or not) interpretation. Interpretation is the goal but prediction performance is a crucial intermediate step.}
 
 {\color{red} We cannot rank features according to their weights. A feature might incidentally get a large weight because its likelihood is flat. Feature relevance also depends on conditional likelihood distribution. Consider mutually independent features: each one recieves a unit weight, but some may be independent from target.}
+
+{\color{red} Can we use the same dataset to learn both the feature generative distributions and the composite weights? In principle, nothing speaks against this.} 
 
 {\color{red} Semi-generative method. Good for shallow learning or transfer learning. Still need representation learning methods.}
 
@@ -277,7 +280,9 @@ As an alternative to the strategy considered here, the mean log-likelihood const
 
 {\color{red} Is damping important? (it guarantees training cost is stricly convex).}
 
-{\color{red} Can we use the same dataset to learn both the feature generative distributions and the composite weights? In principle, nothing speaks against this.} 
+{\color{red} Can we interpret maximum weight likelihood as a ``maximum relevance minimum redudancy'' feature selection approach?}
+
+%In other words, is $\bar{a}(\blambda)$ a measure of feature redundancy? At fixed $\y$, if one $\lambda_i\to\infty$, then $a(\blambda,\y)\ot\infty$ except if $\ell_i(x,\y)\preceq 0$, in which case it goes to $-\infty$. If using likelihood ratios, this only happens if the reference class is the most likely for $\y$. But then we can prove that it can't happen for all $\y$ (otherwise the associated moment would be negative), so basically $\bar{a}(\blambda)$ blows up when at least one weight gets large. And if several weights get large simultaneously, then it blows up even more so we might consider it a redundancy measure to some extent...
 
 Some experimental observations. In the iris dataset (historical data used by Fisher to demonstrate linear discriminant analysis), composite Bayes finds that petal length is the most relevant feature followed by petal width, while sepal length and width get zero weight. In the wine dataset, the flavanoids is the most relevant feature for standard composite Bayes, but it's color intensity closely followed by flavanoids for the super composite version. In the breast cancer, both approaches are equivalent since it is a binary problem, weights are very sparse: only 13/30 are non-zero with worst area the most relevant. In the digits prolem, the most relevant features tend to be in the image center; composite Bayes can achieve similar performance to multinomial logistic regression with about 10 times less parameters.
 
@@ -335,7 +340,7 @@ Future work: can we collapse generative and discriminative training into a singl
 \section{Basic frequentist properties of composite likelihood}
 \label{appendix:frequentist}
 
-Assume that the data~$\y$ is distributed according to some target value~$x_\star$. For any extracted feature~$z_i$ and for any hypothetical target value~$x$,
+Let a multivariate observable variable~$\y \sim p(\y|x_\star)$ distributed according to some target value~$x_\star$. For any extracted feature~$z_i$ and any hypothetical target value~$x$, the following double inequality holds:
 $$
 0 \leq
 E\left[
@@ -346,22 +351,24 @@ E\left[
 \log \frac{p(\y|x_\star)}{p(\y|x)}
 \right],
 $$
-where the expectation is taken with respect to the true distribution $p(\y|x_\star)$. Using a weighted sum of such inequalities, we can bracket the expected variations of the logarithm of any composite likelihood function:
+where the expectation is taken with respect to the true distribution $p(\y|x_\star)$. This fact follows from two basic properties of KL~divergence: positivity and partition inequality.
+
+Using a weighted sum of such inequalities, we can bracket the expected variations of the logarithm of any composite likelihood function~(\ref{eq:comp_lik}) with positive weights~$\blambda\succeq 0$:
 \begin{equation}
 \label{eq:variation_bound}
 0 \leq
 E\left[ \log \frac{L_c(x_\star, \blambda)}{L_c(x,\blambda)} \right]
 \leq 
-\|\blambda\|_1 E\left[ \log \frac{L(x_\star)}{L(x)} \right]
-.
+s_\blambda E\left[ \log \frac{L(x_\star)}{L(x)} \right]
+,
 \end{equation}
+with $s_\blambda\equiv \|\blambda\|_1 =\sum_i \lambda_i$, and $L(x)$ the true likelihood function, {\em i.e.} $L(x)\equiv \log p(\y|x)$.
 
-This implies two asymptotic properties of standard composite likelihood: 
+This implies two general asymptotic properties of composite likelihood:
 \begin{itemize}
 \item {\em Consistency.} The expected composite log-likelihood is maximized by~$x_\star$.
-\item {\em Conservativeness.} For any~$x$, if the expected true log-likelihood of~$x$ is finite, then the corresponding expected composite log-likelihood ratio is finite too. 
+\item {\em Conservativeness for unit sum weights.} If the weights sum up to one or less ($s_\blambda\leq 1$), composite likelihood ratios of the true target~$x_\star$ vs.~other target values~$x$ tend to be underestimated, {\em i.e.} are smaller on the average than corresponding true likelihood ratios.
 \end{itemize}
-
 
 
 \section{Conditional composite likelihood}
@@ -387,35 +394,37 @@ U(\blambda)
 \right]
 $$
 
-This reads: $U(\blambda) = \sum_k \log \pi(x_k) + N \psi(\blambda)$ with: 
+Maximizing $U(\blambda)$ is therefore equivalent to maximizing: 
 $$
-\psi(\blambda) \equiv \blambda^\top \bar{\bell} - \frac{1}{N} \sum_k a(\lambda,\y_k), 
+\psi(\blambda) \equiv \blambda^\top \bar{\bell} - \bar{a}(\blambda), 
 $$
-and:
+with:
 $$
 \bar{\bell} \equiv \frac{1}{N} \sum_k \bell(x_k,\y_k),
+\qquad
+\bar{a}(\blambda) \equiv \frac{1}{N} \sum_k a(\blambda,\y_k).
 $$
-therefore maximizing~$U(\blambda)$ is equivalent to maximizing~$\psi(\blambda)$. 
+
+Note that $\psi(\blambda)$ is nothing but the dual function associated with the maxent problem~(\ref{eq:maxent}). 
 
 Derivatives...
 $$
-\nabla\psi
-= \bar{\bell} - \frac{1}{N}\sum_k \nabla a(\blambda,\y_k)
+\nabla\psi(\blambda)
+= \bar{\bell} - \frac{1}{N} \sum_k \nabla a(\blambda,\y_k) 
 $$
 
 $$
-\nabla\nabla^\top\psi
-= - \frac{1}{N}\sum_k
-\nabla \nabla^\top a(\blambda, \y_k)
+\nabla\nabla^\top\psi(\blambda)
+= - \frac{1}{N} \sum_k \nabla \nabla^\top a(\blambda,\y_k)  
 $$
 
 We have:
 $$
-\nabla a = \E_{\blambda}(\bell|\y),
+\nabla a(\blambda,\y) = \E_{\blambda}(\bell|\y),
 \qquad
-\nabla \nabla^\top a = \text{Var}_{\blambda}(\bell|\y)
+\nabla \nabla^\top a(\blambda,\y) = \text{Var}_{\blambda}(\bell|\y)
 $$
-proving that $a(\blambda,\y)$ is convex in $\blambda$ for any $\y$, and in turnes proves the concavity of $\psi$.
+proving that $a(\blambda,\y)$ is convex in $\blambda$ for any $\y$, and in turn proves the concavity of $\psi$.
 
 To see this, let:
 $$
@@ -470,8 +479,6 @@ Super composite likelihood is essentially about combining binary versions of com
 Link with PDF projection \cite{Baggenstoss-03}.
 
 Advantages: richer model (so better predictions), probabilty ratios stable to class addition. Drawbacks: require a reference, no more consistency. Still interpretable, that's why it is worthwile mentioning.
-
-%I was thinking about the unit sum weight version... The diagnosis example could be one in which clues are independent, in which case $\lambda_i(x)\equiv 1$ would be optimal, making any super composite trick irrelevant. Also see that with hypothesis-dependent weights, we may lose the estimation consistency. At the end of the day, the interest of the super composite idea is questionable.
 
 
 
