@@ -1,0 +1,87 @@
+*** What is deep learning?
+* Representation learning
+
+Compare with classical computer vision.
+
+Corners, SIFT, SURF...
+SIFT --> robot localisation, image stitching, tracking...
+Histograms of Oriented Gradients --> human detection
+Wavelet coefficients (local orientation) --> face recognition
+
+*** Mathematical intuition
+* Highly nonlinear function modeling
+* Complexity through sequential compositions
+
+*** Learning
+* Discriminant learning = brute force
+* Requires big data
+
+*** Convolutional neural network
+* Concepts
+* Some history
+
+CNN --> image classification
+
+*** FCNN
+* Efficient implementation of region-based classification
+* Image segmentation using CNN
+
+Example: food segmentation.
+
+*** Object detection architectures
+
+https://towardsdatascience.com/deep-learning-for-object-detection-a-comprehensive-review-73930816d8d9
+
+
+* Basic approach: R-CNN (= selective search + CNN) 
+* Fast R-CNN = F-CNN + selective search (region proposal works on feature map to share computation)
+* Faster R-CNN = Fast R-CNN with selective search replaced by region proposal network (RPN)
+* R-FCN = position sensitive score maps instead of single score maps.
+* Single short detector (SSD) = multiscale feature maps + default bounding box class scores
+
+RPN is a CNN trained to classify object vs non-object using "anchor boxes".
+
+Example: MobileNetSSD 
+
+We need advanced architectures for object detection
+Old approach: R-CNN 
+
+
+*** Learning algorithm
+
+Stochastic gradient descent, first-order, second-order, batches...
+How do we make sure learning is effective?
+Many saddle points, index of a saddle point (fraction of negative eigenvalues) correlates with error
+
+Panda approach: "Babysitting the model" vs Caviar appraoch (parallel models)
+
+
+*** Transfer learning
+
+Do deep learning without big data.
+Very common paradigm in industry.
+Use common models: VGG16, VGG19, ResNet50
+
+*** Tools
+
+Programming frameworks:
+ TensorFlow, Theano, Caffe, CNTK, Keras...
+
+High level:
+ Amazon SageMaker
+ Google Cloud Datalab
+
+Community tools:
+ Kaggle.com
+
+
+*** Applications
+* Food recognition: illustrates plain CNN
+* Food segmentation: illustrates F-CNN
+* Person reidentification: illustrates SSD, CNN, and small data problems that cannot be solved using deep learning only...
+
+*** Beyond supervised learning
+
+Do we need big labeled datasets???
+Unsupervised learning
+Reinforcement learning

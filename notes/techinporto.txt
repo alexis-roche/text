@@ -1,0 +1,85 @@
+Techinporto (15.6.18)
+
+
+Image similarity with deep learning
+Describe a strange T-shirt pattern
+Typical image retrieval problem
+Use data 
+Image retrieval model
+Handcrafted features don't do
+Divide and conquer, sequential learning
+Chatbox : récurrent nn 
+Vision: CNN
+ImageNet : pretrained model
+Bixby 
+Pinterest architecture:
+Locate object, classify using DL, then KNN search
+
+Python Keras TF SQLite
+Multiple architectures 
+Vgg16 vgg19 resnet50
+
+12 categories, 1051 images
+"We are shitters in AI "
+Use CNN as a feature extractor
+Then a good old KNN 
+
+Image segmentation to crop the image... i image preprocessing python-based 
+Cosine distance
+Software engineers 
+
+
+----------
+
+Amazon 
+
+Machine learning powered
+Drone delivery next step
+Alexa
+Amazon wants to put ML in our hands, so nice of them!
+AI services, platforms...
+Amazon rekognitiion
+SSML language to control speech synthesis 
+Polly
+Amazon Comprehend 
+Alexa for chatbot
+Amazon Lex
+Amazon Transcribe 
+Amazon Sagemaker
+Help you to build a complete app
+Amazon Mechanical Turk
+Apache, MXnet
+Upper layer called Gluon
+Project with Microsoft
+Amazon EMR
+ F1 instances 
+Amazon Greengrass
+Run ML on the edge
+
+
+----------  
+
+Google talk
+
+Organize information and make it accessible 
+Google search is the core technology 
+Computing becomes universally available 
+Democratizing AI
+AI first company
+Commitment to open source
+Deep mind
+Google has the model you want
+It can also train your model if you really want to have one
+You need a big know how bla-bla-bla 
+Auto ML
+Cloud Vidéo Intelligence API
+Natural language API
+Query some API
+Disney early auto ML customers 
+ML 
+Datalab Python
+Google.datalab
+Free trial account
+Great to get started
+Qwiklabs
+Kaggle.com 

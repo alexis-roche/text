@@ -1,0 +1,176 @@
+Bilan de la méthode d'identification de personnes:
+
+- basée sur un CNN entrainé pour calculer la probabilité que deux
+  imagettes représentent la même personne. Par construction du CNN,
+  cette probabilité est fonction décroissante d'une distance (distance
+  L1 pondérée) entre attributs appris automatiquement.
+
+- utilise un répertoire constitué d'imagettes labélisées (5 par
+  personne connue choisies arbitrairement pour le moment).
+
+- la localisation des personnes est faite via SSDNet et un algorithme
+  de suivi basique.
+
+- l'dentification des personnes est faite par aggrégation de rapports
+  de probabilités personne connue vs inconnue, chaque image du
+  répertoire fournissant à chaque instant une "opinion"
+  différente. C'est peut-être une contribution méthodologique.
+
+
+Quelle est la source de ce pooling d'opinion? Généralisation du
+log-linear pool. On a des experts "binaires" qui ont en commun une
+hypothèse de référence. En fait, on fait du log-pooling sur des
+ensembles disparates de la forme {x, x0}, où x0 est un "pivot" fixe,
+et on suppose la conservation des rapports de probabilités.
+
+Dans le cas de la reID, le pivot est l'hypothèse "personne inconnue"
+qui est, par construction, la seule hypothèse commune envisagée par
+les différents "experts".
+
+Une extension de cette idée qui permet de rendre le pooling
+indépendant d'un pivot particulier est de combiner des fonctions de
+probabilités construites à partir de pivots différents. Mais ça
+suppose qu'on ait des experts pour chaque comparaison binaire
+possible, et ce n'est pas le cas ici. On n'a pas d'expert pour
+comparer Batista à Vasquez. Tous les experts comparent Batista ou
+Vasquez à un inconnu. Par construction, le problème a un pivot
+"naturel".
+
+Avec des poids de somme unitaire (pour chaque comparaison {x, x0}), ce
+pooling est externe bayésien, ce qui semble contredire le théorème de
+Genest mais celui-ci suppose que l'opérateur de pooling ne dépend pas
+de x:
+
+F(p1, p2, ...) = PROD pi ** wi 
+
+Ici, on a:
+
+F(p1, p2, ...)(x) = PROD [pi(x) / pi(x0)] ** wi(x)
+
+qui dépend de x car a priori les poids en dépendent. En gardant à l'esprit que 
+
+Donc, en fait, on a trouvé une forme plus générale de pooling externe
+bayésien que le log-linear pool, et cela inclut l'extension
+sus-mentionnée. Question: est-ce la forme la plus générale?
+
+Pour faire le tri dans mes idées:
+
+1) L'aggrégation d'opinions "avec pivot" --> vraisemblance
+supercomposite: une méthode d'aggrégation adaptée aux situations où
+l'inférence procède par comparaisons binaires.
+
+2) La vraisemblance (super)composite optimisée de façon discriminante:
+le compromis peut-être idéal prédiction/interprétation.
+
+3) L'estimation de paramètres à la volée dans des modèles type PDF
+projection, et plus généralement supercomposites: alternative à
+l'apprentissage génératif, extension de la vraisemblance profile,
+permet notamment une théorie statistique du recalage d'images.
+
+Tout cela tourne autour des idées de "délégation" et de "pivot"
+permettant de généraliser l'aggrégation d'opinions probabilistes et,
+partant, le paradigme bayésien.
+
+Le PDF projection theorem peut être justifié de deux façons:
+- comme application du Maxent pour obtenir un "meilleur" modèle génératif
+- comme un cas d'aggrégation d'opinions "supercomposite"
+
+Le 1er point de vue est plutôt celui de la simulation de données. Le
+2e est beaucoup plus en ligne avec l'inférence. L'élimination de
+paramètres à la one-again est alors une évidence et une nécessité.
+
+Le principe de la mesure de recalage devient plus facile à
+expliquer. Chaque "expert" considère une transformation particulière
+et échantillonne un ensemble de couple de points appariés dans la
+région de recouvrement (à la Viola ou même mieux, conformément à ma
+vieille intuition antiboise). Ces couples étant échangeables, il
+existe une distribution jointe bla bla bla et le raisonnement est
+également valable sous l'hypothèse "nulle" que la transformation est
+totalement off.
+
+L'expert se fait donc sa petite sauce probabiliste et rapporte un
+rapport de vraisemblances dont il a lui-même éliminé les paramètres de
+nuisance, à savoir les paramètres des distributions ponctuelles
+impliquées dans l'affaire. On ne fait même pas l'hypothèse que la même
+distribution jointe est valable pour deux transformations différentes
+(même si l'histoire peut se ramener à ça mais c'est un aspect
+calculatoire).
+
+Pourquoi chaque expert doit-il choisir le même nombre de points? C'est
+"évident" mais on peut relier ça à la notion de "crédibilité" d'expert
+dans l'aggrégation d'opinions. Ici, il y a un problème potentiel du
+fait que les experts ne travaillent pas sur des zones de recouvrement
+de même taille, mais il semble naturel de supposer que les experts
+sont comparables s'ils utilisent le même nombre de couples. 
+
+On parle ici de la crédibilité des rapports de probabilités de x vs
+x0. On suppose qu'elle devrait dépendre le moins possible de x pour
+que l'aggrégation ait du sens. Mais c'est pour l'instant une simple
+intuition.
+
+Une façon de garantir la constance de la "crédibilité" est de réaliser
+une probabilité prédictive qui soit pivotale au sens où log p(x|data)
+a une distribution fixe si data est distribué selon x. On peut alors
+construire des intervalles de confiance par simple seuillage, ce qui
+suggère que la distribution prédictive est "bien construite".
+
+Remarquons qu'une fonction de vraisemblance toute bête n'est pas
+nécessairement pivotale au sens donné plus haut. Mais elle l'est au
+sens où l(x) - max_x l(x) a une distribution (asymptotique) fixe (sous
+certaines conditions)... c'est le théorème de Wilks qui nous le dit.
+Or cela revient au même et implique exactement la même propriété de
+"bonne construction" que plus haut.
+
+L'avantage de la normalisation par le max, c'est qu'on est toujours
+certain d'avoir des intervalles de confiance non vides.
+
+Si t'es pivotal:
+
+p(t|x) = p(t)
+
+Soit Ia = {x, t(y, x) > a}
+
+p(Ia contient x|x) = p(t>a|x) = p(t>a)
+
+
+Si t = l(x) - max_x l(x), on a toujours t <= 0, et quelque soit a < 0,
+Ia n'est pas vide car le max de l(x) vérifie par construction t = 0 donc
+t > a.
+
+Revenons à nos moutons. Est-ce qu'on peut dire que I(T) - max_T I(T)
+est une quantité pivotale? Houlala.
+
+En gros, dire que l'information mutuelle est pivotale c'est supposer
+que la distribution jointe d'intensité est indépendante du
+recouvrement entre les images. C'est forcément faux.
+
+Peut-on faire plus simple?
+
+Rappelons le contexte: on essaie de faire une inférence sur une
+variable x, dont on suppose qu'elle prend des valeurs finies pour
+simplifier. On a un expert dédié à chaque valeur x, et qui nous pond
+un rapport de probabilités px(x)/px(x0). On dit alors que la
+distribution prédictive est tout simplement:
+
+p(x) = K px(x) / px(x0)
+
+Et peu importe au fond si certains rapports de vraisemblance peuvent
+être plus fiables que d'autres: de toute façon, on ne peut pas faire
+mieux dès lors que les "experts" ont livré leurs opinions. Mais on
+peut se débrouiller pour choisir des experts aux niveaux de compétence
+similaires. C'est une question de bon sens.
+
+Dans ce contexte, ça veut dire que chaque expert doit avoir accès peu
+ou prou au même niveau d'information. Ca peut sembler contradictoire
+avec l'idée que les experts peuvent utiliser des informations
+différentes, mais il est possible que les informations soient
+différentes tout en étant de même valeur.
+
+Dans le cas particulier où tous les experts utilisent la même
+information, le problème est réglé. C'est le cas classique.
+
+En recalage, si on a un recouvrement complètement uniforme (images
+quasi déconnectées), il n'y a de toute évidence pas la même
+information que si le recouvrement contient plusieurs structures bien
+différenciées. Que faire?
+
