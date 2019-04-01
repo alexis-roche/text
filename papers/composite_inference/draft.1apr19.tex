@@ -10,6 +10,10 @@
 
 \graphicspath{{.}{pics/}}
 
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{proposition}[theorem]{Proposition}
+
+
 \title{Composite Bayesian inference}
 %\date{}
 \author{Alexis Roche\thanks{\url{alexis.roche@centraliens.net}}}
@@ -17,9 +21,11 @@
 \def\x{{\mathbf{x}}}
 \def\y{{\mathbf{y}}}
 \newcommand{\blambda}{{\boldsymbol{\lambda}}}
-\newcommand{\Blambda}{{\boldsymbol{\Lambda}}}
 \newcommand{\bell}{{\boldsymbol{\ell}}}
 \newcommand{\E}{\mathbb{E}}
+%\newcommand{\matphi}{\boldsymbol{\Phi}} 
+%\def\p{{\bar{\mathbf{p}}}}
+%\def\q{{\bar{\mathbf{q}}}}
 
 
 
@@ -65,9 +71,11 @@ A related limitation of discriminative models is that they are not suitable for 
 
 This note advocates probabilistic opinion pooling \cite{Genest-86} as a natural way to merge discriminative and generative modeling approaches in order to make predictions that are both computationally efficient and interpretable, resulting in a class of hybrid models. The key idea is to combine multiple low-dimensional generative models corresponding to different pieces of information extracted from the input data. Each such model acts as an isolated ``agent'' that uses a single feature to express an opinion in the form of a likelihood function of the target variable. The agent opinions may then be aggregated into a unique predictive probability distribution analogous to a Bayesian posterior. This may be understood as a probabilistic version of boosting, or as a {\em divide and conquer} approximation to the intractable Bayesian posterior. 
 
+%Importantly, predictions made in such a way are interpretable owing to their underlying generative nature.
+
 When choosing the aggregation method as a log-linear pool, the predictive distribution turns out to be proportional to a quantity known in computational statistics as composite likelihood (CL). As discussed in \cite{Varin-11} and the references therein, CL was developed as a surrogate of traditional likelihood for parameter estimation. While maximum CL does not inherit the general property of maximum likelihood to achieve asymptotical minimum variance, it is asymptotically consistent under mild conditions \cite{Xu-11} and may offer an excellent trade-off between computational and statistical efficiency.
 
-With the opinion pooling interpretation in mind, the weights assigned to the different features may be optimized for prediction performance in a typical supervised learning scenario. As we will see, this strategy amounts to training a maximum entropy classifier using the feature-based log-likelihoods as basis functions. The likelihood functions themselves may need to be pre-trained, therefore the composite inference approach typically involves a double training scheme: a generative training stage (to learn the feature-based likelihood parameters) followed by a discriminative training stage (to learn the feature weights in aggregation).
+With the opinion pooling interpretation in mind, the weights assigned to the different features may be optimized for prediction performance in a typical discriminative learning scenario. As we will see, this strategy amounts to training a maximum entropy classifier using the feature-based log-likelihoods as basis functions. The likelihood functions themselves may need to be pre-trained, therefore the composite inference approach typically involves a double training scheme: a generative training stage (to learn the feature-based likelihood parameters) followed by a discriminative training stage (to learn the feature weights in aggregation).
 
 Technical details are given in the remainder. We warn the reader that slightly abusive mathematical notations are used deliberately for the sake of clarity in places where we think that they are unambiguous.
 
@@ -95,6 +103,13 @@ If we see the likelihoods as Bayesian posterior distributions corresponding to {
 p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n f(z_i|x)^{\lambda_i},
 \end{equation} 
 where $\pi(x)$ is a prior distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Note that it is possible to have the weights depend on the data~$\y$, but this would make the method considerably more complex and less interpretable. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. 
+
+%This condition holds whenever all weights are positive ($\lambda\succeq 0$), assuming that the agent opinions are upper bounded. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less likely than an outcome $x_2$, then the consensus probabilities should always satisfy $p_\lambda(x_1|\y)\leq p_\lambda(x_2|\y)$. Note that it is possible to have the weights depend on the data~$y$, but this would make the method considerably more complex and less interpretable. 
+
+
+%Strictly positive weights guarantee the so-called 0/1 forcing property, that is, if an hypothesis~$x$ has zero likelihood according to at least one agent, then its consensus probability vanishes too.
+
+% Not clear yet as to what a negative weight could mean!
 
 
 \section{Composite Bayes rule}
@@ -129,6 +144,8 @@ If training data is available, the generative parameters may be set in a first s
 \subsection{Agnostic weights}
 
 In the absence of knowledge, uniform weights should be chosen under a rule of indifference. CL is then a scaled version of na\"ive Bayes likelihood, the unique weight value being irrelevant to the maximum CL estimator (MCLE). To get meaningful predictive probabilities, it may be tuned empirically so as to best adjust the pseudo posterior variance matrix to the asymptotic MCLE variance matrix \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, as proposed in previous attempts at Bayesian inference from composite likelihood. 
+
+% in attempts to match frequentist and Bayesian notions of uncertainty.
 
 Alternatively, a simple agnostic recommendation we believe to be useful for composite weights is to sum up to one. This is motivated by the opinion pooling perspective and a characterization theorem \cite{Genest-86,Genest-86b}: the only {\em externally Bayesian} pooling operator (for which the consensus probability of an outcome only depends on the agent probabilities of the same outcome) is the log-linear opinion pool with unit sum weights. The external Bayesian  property essentially means that the consensus should not change if an agent opinion is taken into account by the other agents as opposed to being stated independently. The log-linear pool with unit sum weights also happens to be an optimal {\em compromise} in the sense that it minimizes the average inclusive Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. 
 
@@ -167,7 +184,7 @@ Because some positive weight constraints may turn out inactive, learning has a n
   \begin{center}
     \includegraphics[width=.6\textwidth]{disc_weight_plot.pdf}
   \end{center}
-\caption{Distribution of optimal composite weights vs.~individual feature discrimination power in a binary classification task (breast cancer UCI dataset). Discrimination is measured by the maximum KL divergence between class-conditional generative distributions.}
+\caption{Distribution of optimal composite weights vs individual feature discrimination power in a binary classification task (breast cancer UCI dataset). Discrimination is measured by the maximum KL divergence between class-conditional generative distributions.}
 \label{fig:disc_weight_plot}
 \end{figure}
 
@@ -178,9 +195,10 @@ Other training variants that we mention here but do not particularly recommend f
 
 \paragraph{$I$-projection interpretation.}
 
+%D(p\|p_0) = \sum_{x\in{\cal X}}\sum_{\y\in{\cal Y}} p(x,\y) \log \frac{p(x,\y)}{p_0(x,\y)},
 Exponential family properties also imply that learning via likelihood maximization~(\ref{eq:train_likelihood}) is dual to an $I$-projection \cite{Csiszar-84}: 
 \begin{equation}
-\label{eq:i_proj}
+\label{eq:maxent}
 \min_{p\in{\cal P}} D(p\|p_0),
 \qquad \text{with} \quad
 p_0(x,\y) \equiv \pi(x)h(\y),
@@ -200,12 +218,12 @@ An insightful analysis given in \cite{Grunwald-04} shows that the $I$-projection
 So far, we have assumed that each agent is given a single weight in the opinion aggregation~(\ref{eq:log_pool}). Let us now consider a more general pooling operator where agents can be weighted depending on the target variable:
 \begin{equation}
 \label{eq:super_pool}
-p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)},    
+p_\lambda(x|\y) \propto \pi(x) \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)},    
 \end{equation}
-where~$x_0$ is an arbitrary fixed target value, which we call the reference, and $\blambda: {\cal X}\to \mathbb{R}_+^n$ here is a weighting function. As discussed in Appendix~\ref{app:super}, the main reason for introducing the normalization by a reference is to make the pooling externally Bayesian if the weighting function sums up to one uniformly,
+where $x_0$ is some fixed target value, which we call the reference. As discussed in Appendix~\ref{app:super}, the main reason for introducing the normalization by a reference is to make the pooling externally Bayesian if the weighting functions~$w_i(x)$ sum up to one uniformly,
 $$
 \forall x\in{\cal X},\quad
-\sum_{i=1}^n \lambda_i(x) = 1,
+\sum_{i=1}^n w_i(x) = 1,
 $$
 hence providing a sensible default rule to tune the weights. Note that (\ref{eq:super_pool}) amounts to a log-linear pool if the weights are target-independent as the reference is then effectless. Using the same analogy with Bayes rule as in Section~\ref{sec:bayes_rule}, we see that the quantity:
 \begin{equation}
@@ -213,11 +231,11 @@ hence providing a sensible default rule to tune the weights. Note that (\ref{eq:
 L^{sc}_\blambda(x) \equiv 
 \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)}
 \end{equation} 
-plays the role of a standard likelihood at prediction time. We call this form super composite likelihood (SCL) owing to the ``doubly composite'' aspect of combining distinctive feature-target pairs. SCL further generalizes CL since both forms are obviously proportional for target-independent weights, $\lambda_i(x)\equiv \lambda_i$.
+plays the role of a standard likelihood at prediction time. We call this form super composite likelihood (SCL) owing to the ``doubly composite'' aspect of combining distinctive feature-target pairs. SCL further generalizes CL since $L^{sc}_\blambda(x)=L^c_\blambda(x)/L^c_\blambda(x_0)$ for target-independent weights $\lambda_i(x)\equiv \lambda_i$, hence it is in this case proportional to CL and yields the same predictive distribution. 
 
-%$L^{sc}_\blambda(x)=L^c_\blambda(x)/L^c_\blambda(x_0)$ for target-independent weights $\lambda_i(x)\equiv \lambda_i$, hence it is in this case proportional to CL and yields the same predictive distribution. 
+Conversely, when each target assigns a weight one to a single feature and zero to all the others, SCL turns out to be identical to the {\em class-specific} likelihood surrogate derived in \cite{Baggenstoss-03} from a generative model selection argument -- namely, the ``PDF projection theorem'', which in fact boils down to an $I$-projection \cite{Minka-04}. While our derivation stems from a {\em discriminative} model selection approach, it is interesting to see that it includes the class-specific method as a special case, and thus sheds new light on this method.
 
-Conversely, if the weighting function maps each target to a unit vector ({\em i.e.}, for each target, there is a single feature with non-zero weight and this weight is one), then SCL turns out to be identical to the {\em class-specific} likelihood surrogate derived in \cite{Baggenstoss-03} from a generative model selection argument -- namely, the ``PDF projection theorem'', which in fact boils down to an $I$-projection \cite{Minka-04}. While our derivation stems from a {\em discriminative} model selection approach, it is interesting to see that it includes the class-specific method as a special case, and thus sheds new light on this method.
+%Case of a single nonzero agent per feature. Then SCL is equivalent to the class-specific likelihood derived in \cite{Baggenstoss-03} based on a generative model selection argument  Our derivation is much different but interesting to see that we end up with a more general form.  
 
 A compelling advantage of SCL over CL is that it can deal with missing likelihood values, which happen if the feature generative distributions $f(z_i|x)$ are unknown for some target values~$x$. It is possible to assign zero weights $\lambda_i(x)$ to every feature-target pair for which $\ell_i(x)$ is unknown, yet using nonzero weights for other pairs. Likewise, the features for which the reference likelihood $\ell_i(x_0)$ is unknown receive zero weight for all target values, implying that they have no influence on the predictive distribution. 
 
@@ -231,15 +249,12 @@ $$
 \geq \E_h\left[\delta_{xa}\log \frac{f(z_i|x)}{f(z_i|x_0)}\right],
 $$
 where $\delta$ denotes the Kronecker delta.
-
-Note that, while SCL has the potential to achieve higher prediction performance than~CL if trained on a large enough dataset, it may not be asymptotically consistent unlike~CL (see Appendix~\ref{app:frequentist}).
-
-%In summary, SCL is a natural generalization of CL with greater flexibility in weight assignments, hence potentially superior prediction performance if trained on a large enough dataset. It, however, depends on an arbitrary reference class. 
-
-
-%Beside greater flexibility than CL, a disadvantage of SCL it that interpretation becomes relative to an arbitrary reference~$x_0$. In some applications, there may exist a natural reference class to cling to in common practice (for instance, normality in medical diagnosis), but this is not always the case. 
-
-
+%$$
+%\forall x\in{\cal X}, \forall i=1,\ldots,n,
+%\quad
+%p(x) \E_{f(z_i|x)}\left[\log \frac{f(z_i|x)}{f(z_i|x_0)}\right]
+%\geq h(x) \E_{h(z_i|x)}\left[\log \frac{f(z_i|x)}{f(z_i|x_0)}\right]
+%$$
 
 %Another shortcoming is that SCL is not guaranteed to be asymptotically consistent, see Appendix~\ref{app:frequentist}, so it may yield biased MCLE despite 
 
@@ -389,7 +404,7 @@ E\left[
 \log \frac{p(\y|x_\star)}{p(\y|x)}
 \right],
 $$
-where the expectation is taken with respect to the true distribution $p(\y|x_\star)$ at fixed~$x_\star$. This fact follows from two basic properties of KL~divergence: positivity and partition inequality.
+where the expectation is taken with respect to the true distribution $p(\y|x_\star)$. This fact follows from two basic properties of KL~divergence: positivity and partition inequality.
 
 Using a weighted sum of such inequalities, we can bracket the expected variations of the logarithm of any composite likelihood function~(\ref{eq:comp_lik}) with positive weights~$\blambda\succeq 0$:
 \begin{equation}
@@ -400,27 +415,26 @@ E\left[ \log \frac{L_c(x_\star, \blambda)}{L_c(x,\blambda)} \right]
 s_\blambda E\left[ \log \frac{L(x_\star)}{L(x)} \right]
 ,
 \end{equation}
-with $s_\blambda\equiv \|\blambda\|_1 =\sum_i \lambda_i$, and $L(x)\equiv \log p(\y|x)$ is the true likelihood function.
+with $s_\blambda\equiv \|\blambda\|_1 =\sum_i \lambda_i$, and $L(x)$ the true likelihood function, {\em i.e.} $L(x)\equiv \log p(\y|x)$.
 
 This implies two general asymptotic properties of composite likelihood:
 \begin{itemize}
 \item {\em Consistency.} The expected composite log-likelihood is maximized by~$x_\star$.
-\item {\em Conservativeness for unit sum weights.} If the weights sum up to one or less ($s_\blambda\leq 1$), composite likelihood ratios of the true target~$x_\star$ vs.~other target values~$x$ tend to be underestimated.
+\item {\em Conservativeness for unit sum weights.} If the weights sum up to one or less ($s_\blambda\leq 1$), composite likelihood ratios of the true target~$x_\star$ vs.~other target values~$x$ tend to be underestimated, {\em i.e.} are smaller on the average than corresponding true likelihood ratios.
 \end{itemize}
 
-Note that the derivation assumes that the weights~$\blambda$ are independent from the target~$x$, therefore these properties do not necessarily extend to SCL, for which weights are target-dependent.
-
+What about SCL???
 
 \section{Conditional composite likelihood}
 \label{app:conditional}
 
-As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $\nu_i(\y)$ considered as a predictor of the ``dependent'' feature, $z_i(\y)$, yielding the more general form:
+As a straightforward  extension of marginal CL, each feature-based likelihood may be conditioned by an additional ``independent'' feature $z^c_i(\y)$ considered as a predictor of the ``dependent'' feature, $z_i(\y)$, yielding the more general form:
 \begin{equation}
 \label{eq:cond_feat_lik}
-\ell_i(x) = f(z_i|x,\nu_i).
+\ell_i(x) = f(z_i|x,z^c_i).
 \end{equation}
 
-Conditioning may be useful if it is believed that $\nu_i$ alone provides little or no information about~$x$, but is informative when considered jointly with~$z_i$, as in the case of regression covariates, for instance. Equation~(\ref{eq:comp_lik}) then amounts to conditional CL \cite{Varin-11}, a more general form of CL which also includes Besag's historical {\em pseudo-likelihood} \cite{Besag-74} developed for image segmentation.
+Conditioning may be useful if it is believed that $z^c_i$ alone is little or not informative about $x$, but can provide relevant information when considered jointly with $x$, as in the case of regression covariates, for instance. Equation~(\ref{eq:comp_lik}) then amounts to conditional CL \cite{Varin-11}, a more general form of CL also including Besag's historical {\em pseudo-likelihood} \cite{Besag-74} developed for image segmentation.
 
 
 \section{Composite likelihood training}
@@ -445,81 +459,198 @@ $$
 \bar{a}(\blambda) \equiv \frac{1}{N} \sum_k a(\blambda,\y_k).
 $$
 
-Note that $\psi(\blambda)$ is nothing but the dual function associated with the $I$-projection problem~(\ref{eq:i_proj}). The derivatives of~$\psi(\blambda)$ are found to be:
-\begin{eqnarray*}
+Note that $\psi(\blambda)$ is nothing but the dual function associated with the maxent problem~(\ref{eq:maxent}). 
+
+Derivatives...
+$$
 \nabla\psi(\blambda)
- & = & \bar{\bell} - \frac{1}{N} \sum_k \nabla a(\blambda,\y_k), \\
+= \bar{\bell} - \frac{1}{N} \sum_k \nabla a(\blambda,\y_k) 
+$$
+
+$$
 \nabla\nabla^\top\psi(\blambda)
- & = & - \frac{1}{N} \sum_k \nabla \nabla^\top a(\blambda,\y_k),
-\end{eqnarray*}
-with:
+= - \frac{1}{N} \sum_k \nabla \nabla^\top a(\blambda,\y_k)  
 $$
-\nabla a(\blambda,\y) = \E_{\blambda}(\bell),
+
+We have:
+$$
+\nabla a(\blambda,\y) = \E_{\blambda}(\bell|\y),
 \qquad
-\nabla \nabla^\top a(\blambda,\y) = {\rm Var}_{\blambda}(\bell),
+\nabla \nabla^\top a(\blambda,\y) = \text{Var}_{\blambda}(\bell|\y)
 $$
-where $\E_{\blambda}$ and ${\rm Var}_{\blambda}$ respectively denote the expectation and variance with respect to $p_\blambda(x|\y)\propto \pi(x)\exp[\blambda^\top \bell(x,\y)]$ at fixed~$\y$. This shows that $a(\blambda,\y)$ is convex in $\blambda$ since the variance matrix is positive, which, in turn, proves the concavity of~$\psi$.
+proving that $a(\blambda,\y)$ is convex in $\blambda$ for any $\y$, and in turn proves the concavity of $\psi$.
+
+To see this, let:
+$$
+z(\blambda,\y) 
+\equiv e^{a(\lambda,\y)}  
+= \sum_{x\in{\cal X}} \pi(x) e^{\blambda^\top \bell(x,\y)}
+$$
+
+We have:
+$$
+\nabla a = \frac{\nabla z}{z}
+$$
+
+$$
+\nabla\nabla^\top a 
+= \left(
+\frac{\nabla \nabla^\top z}{z} 
+- \frac{\nabla z \nabla z^\top}{z^2}
+\right)
+$$
+
+$$
+\nabla z 
+=
+\sum_{x\in{\cal X}} \pi(x) \bell(x,\y)  e^{\blambda^\top \bell(x,\y)}
+$$
+
+$$
+\nabla \nabla^\top z 
+=
+\sum_{x\in{\cal X}} \pi(x) \bell(x,\y) \bell(x,\y)^\top e^{\blambda^\top \bell(x,\y)}
+$$
 
 
-
-\section{Heterogeneous log-linear pooling}
+\section{Super log-linear pool}
 \label{app:super}
 
-Consider a sequence of probability distributions $p_i(x)$, $i=1,\ldots,n$, representing multiple opinions on a variable $x\in{\cal X}$. The general goal of opinion aggregation is to define an operator $F(p_1,\ldots,p_n)$ that takes opinions as inputs and outputs a single distribution $p(x)$ representing a consensus.
+Opinions: $p_i(x)$. 
 
-Log-linear pooling \cite{Genest-86} is one particular such operator\footnote{It is called {\em generalized} log-linear pooling in \cite{Genest-86} as the authors restrict log-linear pooling to the form in which $\pi(x)$ is constant.}:
+Log-linear pool:
 $$
-p(x)\propto \pi(x) \prod_{i=1}^n p_i(x)^{\lambda_i},
-$$
-where $\pi(x)$ is an arbitrary distribution and $\lambda_i\in\mathbb{R}$ are arbitrary weights. It is easily seen that, if the weights sum up to one, this operator is externally Bayesian in the sense that, for any nonvanishing positive valued function $q:{\cal X}\to \mathbb{R}^\star_+$, we have the commutative property:
-$$
-F[N(q p_1), \ldots, N(q p_n)]
-=
-N[q F(p_1,\ldots, p_n)],
-$$
-where~$N$ denotes the normalization endomorphism from $\mathbb{R}_+^{\cal X}$:
-$$
-N(f)(x) = \frac{f(x)}{\sum_{x'\in{\cal X}} f(x')}
-.
+p(x)\propto \prod_i p_i(x)^{\lambda_i}
 $$
 
-Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for which $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$, is of the above form with unit sum weights and is thus a log-linear opinion pool. 
+What about having $\lambda_i(x)$ depend on the target? 
 
-How about choosing the weights depending on the target variable? As a straightforward extension of the log-linear pool, we may consider the pooling operator:
-$$
-p(x)\propto \prod_i p_i(x)^{\lambda_i(x)},
-$$
-where $\lambda_i : {\cal X}\to\mathbb{R}$ is some weighting function. Unfortunately, this operator is generally not externally Bayesian because $F[N(q p_1), \ldots, N(q p_n)](x)
-\propto \tilde{q}(x) F(p_1,\ldots, p_n)(x)$ with:
-$$
-\tilde{q}(x) = q(x)^{\sum_i \lambda_i(x)} \prod_i z_i^{-\lambda_i(x)},
-\qquad 
-z_i = \sum_{x\in{\cal X}} q(x) p_i(x),
-$$
-and $\tilde{q}(x)$ cannot be made proportional to $q(x)$ except with constant weights, because the normalizing factors~$z_i$ may differ from one agent to the other. 
+Can we do: $p(x)\propto \prod_i p_i(x)^{\lambda_i(x)}$? Is it externally Bayesian? 
 
-Consider, however, the following modification, which we call {\em heterogeneous} log-linear pool:
-\begin{equation}
-\label{eq:hetero_log_pool}
-p(x) \propto \prod_i \left[\frac{p_i(x)}{p_i(x_0)}\right]^{\lambda_i(x)},    
-\end{equation}
-where $x_0$ is some arbitrary reference value. This does the trick because, for any positive function $q(x)$, the ratio $q(x)p_i(x)/q(x_0)p_i(x_0)$ is left unchanged by normalization of $q p_i$ given that the normalizing factors are the same at both the numerator and the numerator, so they cancel out. Therefore, 
+Let the opinions be multiplied by some function $f(x)$. The new opinions read: $q_i(x)=f(x)p_i(x)/z_i$ with $z_i=\int f p_i$. So the pool gives:
 $$
-F[N(q p_1), \ldots, N(q p_n)](x)
-\propto
-\left[\frac{q(x)}{q(x_0)}\right]^{\sum_i \lambda_i(x)}
-F(p_1, \ldots, p_n)(x),
+q(x) \propto p(x) f(x)^{\sum_i \lambda_i(x)} \prod_i z_i^{-\lambda_i(x)}
 $$
-showing that~(\ref{eq:hetero_log_pool}) is externally Bayesian whenever the weighting function verifies:
+
+So, it's not EB because $z_i$ may differ from one expert to the other.
+
+It feels more reasonable to do:
 $$
-\forall x \in {\cal X},
+p(x) \propto \prod_i \left[\frac{p_i(x)}{p_i(x_0)}\right]^{\lambda_i(x)}
+$$
+
+Is it EB? We have:
+$$
+\frac{q_i(x)}{q_i(x_0)} 
+= \frac{f(x)p_i(x)}{f(x_0)p_i(x_0)}
+$$
+because the $z_i$'s cancel out. Therefore,
+$$
+q(x) \propto p(x) \left[\frac{f(x)}{f(x_0)}\right]^{\sum_i \lambda_i(x)}
+$$
+
+So it's EB if the unit sum weight constraints are satisfied.
+
+
+\section{Notes Genest}
+
+External Bayesian: pooling and updating commute.
+A pooling operator is compliant with the `likelihood principle' if the pool at $x$ depends on the opinions only through the probabilities $p_i(x)$.
+
+Characterizaton of externally Bayesian pooling operators (EBPOs).
+
+Any EBPO LP-compliant that does not depend on $x$ is a log-pool with unit sum weights:
+$$
+p(x) \propto \prod_i p_i(x)^{w_i}
+$$
+
+Any EBPO LP-compliant is a generalized log-pool with unit sum weights:
+$$
+p(x) \propto \pi(x) \prod_i p_i(x)^{w_i}
+$$
+
+Weights can be negative if domain of $x$ is finite. 
+
+To characterize more general EBPOs (not LP-compliant), they introduce an equivalence class. Two sets of opinions are equivalent if any ratio of two experts is the same up to a constant factor. It means that $q\sim p$ if there exists $f(x)$ such that  
+$q_i(x) \propto f(x) p_i(x)$, $\forall i$.
+
+Define an arbitrary member $p_{a1},p_{a2},\ldots$ in each equivalence class.
+
+Any EBPO is of the form:
+$$
+T(p_1,p_2,\ldots) \propto \pi_a(x) v_a(x) \frac{p_1(x)}{p_{a1}(x)},
 \qquad
-\sum_i \lambda_i(x) = 1.
+v_a \geq \max (p_{a1},p_{a2},\ldots)
 $$
 
-Let us stress that this result does not contradict the above mentionned characterization theorem \cite{Genest-86b}, which restricts itself to operators for which the consensus evaluated at~$x$, $F(p)(x)$, is a function of $x,p_1(x),\ldots,p_n(x)$ while, in the heterogeneous log-linear pool, $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$ but also $p_1(x_0),\ldots,p_n(x_0)$. Note that \cite{Genest-86b} also provides the general characterization of externally Bayesian operators, of which the heterogeneous log-linear pool is just a special case slightly more general than the log-linear pool. 
 
-%It may seem at first sight that this result contradicts the characterization theorem \cite{Genest-86b} since~(\ref{eq:hetero_log_pool}) is clearly more general than log-linear pooling. There is no contradiction because the said theorem restricts itself to operators for which the consensus evaluated at~$x$, $F(p)(x)$, is a function of $x,p_1(x),\ldots,p_n(x)$ while, in the heterogeneous log-linear pool, $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$ but also $p_1(x_0),\ldots,p_n(x_0)$.
+
+
+
+\section{Log-likelihood ratio}
+
+$$
+\log r = \log \frac{N(x;\mu_1,\sigma_1)}{N(x;\mu_0,\sigma_0)}
+$$
+
+$$
+\log N(x;\mu,\sigma) = -\frac{1}{2}\left[
+\log(2\pi\sigma^2) + \frac{(x-\mu)^2}{\sigma^2}
+\right]
+$$
+
+$$
+\log r = -\frac{1}{2}
+\left[
+\log \frac{\sigma_1^2}{\sigma_0^2}
++ \frac{(x-\mu_1)^2}{\sigma_1^2} - \frac{(x-\mu_0)^2}{\sigma_0^2}
+\right]
+$$
+
+It follows:
+\begin{eqnarray*}
+\log r 
+ & = & 
+-\frac{1}{2}\left[
+\log \frac{\sigma_1^2}{\sigma_0^2}
++ \frac{\sigma_0^2(x-\mu_1)^2 - \sigma_1^2(x-\mu_0)^2}{\sigma_0^2 \sigma_1^2}
+\right] \\
+ & = & 
+\frac{1}{2}\left[
+\log \rho^2
++ \frac{(\rho^2-1)x^2 - 2(\rho^2\mu_0-\mu_1)x+ (\rho^2\mu_0 ^2-\mu_1^2)}{\sigma_0^2}
+\right]
+\end{eqnarray*}
+with $\rho=\sigma_1/\sigma_0$. In the case of same variance ($\rho=1$), this simplies to an affine function of $x$ with offset given by the center of $(\mu_0,\mu_1)$:
+$$
+\log r = \frac{\mu_1-\mu_0}{\sigma^2} \left(
+x - \frac{\mu_0 + \mu_1}{2}
+\right) 
+$$
+
+In any case,
+$$
+E[\log r | H_1] = 
+\frac{1}{2}
+\left[
+- \log \frac{\sigma_1^2}{\sigma_0^2}
++ \frac{\sigma_1^2 + (\mu_1-\mu_0)^2}{\sigma_0^2}
+- 1
+\right]
+$$
+
+Let $\delta = (\mu_1-\mu_0)/\sigma_0$. We have:
+$$
+E[\log r | H_1] = 
+\frac{1}{2}
+\left[
+\delta^2
+- \log \rho^2
++ \rho^2  - 1
+\right]
+$$
+
+
 
 
 \bibliographystyle{abbrv}

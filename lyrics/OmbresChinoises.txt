@@ -13,7 +13,7 @@ Qui pourrait voir la couleur de nos âmes?
 Qui entend au point de l'aurore
 Héler Peter Pan, Dark Vador?
 Tombent les bombes, tremble la Terre
-Se changent les rêves en poussière [Entre les rêves et la poussière]
+Se changent les rêves en poussière
 Y'a tant de choses à dire de ça
 Pourtant ça nous laisse sans voix
 
@@ -22,9 +22,14 @@ Malgré Eluard, malgré Kepler
 Le dos tourné à la lumière
 On voit seulement des ombres chinoises...
 
-Chanter [Maudire] l'amour et ses mystères
+Chanter l'amour et ses mystères
 Arroser la rose en hiver
-Est-ce qu'on a encore peur du vide
-Du noir [Et puis] des pluies d'astéroïdes?
+Libéré de la peur du vide
+Paré aux pluies d'astéroïdes
 Y'a peu de choses à dire de ça
 La vie qui coule entre nos doigts
+
+-----------
+[Entre les rêves et la poussière]
+[Maudire l'amour et ses mystères]
+[Et puis des pluies d'astéroïdes?]
