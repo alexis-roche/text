@@ -104,8 +104,6 @@ p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n f(z_i|x)^{\lambda_i},
 \end{equation} 
 where $\pi(x)$ is a reference distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Note that the weights could depend on the data~$\y$, but this would make the method considerably more complex and less interpretable. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less probable than an outcome $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, we should have $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. 
 
-{\color{red} Justify weights independent from data using a reasonable principle? Also, stronger rational for log-linear pool?}
-
 
 \section{Composite Bayes rule}
 \label{sec:bayes_rule}
@@ -152,7 +150,7 @@ Unit sum weights, however, implicitly assume maximum redundancy between features
 \subsection{Learning the weights}
 \label{sec:learning}
 
-Assuming a training dataset ${\cal D}=\{(x_k,\y_k), k=1,\ldots,N\}$ (possibly the same as for generative pre-training), the most direct way to learn the composite weights is to maximize their likelihood under the composite predictive distribution (or, equivalently, minimize their ``cross-entropy''):
+Assuming a training dataset ${\cal D}=\{(x_k,\y_k), k=1,\ldots,N\}$, possibly the same as for generative pre-training, the most direct way to learn the composite weights is to maximize their likelihood under the composite predictive distribution (or, equivalently, minimize their ``cross-entropy''):
 \begin{equation}
 \label{eq:train_likelihood}
 \max_{\blambda\succeq 0} U(\blambda),
@@ -308,27 +306,80 @@ where $\delta$ denotes the Kronecker delta.
 \section{Discussion}
 \label{sec:discussion}
 
-The composite Bayesian framework presented here unifies several seemingly unrelated concepts from computational statistics and machine learning: composite likelihood \cite{Varin-11}, na\"ive Bayes, class-specific method \cite{Baggenstoss-03}. It ultimately provides a rich class of trainable predictive models that work on pre-determined data features, and is therefore suitable for shallow learning tasks (including transfer learning), where it may compete with popular discriminative models such as logistic regression, support vector machines or random forests. 
+The composite Bayesian framework presented here encompasses and unifies several seemingly unrelated methods available in computational statistics and machine learning: composite likelihood \cite{Varin-11}, na\"ive Bayes, and the class-specific method \cite{Baggenstoss-03}. It provides a rich class of trainable predictive models that work on pre-determined data features, and is therefore suitable for shallow learning tasks (including transfer learning), where it competes with popular methods such as logistic regression, support vector machines or random forests.
 
-Unlike previous attempts at Bayesian inference from incomplete statistical models relying on generative model selection \cite{Yuan-99b,Wang-14} or asymptotic theory \cite{Pauli-11,Ribatet-12}, our construction is based on a discriminative model selection approach, and is thus explicitly taylored to prediction. The resulting models are discriminative in essence but, contrary to conventional discriminative models, they encapsulate feature generation models. 
-
-This key property enables to test, at prediction time, how consistent the data at hand is with each feature distribution, which in turn enables to validate the overall model prediction. Moreover, since feature log-likelihoods are combined additively, it is easy to determine which features contribute most to a particular comparison of target values, and summarize the rational for a prediction by highlighting a few decisive features. 
+By construction, composite Bayesian models are discriminative but, contrary to the above mentionned methods, they are based on feature generation models. This makes it possible to test how consistent the data at hand is with each feature-induced ``opinion'', hence validating the overall model prediction. Moreover, since opinions are aggregated in an additive way, it is easy to determine which features contribute most to a particular comparison of target values, and thus to explain the rational for the prediction by highlighting a few decisive features. 
 
 [EXAMPLE]. 
 
-We believe that there are many applications of statistical inference in which interpretation is the real goal while prediction performance is only an intermediate requisite. A prediction method needs to prove reliable to be relevant; but, once proven reliable, it may need to be interpreted. Composite Bayesian inference may come into play when the {\em why} question is more important than the {\em what} question.
+We believe that there are many applications of statistical inference in which interpretation is the real goal and prediction performance is only an intermediate requisite. A prediction method is only relevant if it proves reliable; but, once proven reliable, it may need to justifiy its predictions. The {\em why} question may be more important than the {\em what} question in life-impacting applications of AI. 
 
-An open research issue is whether composite Bayesian models are suitable for unsupervised learning like full generative models such as, for instance, restricted Boltzman machines (RBM) \cite{Hinton-06,Fischer-14}
+% (we want to listen to reliable experts, but experts have to be able to argue their case). 
 
-The generative training phase of composite Bayesian models could be compared to contrastive pre-training of restricted Boltzman machines (RBM) \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features, however in unsupervised learning context. 
+Previous Bayesian-like inference attempts at CL. \cite{Wang-14}: generative model selection approach to CL, \cite{Pauli-11,Ribatet-12} calibrate pseudo-posterior using asymptotic theory. Our approach is explicitly taylored to prediction. We don't tortille du cul.
 
-%One challenge  is to adapt the training of feature-based generative models to work on unlabeled datasets. 
+Gaussian log-likelihood:
+$$
+\log p(x)
+= - \frac{1}{2} \log (2\pi\sigma^2) - \frac{(x-m)^2}{2\sigma^2}
+= - \frac{1}{2} [\log (2\pi\sigma^2) + \chi_1^2]
+$$
 
-%The first training phase is easier if supervised but could be unsupervised too (using mixture models). How do we then deal with label switching issues? Can we safely assume conditional feature independence {\em in the generative training phase}? I believe so provided that the marginal distribution parameters are disjoint. It's obvious in the supervised learning scenario.
+LL can be low for two reasons: either the data is implausible under the model (large chi-square), or the model is intrinsically random (high variance).
 
-%If unsupervised, the first learning phase could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features. BCI is comparable with an RBM with a single output unit (which is just a generative model assuming conditionial feature independence). The key difference is that the RBM is a full generative model while BCI only deals with marginal models, hence relying on weaker assumptions. This won't change anything in the pre-training phase but RBMs have to deal with more parameters in the generative learning phase. In fully supervised context, RBM pre-training is pointless since all parameters learned in the first phase will be overwritten. In BCI, pre-training is crucial even in supervised context because the parameters learned in the discriminative phase (the feature weighs) describe a sub-manifold of the predictive distribution family.
+It could be that a model is more likely than another just because it has smaller variance despite larger chi-square. 
 
-%Alternative to logistic regression in deep learning? Would require a game-theoretic learning approach... future work. But why should we do that? C'est un terrain Bernard min\'e...
+When we interpret composite likelihood, the following questions need to be answered sequentially: 1) what are the main features driving the prediction? 2) for these features, is the data consistent with the prediction?
+
+1) is easy from the additive nature of CL.
+2) requires evaluating chi-square stat for each feature (better said Mahalanobis distance)
+
+
+
+
+\begin{enumerate}
+\item Scope.
+
+How to build predictive model from a set of features.
+
+We assume known features, so this is good for shallow learning, including transfer learning. Still need representation learning methods. Needs features. Not a representation learning method, but could be coupled why not.
+
+\item Contribution. 
+ 
+L'id\'ee forte c'est la modelisation semi-generative. Ni purement generatif, ni purement discriminant. On peut ainsi creer des systemes capables de justifier leurs inferences (introspection?). Un modele purement discriminant ne le permet pas. Un modele purement generatif le permet mais s'avere souvent trop couteux. On n'a pas besoin de simuler des donnees completes...
+
+{\color{red} Why prediction performance is still important? Because it validates (or not) interpretation. Interpretation is the goal but prediction performance is a crucial intermediate step.}
+
+\item Cette approche est naturellement mise en oeuvre par aggregation d'opinions, ce qui nous mene tout droit a CL et a des generalisations (SCL). 
+
+SCL has the potential to achieve higher prediction performance than~CL if trained on a large enough dataset.
+
+\item {\color{red}CBI is just a way to reweight Naive Bayes. What's the big deal? Can we really expect massively superior performance? Are we just talking about realistic credibility sets?}
+
+Well, it's a bit unfair... CBI is a way of boosting naive Bayes prediction performance almost at the level of the best discriminative methods, while keeping interpretation alive. We have even more flexibility to do this with SCL. And SCL can also work with incomplete likelihoods.
+
+\item Previous work. 
+
+Moins ambitieux qu'une approche selection de modele generative \cite{Wang-14,Baggenstoss-03,Yuan-99b}. En quoi est-ce different du produit d'experts \cite{Hinton-02}? Plus simple, direct et efficace que les approches bayesiano-asymptotiques a la con.
+
+\item Interpretation de CL: facile du fait que la difference de log-probabilites entre deux cibles est la somme de contributions specifiques aux attributs. On peut donc non seulement determiner quels attributs contribuent le plus a une difference mais aussi expliquer chaque contribution en comparant la valeur de l'attribut aux distributions respectives. Pour SCL, c'est un peu plus complique car il faut faire intervenir une troisieme distribution, celle de la reference, dans l'equation. GIVE EXAMPLE.
+
+\item En pratique, double apprentissage. 
+
+{\color{red} Can we use the same dataset to learn both the feature generative distributions and the composite weights? In principle, nothing speaks against this.} 
+
+{\color{red}Two-step training: generative phase then discriminative phase. Why is it cool?}
+
+\item Unsupervised learning
+
+The first training phase is easier if supervised but could be unsupervised too (using mixture models). How do we then deal with label switching issues? Can we safely assume conditional feature independence {\em in the generative training phase}? I believe so provided that the marginal distribution parameters are disjoint. It's obvious in the supervised learning scenario.
+
+If unsupervised, the first learning phase could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features. BCI is comparable with an RBM with a single output unit (which is just a generative model assuming conditionial feature independence). The key difference is that the RBM is a full generative model while BCI only deals with marginal models, hence relying on weaker assumptions. This won't change anything in the pre-training phase but RBMs have to deal with more parameters in the generative learning phase. In fully supervised context, RBM pre-training is pointless since all parameters learned in the first phase will be overwritten. In BCI, pre-training is crucial even in supervised context because the parameters learned in the discriminative phase (the feature weighs) describe a sub-manifold of the predictive distribution family.
+
+\item {\color{red} Alternative to logistic regression in deep learning? Would require a game-theoretic learning approach... future work.} But why should we do that? C'est un terrain Bernard min\'e...
+
+\end{enumerate}
+
 
 
 %Beside greater flexibility than CL, a disadvantage of SCL it that interpretation becomes relative to an arbitrary reference~$x_0$. In some applications, there may exist a natural reference class to cling to in common practice (for instance, normality in medical diagnosis), but this is not always the case. 
