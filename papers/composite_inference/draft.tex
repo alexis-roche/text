@@ -28,7 +28,7 @@
 \maketitle
 
 \begin{abstract}
-We revisit and generalize the concept of composite likelihood as a method to make a probabilistic inference by aggregation of multiple Bayesian agents. The resulting class of predictive models, which we call ``composite Bayesian'', is a middle way between purely generative and purely discriminative models. This perspective gives insight to choose the weights associated with composite likelihood, either {\em a priori} or via learning; in the latter case, they may be tuned so as to minimize training cross-entropy, yielding an easy-to-solve convex problem. We argue that composite Bayesian inference trades off between interpretability and prediction performance, both of which are crucial to many artificial intelligence tasks.
+We revisit and generalize the concept of composite likelihood as a method to make a probabilistic inference by aggregation of multiple Bayesian agents. The resulting class of predictive models, which we call composite Bayesian models, is a middle way between purely generative and purely discriminative models. This perspective gives insight to choose the weights associated with composite likelihood, either {\em a priori} or via learning; in the latter case, they may be tuned so as to minimize training cross-entropy, yielding an easy-to-solve convex problem. We argue that composite Bayesian inference trades off between interpretability and prediction performance, both of which are crucial to many artificial intelligence tasks.
 \end{abstract}
 
 
@@ -37,11 +37,11 @@ We revisit and generalize the concept of composite likelihood as a method to mak
 
 Textbook statistical inference (frequentist or Bayesian) rests upon the existence of a probabilistic data-generating model that is both empirically valid and computationally tractable. Because this double requirement may be very challenging for multidimensional data, other inference models have been developed in applied science: deliberately misspecified generative models, as in quasi-likelihood \cite{White-82,Walker-13} or na\"ive Bayes \cite{Ng-01} methods; data compression models as in minimum description length \cite{Grunwald-07}; and discriminative models\footnote{A {\em discriminative} model is a parametric family that describes the conditional distribution of the target variable given the data, while a {\em generative} model describes the joint distribution of the target and the data.}, which currently dominate the field of artificial intelligence (AI) and typically require supervised learning on large datasets -- these include many classical (shallow) learning \cite{Ho-95,BergerA-96,Vapnik-00,Rasmussen-06} and deep learning \cite{Lecun-15,Goodfellow-16} techniques (with the exception of deep belief networks \cite{Hinton-06}).
 
-In a determined universe of possibilities, discriminative models can map data to predictions as well as intelligent beings or even better, however they lack introspection in the sense that they cannot {\em test} their predictions. Consider as a straightforward example deciding whether an object is a sauce pan or a frying pan based on depth. A two-class discriminative model can learn a threshold that correctly classifies most pans in practice, but will confidently classify a blender as a sauce pan, while linear discriminant analysis\footnote{Despite the name, linear discriminant analysis is based on a generative model.}, for instance, could hint that a blender is a poor match to both pan categories. Inability to ``confirm'' or ``justify'' their predictions makes discriminative models difficult to interpret.
+In a closed universe of possibilities, discriminative models can map data to predictions as well as intelligent beings or even better, however they lack introspection in the sense that they cannot {\em test} their predictions. Consider as a straightforward example deciding whether an object is a sauce pan or a frying pan based on its depth. A two-class discriminative model can learn a threshold that correctly classifies most pans in practice, but will confidently classify a blender as a sauce pan, while linear discriminant analysis\footnote{Despite the name, linear discriminant analysis is based on a generative model.}, for instance, could hint that a blender is a poor match to both pan categories. Inability to ``confirm'' or ``justify'' predictions makes discriminative models difficult to interpret.
 
 %Discriminative models, however, lack the notion of {\em likelihood}: they cannot assess whether the data is consistent with their own prediction, however accurate, and in this sense do not have the ability to ``justify'' themselves. Consider as a straightforward example the problem of deciding whether an object is a sauce pan or a frying pan based on depth. A discriminative model can learn a threshold that correctly classifies most pans in practice, but is unable to see that, say, a blender does not match either category. The impossibility of such confirmatory analysis strongly limits interpretation if outlier inputs are to be expected.
 
-There is growing awareness that AI should be interpretable in life-impacting applications \cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision-making processes, if only because decisions need to be explained and justified to other humans, while determining the set of possible outcomes may also be part of the process. For instance, in medical diagnosis, automated disease predictions need to be corroborated by individualized findings to be taken into account. In other words, there is little clinical value in ``black boxes'' and certainly more in automated methods that can justify their outputs just like human experts. One such method that has long been used by clinicians is the familiar reference range analysis, which stems from simple generative models.
+There is growing awareness that AI should be interpretable in life-impacting applications \cite{Molnar-18}, where it is (and perhaps should remain) confined to a supportive role in human-driven decision-making processes, if only because decisions need to be explained and justified to other humans, while determining the set of possible outcomes may also be part of the process. For instance, in medical diagnosis, automated disease predictions need to be corroborated by individualized findings to be taken into account. In other words, there is little clinical value in ``black boxes'', but certainly more in automated methods that can justify their outputs just like human experts. One such method that has long been used by clinicians is the familiar reference range analysis, which stems from simple generative models.
 
 %Imagine a doctor telling a patient: ``Sorry, sir, you have Alzheimer's disease because this fancy AI software said so''. Unless the said software is 100\% reliable, which is practically impossible, this would obviously be unacceptable. Acceptable would be to corroborate the diagnosis with some key quantitative empirical observations: low memory test scores, hippocampal atrophy, etc. In other words, inference has to come with some insight. An AI system is but one expert relying on hypotheses which may be invalid, as any expert, and is therefore prone to error. A typical error source is to train a classifier on a subset of classes from the real world. We cannot avoid inference errors but we can safeguard against them by being able to interrogate the system: why do you think what you think? To achieve that, the system should be capable of {\em introspection.
 
@@ -71,7 +71,7 @@ This note advocates probabilistic opinion pooling \cite{Genest-86} as a natural 
 
 When choosing the aggregation method as a log-linear pool, the predictive distribution turns out to be proportional to a quantity known in computational statistics as composite likelihood (CL), see \cite{Varin-11} and the references therein. CL was developed as a surrogate of traditional likelihood for parameter estimation. While maximum CL does not inherit the general property of maximum likelihood to achieve asymptotical minimum variance, it is asymptotically consistent under mild conditions \cite{Xu-11} (see Appendix~\ref{app:frequentist} for a basic weak consistency proof), and may offer an excellent trade-off between computational and statistical efficiency in practice.
 
-With the opinion pooling interpretation in mind, the weights assigned to the different features in~CL may be optimized for prediction performance in a typical supervised learning scenario. As we will see, this strategy amounts to training a maximum entropy classifier using the feature-based log-likelihoods as basis functions. The likelihood functions themselves may need to be pre-trained, therefore the composite inference approach typically involves a double training scheme: a generative training stage (to learn the feature-based likelihood parameters) followed by a discriminative training stage (to learn the feature weights in aggregation).
+Based on the opinion pooling interpretation, the weights assigned to the different features in~CL may be optimized for prediction performance in a typical supervised learning scenario. As we will see, this strategy amounts to training a maximum entropy classifier using the feature-based log-likelihoods as basis functions. The likelihood functions themselves may need to be pre-trained, therefore the composite Bayesian approach typically involves a two-stage training scheme: a generative training (to learn the feature-based likelihood parameters) followed by a discriminative training (to learn the feature weights in aggregation).
 
 The opinion pooling framework also suggests a generalization of CL, which we call {\em super composite likelihood}, in which the features may be weighted depending on the target values, leading to a more flexible predictive model that can be trained similarly to CL.
 
@@ -97,20 +97,18 @@ $$
 
 Substituting $L(x)$ with $\ell(x)$ boils down to restricting the feature space, thereby  ``delegating'' statistical inference to an ``agent'' provided with partial information. While it is valid for such an agent observing~$z$ only to consider $\ell(x)$ as the likelihood function of the problem, the drawback is that $\ell(x)$ might yield too vague a prediction of~$X$ due to the information loss incurred by data reduction. To make the trick statistically more efficient, we may extract several features, $z_i(\y)$ for $i=1,2,\ldots,n$, and try to combine the likelihood functions $\ell_i(x) = f(z_i|x)$ that they elicit.
 
-If we see the likelihoods as Bayesian posterior distributions corresponding to {\em uniform} priors, this is a problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. One that is appealing as it tends to produce single peaked distributions is the log-linear opinion pool\footnote{When $\pi(x)$ is not uniform, it is also called {\em generalized} log-linear pool, however this terminology could be confusing here since we will present another generalization.}:
+If we see the likelihoods as Bayesian posterior distributions corresponding to {\em uniform} priors, this is a problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. A common choice, owing to its simplicity and tendency to produce single peaked distributions, is log-linear pooling\footnote{When $\pi(x)$ is not uniform, it is also called {\em generalized} log-linear pooling, however this terminology could be confusing here since we will present another generalization.}:
 \begin{equation}
 \label{eq:log_pool}
 p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n f(z_i|x)^{\lambda_i},
 \end{equation} 
-where $\pi(x)$ is a reference distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Note that the weights could depend on the data~$\y$, but this would make the method considerably more complex and less interpretable. Negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less probable than an outcome $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, we should have $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. 
-
-{\color{red} Justify weights independent from data using a reasonable principle? Also, stronger rational for log-linear pool?}
+where $\pi(x)$ is a reference distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. We shall asume for feasibility that the weights are intrinsic to the agents and are therefore independent from the data~$\y$. Also, negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less probable than an outcome $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, we should have $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. 
 
 
 \section{Composite Bayes rule}
 \label{sec:bayes_rule}
 
-The log-linear pool~(\ref{eq:log_pool}) bears a striking similarity to Bayes rule as it yields the form: 
+Log-linear pooling~(\ref{eq:log_pool}) bears a striking similarity to Bayes rule as it yields the form: 
 $$
 p_\blambda(x|\y)\propto \pi(x) L^c_\blambda(x),
 $$
@@ -121,7 +119,7 @@ L^c_\blambda(x) \equiv \prod_{i=1}^n \ell_i (x)^{\lambda_i}
 \end{equation} 
 plays that of a likelihood function, and happens to be known in computational statistics as a {\em marginal composite likelihood} \cite{Varin-11}. The slightly more general {\em conditional composite likelihood} form can be derived in the same way as above by conditioning all probabilities on confounding variables, see Appendix~\ref{app:conditional}. 
 
-The computational advantage of CL over genuine likelihood stems from the fact that it is more efficient to evaluate the marginal distributions of each feature than the joint distribution of all features. CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, often referred to as {\em na\"ive Bayes} method in the machine learning literature, which corresponds to the special case of unitary weights, $\blambda\equiv 1$. Since log-linear opinion pooling does not assume feature independence, it yields both an alternative interpretation and a generalization of na\"ive Bayes, whereby unitary feature weights may be used by default but do not guarantee optimal prediction performance.
+The clear computational advantage of CL over genuine likelihood is that it is more efficient to evaluate the marginal distributions of each feature than the joint distribution of all features. CL shares a convenient factorized form with the likelihood derived under the assumption of mutual feature independence, often referred to as {\em na\"ive Bayes} method in the machine learning literature, which corresponds to the special case of unitary weights, $\blambda\equiv 1$. Since log-linear opinion pooling does not assume feature independence, it yields both an alternative interpretation and a generalization of na\"ive Bayes, whereby unitary feature weights may be used by default but do not guarantee optimal prediction performance.
 
 
 \section{Composite likelihood calibration}
@@ -140,11 +138,11 @@ If training data is available, the generative parameters may be set in a first s
 
 In the absence of knowledge, uniform weights may be chosen under a rule of indifference. CL is then a scaled version of na\"ive Bayes likelihood, the unique weight value being irrelevant to the maximum CL estimator (MCLE). To get meaningful predictive probabilities, it may be tuned empirically so as to best adjust the pseudo posterior variance matrix to the asymptotic MCLE variance matrix \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, as proposed in previous attempts at Bayesian inference from composite likelihood. 
 
-Alternatively, a simple agnostic recommendation we believe to be useful for composite weights is to sum up to one. This is motivated by a characterization theorem for opinion pooling \cite{Genest-86,Genest-86b}: the only {\em externally Bayesian} pooling operator (for which the consensus probability of an outcome only depends on the agent probabilities of the same outcome) is the log-linear opinion pool with unit sum weights. Externally Bayesian essentially means that the consensus should not change if an agent opinion is taken into account by the other agents as opposed to being stated independently. The log-linear pool with unit sum weights also turns out to be an optimal {\em compromise} in the sense that it minimizes the average inclusive Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. 
+Alternatively, a simple agnostic recommendation we believe to be useful for composite weights is to sum up to one. This is motivated by a characterization theorem for opinion pooling \cite{Genest-86,Genest-86b}: the only {\em externally Bayesian} pooling operator for which the consensus probability of an outcome only depends on the agent probabilities of the same outcome, is the log-linear opinion pool with unit sum weights. Externally Bayesian essentially means that the consensus should not change if an agent opinion is taken into account by the other agents as opposed to being stated independently. Log-linear pooling with unit sum weights also turns out to be an optimal {\em compromise} in the sense that it minimizes the average inclusive Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. 
 
 %While other divergence measures lead to other optimal pooling operators (for instance, the exclusive KL divergence leads to the linear pool), they all enforce unit sum weights, as is natural in the search for a best compromise. 
 
-Unit sum weights, however, implicitly assume maximum redundancy between features, hence tend to produce conservative predictive probabilities (see Appendix~\ref{app:frequentist}). This means low prediction confidence (large credibility sets) when features are weakly correlated, as is desirable in general. Conversely, unitary weights ($\blambda\equiv 1$) as in Na\"ive Bayes assume independent features and may thus yield over-confident predictions. An ideal method to weight features is one that can capture feature redundancy and balance it with feature relevance \cite{Peng-05}. This suggests a learning approach whenever feasible.
+Unit sum weights, however, implicitly assume maximum redundancy between features, hence tend to produce conservative predictive probabilities (see Appendix~\ref{app:frequentist}). This means low prediction confidence (over-estimated credibility sets) when features are weakly correlated, as is desirable in general. Conversely, unitary weights ($\blambda\equiv 1$) as in Na\"ive Bayes assume independent features and may thus yield over-confident predictions. An ideal method to weight features is one that can capture feature redundancy and balance it with feature relevance \cite{Peng-05}. This suggests a learning approach whenever feasible.
 
 %, which, as we shall see, is unlikely to pick uniform or unit sum weights.
 
@@ -173,7 +171,9 @@ $$
 
 It follows that the utility function $U(\blambda)$ in~(\ref{eq:train_likelihood}) is concave as a general property of likelihood in exponential families, hence this learning can be implemented using a standard convex optimization algorithm such as limited-memory BFGS \cite{Byrd-95}. See Appendix~\ref{app:training} for some implementation details. 
 
-Because some positive weight constraints may turn out inactive, optimization has a natural tendency to produce sparse weights. As illustrated in Figure~\ref{fig:disc_weight_plot} on the breast cancer UCI dataset\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}}, there is no clear relation between optimal weights and feature-level discrimination power, showing that maximum likelihood learning differs radically from univariate feature selection as it implicitly takes feature redundancy into account via joint weight optimization.
+Because some positive weight constraints may turn out inactive, optimization has a natural tendency to produce sparse weights. As illustrated in Figure~\ref{fig:disc_weight_plot} on the breast cancer diagnostic UCI dataset \cite{Wolberg-94}, there is no clear relation between optimal weights and feature-level discrimination power, showing that maximum likelihood learning differs radically from univariate feature selection as it implicitly takes feature redundancy into account via joint weight optimization.
+
+%\footnote{\url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}}
 
 \begin{figure}[!ht]
   \begin{center}
@@ -214,9 +214,9 @@ So far, we have assumed that each agent is given a single weight in the opinion 
 \label{eq:super_pool}
 p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)},    
 \end{equation}
-where~$x_0$ is an arbitrary fixed target value, which we call the reference, and $\blambda: {\cal X}\to \mathbb{R}_+^n$ is a weighting function here. As discussed in Appendix~\ref{app:hetero}, the main reason for introducing the normalization by a reference is to make the pooling externally Bayesian if the weighting function sums up to one uniformly,
+where~$x_0$ is an arbitrary fixed target value, which we call the reference, and $\blambda: {\cal X}\to \mathbb{R}_+^n$ is a weighting function here. Note that the reference weight values $\lambda_i(x_0)$ play no role and can therefore be conventionally assumed to be zero. As discussed in Appendix~\ref{app:hetero}, the main reason for introducing the normalization by a reference is to make the pooling externally Bayesian if the weighting function sums up to one uniformly,
 $$
-\forall x\in{\cal X},\quad
+\forall x\in{\cal X}\setminus \{x_0\},\quad
 \sum_{i=1}^n \lambda_i(x) = 1,
 $$
 hence providing a sensible default rule to tune the weights. Note that (\ref{eq:super_pool}) amounts to a log-linear pool if the weights are target-independent as the reference is then effectless. Using the same analogy with Bayes rule as in Section~\ref{sec:bayes_rule}, we see that the quantity:
@@ -225,16 +225,15 @@ hence providing a sensible default rule to tune the weights. Note that (\ref{eq:
 L^{sc}_\blambda(x) \equiv 
 \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)}
 \end{equation} 
-plays the role of a standard likelihood at prediction time. We call this form super composite likelihood (SCL) owing to the ``doubly composite'' aspect of combining distinctive feature-target pairs. SCL further generalizes CL since both forms are obviously proportional for target-independent weights, $\lambda_i(x)\equiv \lambda_i$.
+acts as a standard likelihood at prediction time. We call this form super composite likelihood (SCL) owing to the ``doubly composite'' aspect of combining distinctive feature-target pairs. SCL further generalizes CL since both forms are seen to be proportional for target-independent weights. 
 
-%$L^{sc}_\blambda(x)=L^c_\blambda(x)/L^c_\blambda(x_0)$ for target-independent weights $\lambda_i(x)\equiv \lambda_i$, hence it is in this case proportional to CL and yields the same predictive distribution. 
+Conversely, if the weighting function maps each target to a unit vector ({\em i.e.}, $\forall x\in{\cal X}\setminus \{x_0\}$, $\lambda_i(x)=1$ for a single feature~$i$, and zero otherwise), then SCL turns out identical to the {\em class-specific} likelihood surrogate derived in \cite{Baggenstoss-03} from a generative model selection argument; namely, the {\em PDF projection theorem}, which in fact boils down to an $I$-projection \cite{Minka-04}. While our derivation follows a {\em discriminative} model selection approach, it is interesting to see that it includes the class-specific method as a special case, and thus sheds new light on this method.
 
-Conversely, if the weighting function maps each target to a unit vector ({\em i.e.}, for each target, there is a single feature with non-zero weight and this weight is one), then SCL turns out to be identical to the {\em class-specific} likelihood surrogate derived in \cite{Baggenstoss-03} from a generative model selection argument -- namely, the ``PDF projection theorem'', which in fact boils down to an $I$-projection \cite{Minka-04}. While our derivation stems from a {\em discriminative} model selection approach, it is interesting to see that it includes the class-specific method as a special case, and thus sheds new light on this method.
+A compelling advantage of SCL over CL is that it can deal with missing likelihood values, which happen if the feature generative distributions $f(z_i|x)$ are unknown for some targets~$x$. SCL makes it possible to assign zero weights $\lambda_i(x)$ to every feature-target pair for which $\ell_i(x)$ is unknown, yet using nonzero weights for other pairs. Likewise, the features for which the reference likelihood $\ell_i(x_0)$ is unknown receive zero weight for all target values, implying that they have no influence whatsoever on the predictive distribution.
 
-A compelling advantage of SCL over CL is that it can deal with missing likelihood values, which happen if the feature generative distributions $f(z_i|x)$ are unknown for some target values~$x$. It is possible to assign zero weights $\lambda_i(x)$ to every feature-target pair for which $\ell_i(x)$ is unknown, yet using nonzero weights for other pairs. Likewise, the features for which the reference likelihood $\ell_i(x_0)$ is unknown receive zero weight for all target values, implying that they have no influence whatsoever on the predictive distribution. 
+%Interest? If some feature likelihood values are missing, i.e. agents are not able to model the whole set of targets. It's a bit like censoring. Then it's ok if they can model at least two targets including the reference: $\ell_i(x)$ is unknown for the other values but we can give them zero weight so it doesn't matter.
 
-%Interest? If some feature likelihood values are missing, i.e. agents are not able to model the whole set of targets. It's a bit like censoring. Then it's ok if they can model at least two targets including the reference: $\ell_i(x)$ is unknown for the other values but we can give them zero weight so it doesn't matter. 
-If training data is available, the SCL weights may be learned by maximum likelihood like for CL (see Section~\ref{sec:learning}), yielding a similar convex problem. Since SCL enables to explore a wider class of predictive models than CL, it has the potential to achieve better prediction performance as long as overfitting does not happen (although SCL may not be asymptotically consistent unlike CL, see Appendix~\ref{app:frequentist}). The $I$-projection interpretation still holds, yet with class-specific mean-value constraints:
+If training data is available, the SCL weights may be learned by maximum likelihood as described for CL in Section~\ref{sec:learning}, yielding a similar convex problem. Since SCL enables to explore a wider class of predictive models than CL, it has the potential to achieve better prediction performance as long as overfitting does not happen (although SCL may not be asymptotically consistent unlike CL, see Appendix~\ref{app:frequentist}). The $I$-projection interpretation still holds, yet with class-specific mean-value constraints:
 $$
 \forall a\in{\cal X}, \forall i=1,\ldots,n,
 \quad
@@ -308,82 +307,17 @@ where $\delta$ denotes the Kronecker delta.
 \section{Discussion}
 \label{sec:discussion}
 
-The composite Bayesian framework presented here unifies several seemingly unrelated concepts from computational statistics and machine learning: composite likelihood \cite{Varin-11}, na\"ive Bayes, class-specific method \cite{Baggenstoss-03}. It ultimately provides a rich class of trainable predictive models that work on pre-determined data features, and is therefore suitable for shallow learning tasks (including transfer learning), where it may compete with popular discriminative models such as logistic regression, support vector machines or random forests. 
+The composite Bayesian framework presented here unifies several seemingly unrelated concepts from computational statistics and machine learning: na\"ive Bayes, composite likelihood \cite{Varin-11}, class-specific method \cite{Baggenstoss-03}. It ultimately provides a rich class of trainable predictive models that work on pre-determined data features, and is therefore suitable for shallow learning or transfer learning tasks, where it may compete with popular discriminative models such as logistic regression, support vector machines or random forests.
 
-Unlike previous attempts at Bayesian inference from incomplete statistical models relying on generative model selection \cite{Yuan-99b,Wang-14} or asymptotic theory \cite{Pauli-11,Ribatet-12}, our construction is based on a discriminative model selection approach, and is thus explicitly taylored to prediction. The resulting models are discriminative in essence but, contrary to conventional discriminative models, they encapsulate feature generation models. 
+Unlike previous attempts at Bayesian inference from incomplete statistical models relying on generative model selection \cite{Yuan-99b,Wang-14} or asymptotic theory \cite{Pauli-11,Ribatet-12}, our construction is based on a discriminative model selection approach. Composite Bayesian models are thus explicitly taylored to prediction and cannot simulate complete data but, contrary to conventional discriminative models, they encapsulate feature generation models.
 
-This key property enables to test, at prediction time, how consistent the data at hand is with each feature distribution, which in turn enables to validate the overall model prediction. Moreover, since feature log-likelihoods are combined additively, it is easy to determine which features contribute most to a particular comparison of target values, and summarize the rational for a prediction by highlighting a few decisive features. 
+Training a composite Bayesian model involves the sequential estimation of feature generative parameters and feature relevance weights. This two-stage training is reminiscent of restricted Boltzmann machines (RBMs) \cite{Hinton-06,Fischer-14}, which are fully generative models, with the important difference that it operates on {\em disjoint} sets of parameters in the case of composite Bayesian models, while RBM training modifies the same parameters twice. Also, the generative pre-training of RBMs is typically unsupervised, and it is an open research issue whether composite Bayesian models are suitable for unsupervised learning.
 
-[EXAMPLE]. 
+The semi-generative nature of composite Bayesian models enables to test, at prediction time, how consistent the data at hand is with each feature distribution, which in turn enables to validate the overall model prediction. Moreover, since feature log-likelihoods are combined additively, it is easy to determine which features contribute most to a particular comparison of hypotheses about the target, and summarize the rational for a prediction by highlighting a few decisive features. 
+
+{\color{red}Example.}
 
 We believe that there are many applications of statistical inference in which interpretation is the real goal while prediction performance is only an intermediate requisite. A prediction method needs to prove reliable to be relevant; but, once proven reliable, it may need to be interpreted. Composite Bayesian inference may come into play when the {\em why} question is more important than the {\em what} question.
-
-An open research issue is whether composite Bayesian models are suitable for unsupervised learning like full generative models such as, for instance, restricted Boltzman machines (RBM) \cite{Hinton-06,Fischer-14}
-
-The generative training phase of composite Bayesian models could be compared to contrastive pre-training of restricted Boltzman machines (RBM) \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features, however in unsupervised learning context. 
-
-%One challenge  is to adapt the training of feature-based generative models to work on unlabeled datasets. 
-
-%The first training phase is easier if supervised but could be unsupervised too (using mixture models). How do we then deal with label switching issues? Can we safely assume conditional feature independence {\em in the generative training phase}? I believe so provided that the marginal distribution parameters are disjoint. It's obvious in the supervised learning scenario.
-
-%If unsupervised, the first learning phase could be compared with contrastive pre-training of RBMs \cite{Hinton-06,Fischer-14}, which also optimize parameters for generation of observable features. BCI is comparable with an RBM with a single output unit (which is just a generative model assuming conditionial feature independence). The key difference is that the RBM is a full generative model while BCI only deals with marginal models, hence relying on weaker assumptions. This won't change anything in the pre-training phase but RBMs have to deal with more parameters in the generative learning phase. In fully supervised context, RBM pre-training is pointless since all parameters learned in the first phase will be overwritten. In BCI, pre-training is crucial even in supervised context because the parameters learned in the discriminative phase (the feature weighs) describe a sub-manifold of the predictive distribution family.
-
-%Alternative to logistic regression in deep learning? Would require a game-theoretic learning approach... future work. But why should we do that? C'est un terrain Bernard min\'e...
-
-
-%Beside greater flexibility than CL, a disadvantage of SCL it that interpretation becomes relative to an arbitrary reference~$x_0$. In some applications, there may exist a natural reference class to cling to in common practice (for instance, normality in medical diagnosis), but this is not always the case. 
-
-%It is easy to build a good classifier. You just need to pick a parametric family that is big enough to produce a good fit and small enough to avoid overfitting. Less easy is to interpret what the classifier does. Deep learning is cool but it is relevant to AI only if the representations it learns are generic enough to be used in other problems, i.e. it should ultimately be validated via transfer learning.
-
-%{\color{red} We cannot rank features according to their weights. A feature might incidentally get a large weight because its likelihood is flat. Feature relevance also depends on conditional likelihood distribution. Consider mutually independent features: each one recieves a unit weight, but some may be independent from target.}
-
-%{\color{red} Composite Bayes is invariant by affine transformation of the data (unlike multinomial LR, which is problematic when damping is applied).}
-
-%{\color{red} Is damping important? (it guarantees training cost is stricly convex).}
-
-%{\color{red} Can we interpret maximum weight likelihood as a ``maximum relevance minimum redudancy'' feature selection approach?}
-
-%Is it new to see composite likelihood as opinion pooling? Yes it is. Some previous attempts were made to derive composite likelihood as some sort of consensus generative model \cite{Wang-14}. Also some previsous attemps at Bayesian inference from CL using asymptotic theory. 
-
-%In other words, is $\bar{a}(\blambda)$ a measure of feature redundancy? At fixed $\y$, if one $\lambda_i\to\infty$, then $a(\blambda,\y)\ot\infty$ except if $\ell_i(x,\y)\preceq 0$, in which case it goes to $-\infty$. If using likelihood ratios, this only happens if the reference class is the most likely for $\y$. But then we can prove that it can't happen for all $\y$ (otherwise the associated moment would be negative), so basically $\bar{a}(\blambda)$ blows up when at least one weight gets large. And if several weights get large simultaneously, then it blows up even more so we might consider it a redundancy measure to some extent...
-
-%Some experimental observations. In the iris dataset (historical data used by Fisher to demonstrate linear discriminant analysis), composite Bayes finds that petal length is the most relevant feature followed by petal width, while sepal length and width get zero weight. In the wine dataset, the flavanoids is the most relevant feature for standard composite Bayes, but it's color intensity closely followed by flavanoids for the super composite version. In the breast cancer, both approaches are equivalent since it is a binary problem, weights are very sparse: only 13/30 are non-zero with worst area the most relevant. In the digits prolem, the most relevant features tend to be in the image center; composite Bayes can achieve similar performance to multinomial logistic regression with about 10 times less parameters.
-
-%Number of independent discriminative parameters in logistic regression: $(K-1)(F+1)$. In standard composite inference: $F$ (or $K-1+F$ with offsets). Difference $=(K-2)(F+1)+1$ (or $=(K-2)F$). In super-composite inference: $(K-1)(F+1)$ (if reference is a class). Number of generative parameters in composite inference using univariate Gaussian models: $2K$ with heteroscedasticity, $K+1$ with homoscedasticity.
-
-%Intuition behind weights: notion of global feature relevance. But does $\lambda_1>\lambda_2$ imply that $z_1$ is more relevant than $z_2$ for a particular instance? No. But we can assess the influence of each scaled likelihood in order to rank features according to their influence on the decision.
-
-%CL is a concept from computational statistics that has mainly been developed so far in a frequentist perspective as a surrogate for the maximum likelihood method. We have shown a deep connection between CL and probabilistic inference, thereby establishing CL as a class of discriminative models. Because CL is built from a set of marginal feature-specific generative distributions, it is in essence a two-step semi-generative, semi-discriminative learning approach. In the first, ``generative'' phase, the feature distributions are learned; in the second, ``discriminative'' phase, the feature weights are learned. This strategy can be thought of as a form of non-adaptive boosting.
-
-%The first phase corresponds to the training of ``weak learners''. The second phase amounts to a form of boosting. 
-
-%A purely discriminative learning could be used instead but... Why potentially more efficient than pure discriminative training: because generative training is always more efficient than discriminative training if models are comparable. So the key point is that ``we have less parameters in the discriminant phase". Good in small datasets. But also in asymptotic regime if the features are weakly or highly correlated (???).
-
-%Logistic regression / naive Bayes example. Under homoscedasticity (assuming that each feature has class-independent variance), CBI is equivalent to logistic regression -- because the predictive distribution family is the same. This is a case where BCI brings nothing. But consider heteroscedasticity, then BCI yields a quadratic classifier. Compared to a fully discriminative model, the number of parameters to learned in the discriminative phase is reduced by half.
-
-%{\color{red} Moreover, while RBM parameters are typically refined in a supervised discriminative learning step, disjoint set of parameters for SCL. Dunno how to say that.} 
-
-%In such context, SCL competes with classical discriminative models (logistic regression, Gaussian processes \cite{Rasmussen-06}, maximum entropy models \cite{BergerA-96}, etc.), and may compare more or less favorably in practice depending on the amount of training data. For relatively small training datasets, we may hope for more accurate inference using~SCL than using traditional discriminative models, extrapolating from the results of \cite{Ng-01} regarding the comparison between logistic regression and na\"ive Bayes classifiers.
-%{\color{red}Ici, il manque la comparaison avec les RBMs qui ne sont pas (forcement) des modeles discriminatifs.}
-
-%%, hence alleviating the need for heavily supervised model training
-
-%In summary, CL has the potential to yield weakly supervised or unsupervised Bayesian-like inference procedures depending on the particular task at hand. This property reflects the encoding of statistical relationships between the data and {\em all} unknown parameters. CL thus appears as a trade-off between generative models, which are optimal for unsupervised learning but possibly intractable, and traditional discriminative models (logistic regression, Gaussian processes \cite{Rasmussen-06}, maximum entropy models \cite{BergerA-96}, etc.), which are inherently supervised. CL models are discriminative models assembled from atomic generative models and, from this point of view, may be considered as {\em semi-generative} models.
-
-%CL may be considered as a {\em semi-generative} model: a discriminative model assembled from partial generative models.
-
-%As a note of caution, we shall stress that the pre-determined weights assigned to the different associations between observed and unobserved values represent prior knowledge regarding the informativeness of clues. A poor choice of weights will inevitably result in a poor approximation to the ``true'' Bayesian posterior -- the posterior that would be obtained from a realistic generative model if it was tractable. In future work, we will investigate feature selection strategies to mitigate this problem.
-
-% Improve the discussion on following aspects:
-% ** Why is it compatible with unsupervised learning? Give more insight.
-% ** Stress the contribution: class-specific weighting.
-% * Pivotality argument.
-% * Bayes is a special case of composite Bayes.
-
-%{\color{red}Product of fucking experts \cite{Hinton-02}. Log-linear pool to build a generative model (assuming in fact independence between experts). Better seen as a ``log-mixture model''. Sounds like each expert is associated with a class, so it's the same as a RBM. Contrastive learning approximates ML parameter estimation. The experts are learning jointly. It's just a generative model.}
-
-
-%Future work: can we collapse generative and discriminative training into a single step? Maybe using the concept of {\em minimally informative likelihood} \cite{Yuan-99b}.
 
 
 \appendix
@@ -499,7 +433,7 @@ $$
 
 Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for which $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$, is of the above form with unit sum weights and is therefore a log-linear opinion pool. 
 
-A question that arises naturally is whether it is possible to weight opinions depending on targets, so that $\lambda_i(x)$ becomes a function of~$x$. This would make it possible, for instance, to consider an opinion reliable when it is about a certain hypothesis~$x_1$, but unreliable when it comes to another hypothesis~$x_2$. As a first try, let us consider a straightforward extension of the log-linear pool: 
+A question that arises naturally is whether it is possible to weight opinions depending on targets, so that $\lambda_i(x)$ becomes a function of~$x$. This would make it possible, for instance, to consider an agent reliable when expressing an opinion about a certain hypothesis~$x_1$, but unreliable when it comes to another hypothesis~$x_2$. As a first try, let us consider a straightforward extension of log-linear pooling: 
 $$
 p(x)\propto \prod_i p_i(x)^{\lambda_i(x)},
 $$
@@ -517,7 +451,7 @@ Consider, however, the following alternative:
 \label{eq:hetero_log_pool}
 p(x) \propto \prod_i \left[\frac{p_i(x)}{p_i(x_0)}\right]^{\lambda_i(x)},    
 \end{equation}
-where $x_0$ is some arbitrary reference value. This does the trick because, for any positive function $q(x)$, the ratio $q(x)p_i(x)/q(x_0)p_i(x_0)$ is left unchanged by normalization of $q p_i$ given that the normalizing factors are the same at both the numerator and the numerator, hence they cancel out, yielding:
+where $x_0$ is some arbitrary reference value. This does the trick because, for any positive function $q(x)$, the ratio $q(x)p_i(x)/q(x_0)p_i(x_0)$ is left unchanged by normalization of $q p_i$ since the normalizing factors are the same at both the numerator and the numerator, hence they cancel out, yielding:
 $$
 F[N(q p_1), \ldots, N(q p_n)](x)
 \propto
@@ -526,7 +460,7 @@ F(p_1, \ldots, p_n)(x),
 $$
 which shows that~(\ref{eq:hetero_log_pool}) is externally Bayesian whenever the weighting function verifies:
 $$
-\forall x \in {\cal X},
+\forall x \in {\cal X}\setminus \{x_0\},
 \qquad
 \sum_i \lambda_i(x) = 1.
 $$
@@ -638,6 +572,7 @@ For any such feature, we may ask if such a large contribution is expected under 
 Note that the $p$ is insensitive to the feature weight in CL... The weights do however play a role in identifying the features relevant to a particular comparison. If a feature is not relevant, it does not matter if 
 
 
+%\bibliographystyle{ieeetr}
 \bibliographystyle{abbrv}
 \bibliography{cvis,stat,alexis}
 
