@@ -169,7 +169,7 @@ Because some positive weight constraints may turn out inactive, optimization has
 
 \begin{figure}[!ht]
   \begin{center}
-    \includegraphics[width=.6\textwidth]{disc_weight_plot.pdf}
+    \includegraphics[width=.7\textwidth]{disc_weight_plot.pdf}
   \end{center}
 \caption{Distribution of optimal composite weights vs.~individual feature discrimination power in a binary classification task (breast cancer UCI dataset). Discrimination is measured by the maximum KL divergence between class-conditional generative distributions.}
 \label{fig:disc_weight_plot}
@@ -352,9 +352,7 @@ where $\E_{\blambda}$ and ${\rm Var}_{\blambda}$ respectively denote the expecta
 \section{Heterogeneous log-linear pooling}
 \label{app:hetero}
 
-Consider a sequence of probability distributions $p_i(x)$, $i=1,\ldots,n$, representing multiple opinions on a variable $x\in{\cal X}$. The general goal of opinion aggregation is to define an operator $F(p_1,\ldots,p_n)$ that takes opinions as inputs and outputs a single distribution $p(x)$ representing a consensus.
-
-Log-linear pooling \cite{Genest-86} is one particular such operator:
+Consider a sequence of probability distributions $p_i(x)$, $i=1,\ldots,n$, representing multiple opinions on a variable $x\in{\cal X}$. The general goal of opinion aggregation is to define an operator $F(p_1,\ldots,p_n)$ that takes opinions as inputs and outputs a single distribution $p(x)$ representing a consensus. Log-linear pooling \cite{Genest-86} is one particular such operator:
 $$
 p(x)\propto \pi(x) \prod_{i=1}^n p_i(x)^{\lambda_i},
 $$
@@ -374,7 +372,7 @@ Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for w
 
 A question that arises naturally is whether it is possible to weight opinions depending on targets, so that $\lambda_i(x)$ becomes a function of~$x$. This would make it possible, for instance, to consider an agent reliable when expressing an opinion about a certain hypothesis~$x_1$, but unreliable when it comes to another hypothesis~$x_2$. As a first try, let us consider a straightforward extension of log-linear pooling:
 $$
-p(x)\propto \prod_i p_i(x)^{\lambda_i(x)},
+p(x)\propto \pi(x) \prod_i p_i(x)^{\lambda_i(x)},
 $$
 where $\lambda_i : {\cal X}\to\mathbb{R}$ is some weighting function. Unfortunately, this operator is generally not externally Bayesian because $F[N(q p_1), \ldots, N(q p_n)](x)
 \propto r(x) F(p_1,\ldots, p_n)(x)$ with:
@@ -388,7 +386,7 @@ and $r(x)$ cannot be made proportional to $q(x)$, except with constant weights, 
 Consider, however, the following alternative:
 \begin{equation}
 \label{eq:hetero_log_pool}
-p(x) \propto \prod_i \left[\frac{p_i(x)}{p_i(x_0)}\right]^{\lambda_i(x)},    
+p(x) \propto \pi(x) \prod_i \left[\frac{p_i(x)}{p_i(x_0)}\right]^{\lambda_i(x)},    
 \end{equation}
 where $x_0$ is some arbitrary reference value. This does the trick because, for any positive function $q(x)$, the ratio $q(x)p_i(x)/q(x_0)p_i(x_0)$ is left unchanged by normalization of $q p_i$ since the normalizing factors are the same at both the numerator and the numerator, hence they cancel out, yielding:
 $$
@@ -405,6 +403,19 @@ $$
 $$
 
 The operator~(\ref{eq:hetero_log_pool}) generalizes standard log-linear pooling and has the property that the consensus $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$ but also $p_1(x_0),\ldots,p_n(x_0)$. The ``trick'' to enable heterogeneous (target-dependent) weights is essentially to consider the odds relative to a fixed reference.
+
+Caca.
+$$
+\log p(x) \equiv \mu(x) + \sum_i \lambda_i(x) \log p_i(x)
+$$
+
+If we look for a pool of the form:
+$$
+\log p(x) \equiv \mu(x) + \sum_i \lambda_i(x) \log p_i(x)
+$$
+
+
+
 
 
 
