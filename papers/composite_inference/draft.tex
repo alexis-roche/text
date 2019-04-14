@@ -83,24 +83,22 @@ The reader is warned that slightly abusive mathematical notation is sometimes us
 
 Let $\mathbf{Y}$ an observable multivariate random variable with sampling distribution $p(\y|x)$ conditional on some unobserved variable of interest, $X\in{\cal X}$, where ${\cal X}$ is assumed to be a finite set for simplicity. Given an experimental outcome $\y$, the likelihood is the sampling distribution evaluated at $\y$, seen as a function of $x$:
 $$
-L(x) = p(\y|x)
-.
+L(x) = p(\y|x).
 $$
 
 This requires a plausible generative model which, for complex data, may be out of reach or involve too many nuisance parameters. A natural workaround known as data reduction is to extract some lower-dimensional representation $z(\y)\sim f(z|x)$ using a many-to-one mapping, and consider the potentially more convenient likelihood function:
 $$
-\ell(x) = f(z|x)
-.
+\ell(x) = f(z|x).
 $$
 
 Substituting $L(x)$ with $\ell(x)$ boils down to restricting the feature space, thereby  ``delegating'' statistical inference to an ``agent'' provided with partial information. While it is valid for such an agent observing~$z$ only to consider $\ell(x)$ as the likelihood function of the problem, the drawback is that $\ell(x)$ might yield too vague a prediction of~$X$ due to the information loss incurred by data reduction. To make the trick statistically more efficient, we may extract several features, $z_i(\y)$ for $i=1,2,\ldots,n$, and try to combine the likelihood functions $\ell_i(x) = f(z_i|x)$ that they elicit.
 
-If we see the likelihoods as Bayesian posterior distributions corresponding to {\em uniform} priors, this is a problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. A common choice, owing to its simplicity and tendency to produce single peaked distributions, is log-linear pooling\footnote{When $\pi(x)$ is not uniform, it is also called {\em generalized} log-linear pooling, however this terminology could be confusing here since we will present another generalization.}:
+If we see the likelihoods as Bayesian posterior distributions corresponding to {\em uniform} priors, this is a problem of probabilistic opinion aggregation from possibly redundant sources, for which several methods exist in the literature \cite{Tarantola-82,Genest-86,Garg-04,Allard-12}. One that is simple and satisfies a much desirable unbiasedness property is log-linear pooling\footnote{When $\pi(x)$ is not uniform, it is also called {\em generalized} log-linear pooling, however this terminology could be confusing here since we will present another generalization.}:
 \begin{equation}
 \label{eq:log_pool}
 p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n f(z_i|x)^{\lambda_i},
 \end{equation} 
-where $\pi(x)$ is a reference distribution, and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. We shall asume for feasibility that the weights are intrinsic to the agents and are therefore independent from the data~$\y$. Also, negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an outcome $x_1$ is less probable than an outcome $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, we should have $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. 
+where $\pi(x)$ is a reference distribution and $\blambda=(\lambda_1,\ldots,\lambda_n)$ is a vector of weights. Log-linear pooling is {\em unbiased} in the sense that eliminating some hypotheses does not alter the probability ratios between the remaining hypotheses (see Appendix~\ref{app:log_pool_standard}). We shall asume for feasibility that the weights are intrinsic to the agents and are therefore independent from the data~$\y$. Also, negative weights should be ruled out to warrant a natural monotonicity property: if all agents agree that an hypothesis $x_1$ is less probable than an hypothesis $x_2$, this should be reflected by the consensus probabilities, {\em i.e.}, we should have $p_\blambda(x_1|\y)\leq p_\blambda(x_2|\y)$. As a convenient effect of using positive weights, log-linear pooling tends to produce single peaked distributions.
 
 
 \section{Composite Bayes rule}
@@ -136,7 +134,7 @@ If training data is available, the generative parameters may be tuned in a first
 
 In the absence of knowledge, uniform weights may be chosen under a rule of indifference. CL is then a scaled version of na\"ive Bayes likelihood, the unique weight value being irrelevant to the maximum CL estimator (MCLE). To get meaningful predictive probabilities, it may be tuned empirically so as to best adjust the pseudo posterior variance matrix to the asymptotic MCLE variance matrix \cite{Pauli-11}, or via a close-in-spirit curvature adjustment \cite{Ribatet-12}, as proposed in previous attempts at Bayesian inference from composite likelihood. 
 
-Alternatively, a simple agnostic recommendation we believe to be useful for composite weights is to sum up to one. This is motivated by a characterization theorem for opinion pooling \cite{Genest-86,Genest-86b}: the only {\em externally Bayesian} pooling operator for which the consensus probability of an outcome only depends on the agent probabilities of the same outcome, is the log-linear opinion pool with unit sum weights. The external Bayesian property essentially means that the consensus should not change if an agent opinion is taken into account by the other agents as opposed to being stated independently. Log-linear pooling with unit sum weights also turns out to be an optimal {\em compromise} in the sense that it minimizes the average inclusive Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. 
+Alternatively, a simple agnostic recommendation we believe to be useful for composite weights is to sum up to one. This is motivated by a characterization theorem \cite{Genest-86,Genest-86b}: the only {\em externally Bayesian} pooling operator for which the consensus probability of an outcome only depends on the agent probabilities of the same outcome, is log-linear opinion pooling constrained to unit sum weights. The external Bayesian property is stronger than the above-mentionned unbiasedness property; it essentially means that the consensus should not change if any agent opinion is taken into account by the other agents as opposed to being stated independently. Log-linear pooling with unit sum weights also turns out to be an optimal {\em compromise} in the sense that it minimizes the average inclusive Kullback-Leibler (KL) divergence to the agent opinions \cite{Garg-04}. 
 
 Unit sum weights, however, implicitly assume maximum redundancy between features, hence tend to produce conservative predictive probabilities (see Appendix~\ref{app:frequentist}). This means low prediction confidence (over-estimated credibility sets) when features are weakly correlated, as is desirable in general. Conversely, unitary weights ($\blambda\equiv 1$) as in Na\"ive Bayes assume independent features and may thus yield over-confident predictions. An ideal method to weight features is one that can capture feature redundancy and balance it with feature relevance \cite{Peng-05}. This suggests a learning approach whenever feasible.
 
@@ -204,7 +202,7 @@ So far, we have assumed that each agent is given a single weight in the opinion 
 \label{eq:super_pool}
 p_\blambda(x|\y) \propto \pi(x) \prod_{i=1}^n \left[\frac{\ell_i(x)}{\ell_i(x_0)}\right]^{\lambda_i(x)},    
 \end{equation}
-where~$x_0$ is an arbitrary fixed target value, which we call the reference, and $\blambda: {\cal X}\to \mathbb{R}_+^n$ is a weighting function here. Note that the reference weights $\lambda_i(x_0)$ play no role and can therefore be conventionally assumed to cancel. As shown in Appendix~\ref{app:hetero}, the main reason for introducing the normalization by a reference is to make pooling externally Bayesian if the weighting function sums up to one uniformly,
+where~$x_0$ is an arbitrary fixed target value, which we call the reference, and $\blambda: {\cal X}\to \mathbb{R}_+^n$ is a weighting function here. Note that the reference weights $\lambda_i(x_0)$ play no role and can therefore be conventionally assumed to cancel. As shown in Appendix~\ref{app:log_pool_hetero}, the main reason for introducing the normalization by a reference is to make pooling externally Bayesian if the weighting function sums up to one uniformly,
 $$
 \forall x\in{\cal X}\setminus \{x_0\},\quad
 \sum_{i=1}^n \lambda_i(x) = 1,
@@ -349,14 +347,49 @@ where $\E_{\blambda}$ and ${\rm Var}_{\blambda}$ respectively denote the expecta
 
 
 
-\section{Heterogeneous log-linear pooling}
-\label{app:hetero}
+\section{Log-linear pooling}
+\label{app:log_pool}
 
-Consider a sequence of probability distributions $p_i(x)$, $i=1,\ldots,n$, representing multiple opinions on a variable $x\in{\cal X}$. The general goal of opinion aggregation is to define an operator $F(p_1,\ldots,p_n)$ that takes opinions as inputs and outputs a single distribution $p(x)$ representing a consensus. Log-linear pooling \cite{Genest-86} is one particular such operator:
+Consider a sequence of probability distributions $p_i(x)$, $i=1,\ldots,n$, representing multiple opinions on a variable of interest~$x\in{\cal X}$. The general goal of opinion aggregation is to define an operator $F(p_1,\ldots,p_n)$ that takes opinions as inputs and outputs a single distribution $p(x)$ representing a consensus.
+
+\subsection{Standard log-linear pooling}
+\label{app:log_pool_standard}
+
+Log-linear pooling \cite{Genest-86} is one particular such operator:
 $$
 p(x)\propto \pi(x) \prod_{i=1}^n p_i(x)^{\lambda_i},
 $$
-where $\pi(x)$ is an arbitrary distribution and $\lambda_i\in\mathbb{R}$ are arbitrary weights. It is easily seen that, if the weights sum up to one, log-linear pooling is externally Bayesian in the sense that, for any nonvanishing positive valued function $q:{\cal X}\to \mathbb{R}^\star_+$, opinion pooling and opinion updating commute:
+where $\pi(x)$ is an arbitrary distribution and $\lambda_i\in\mathbb{R}$ are arbitrary weights. 
+
+A key property of log-linear pooling is that probability ratios are stable under hypothesis elimination: if the opinions are restricted to any subset ${\cal X}_s\subset {\cal X}$, the consensus~$p_s$ on ${\cal X}_s$ verifies $p_s(x_1)/p_s(x_2)=p(x_1)/p(x_2)$ for any pair $(x_1,x_2)\in{\cal X}_s\times {\cal X}_s$. In other words, eliminating some hypotheses does not bias inference towards any of the remaining hypotheses.
+
+Another way to look at this invariance property is to state that, for any boolean-valued function $q:{\cal X}\to \{0,1\}$, opinion pooling and opinion updating commute: 
+\begin{equation}
+\label{eq:external_bayesian}
+F[N(q p_1), \ldots, N(q p_n)]
+=
+N[q F(p_1,\ldots, p_n)],
+\end{equation}
+where~$N$ denotes the normalization endomorphism of $\mathbb{R}_+^{\cal X}$:
+$$
+N(f)(x) = \frac{f(x)}{\sum_{x'\in{\cal X}} f(x')}
+.
+$$
+
+Note that if (\ref{eq:external_bayesian}) holds for any nonvanishing positive valued function $q:{\cal X}\to\mathbb{R}^\star_+$,  the opinion pool is said to be {\em externally Bayesian}, which is thus a more general property than probability ratio invariance. It is easily seen that log-linear pooling is externally Bayesian if the weights~$\lambda_i$ sum up to one. Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for which the consensus evaluated at~$x$, $F(p_1,\ldots,p_n)(x)$, is a function of $x,p_1(x),\ldots,p_n(x)$, is a log-linear opinion pool with unit sum weights. 
+
+\subsection{Heterogeneous log-linear pooling}
+\label{app:log_pool_hetero}
+
+Log-linear pooling may not be ideal if agent have {\em selective} opinions in the sense that they respond more to certain outcomes  than to others. For instance, some agent may produce a sharply peaked distribution only when the target variable is in a certain state but a flat distribution otherwise, and some other agents may selectively respond to other states. In such situation, it is natural to try and weight agents depending on outcomes, so that $\lambda_i$ becomes a function of~$x$. 
+
+As a first try, let us consider log-linear pooling in this scenario:
+$$
+p(x)\propto \pi(x) \prod_i p_i(x)^{\lambda_i(x)},
+$$
+where $\lambda_i : {\cal X}\to\mathbb{R}$ is now a weighting function. Unfortunately, this more general operator does not satisfy hypothesis reduction invariance. The reason 
+
+It is easily seen that, if the weights sum up to one, log-linear pooling is externally Bayesian in the sense that, for any nonvanishing positive valued function $q:{\cal X}\to \mathbb{R}^\star_+$, opinion pooling and opinion updating commute:
 $$
 F[N(q p_1), \ldots, N(q p_n)]
 =
@@ -368,20 +401,26 @@ N(f)(x) = \frac{f(x)}{\sum_{x'\in{\cal X}} f(x')}
 .
 $$
 
-Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for which $F(p)(x)$ is a function of $x,p_1(x),\ldots,p_n(x)$, is of the above form with unit sum weights and is therefore a log-linear opinion pool. 
+Conversely, \cite{Genest-86b} proved that any externally Bayesian operator for which the consensus evaluated at~$x$, $F(p_1,\ldots,p_n)(x)$, is a function of $x,p_1(x),\ldots,p_n(x)$, is of the above form with unit sum weights and is therefore a log-linear opinion pool. 
 
-A question that arises naturally is whether it is possible to weight opinions depending on targets, so that $\lambda_i(x)$ becomes a function of~$x$. This would make it possible, for instance, to consider an agent reliable when expressing an opinion about a certain hypothesis~$x_1$, but unreliable when it comes to another hypothesis~$x_2$. As a first try, let us consider a straightforward extension of log-linear pooling:
+Log-linear pooling may not be ideal if agent opinions are {\em selective}. Assume, for instance, that some agent produces a sharply peaked distribution only when the target variable is in a certain state but a flat distribution otherwise, and that some other agents selectively respond to other states. In such situation where opinions reflect some outcomes better than others, it would be natural to try and weight agents depending on outcomes, so that $\lambda_i$ becomes a function of~$x$. 
+
+As a first try, let us consider log-linear pooling in this scenario:
 $$
 p(x)\propto \pi(x) \prod_i p_i(x)^{\lambda_i(x)},
 $$
-where $\lambda_i : {\cal X}\to\mathbb{R}$ is some weighting function. Unfortunately, this operator is generally not externally Bayesian because $F[N(q p_1), \ldots, N(q p_n)](x)
-\propto r(x) F(p_1,\ldots, p_n)(x)$ with:
+where $\lambda_i : {\cal X}\to\mathbb{R}$ is now a weighting function. Unfortunately, this more general operator is not externally Bayesian:
 $$
-r(x) = q(x)^{\sum_i \lambda_i(x)} \prod_i z_i^{-\lambda_i(x)},
-\qquad 
-z_i = \sum_{x\in{\cal X}} q(x) p_i(x),
+F[N(q p_1), \ldots, N(q p_n)](x)
+\propto
+\underbrace{q(x)^{\sum_i \lambda_i(x)} \prod_i z_i^{-\lambda_i(x)}}_{r(x)}
+F(p_1,\ldots, p_n)(x),
 $$
-and $r(x)$ cannot be made proportional to $q(x)$, except with constant weights, because the normalizing factors~$z_i$ may differ from one agent to the other.
+with:
+$$
+z_i \equiv \sum_{x\in{\cal X}} q(x) p_i(x),
+$$
+and the only way to make $r(x)$ proportional to $q(x)$ for any $q, p_1,\ldots, p_n$ is to impose constant weights, because the normalizing factors~$z_i$ may differ from one agent to the other.
 
 Consider, however, the following alternative:
 \begin{equation}
@@ -414,8 +453,27 @@ $$
 \log p(x) \equiv \mu(x) + \sum_i \lambda_i(x) \log p_i(x)
 $$
 
+However, log-linear pooling is not appropriate in situations where some agent opinions are not expressed on the whole set~${\cal X}$ of possibilities. Assume that the opinion~$p_i$ of agent~$i$ is only defined on a subset of~${\cal X}$: it could trivially be extended to~${\cal X}$ by assigning zero probability to missing outcomes, however that would mean that the probabilities provided by the agent are either underestimated or overestimated, and therefore unreliable.
 
+In such situation, agent opinions somehow need normalization...
 
+In such situation, it should be possible to weight opinions depending on target values, so that $\lambda_i$ becomes a function of~$x$.
+
+have unreliable opinions about certain hypotheses. Assume, for instance, that an agent 
+
+From this point on, only crap.
+
+Ponderer les agents en fonction de $x$, c'est comme considerer des mini-agents ayant chacun une mini-opinion. Mais alors comment représenter ces mini-opinions? 
+
+Une option est de choisir une fonction constante \'egale \`a $1$ sauf pour la cible particuliere du mini-agent, ou ca vaut $p_i(x)/p_i(x_0)$. Et là on fait du log-linear pooling. Sauf que ce n'est pas sur les opinions 'originelles'. Au passage, les mini-opinions n'ont pas besoin d'être normalisés. 
+
+Du coup, on se ramene au log-linear pooling. La question est de savoir quelles strategies de construction de mini-agents sont acceptables. Opinions -> mini-opinions -> pooling.
+
+Par exemple, si au lieu de prendre le rapport de proba, je prends juste $p_i(x)$ tout en laissant la ligne de base à 1, que se passe-t-il? On sent bien que c'est FOIREUX mais pourquoi? Ben, le rapport de proba n'est pas conserv\'e. Vu que la ligne de base est arbitraire, il faut d'une maniere ou d'une autre normaliser la valeur cible. 
+
+Le mini-agent doit refleter un minimum l'agent dont il est issu. Conserver au moins un rapport de proba est une facon de garantir une certaine fidelite. 
+
+Mais pourquoi conserver au moins un rapport? 
 
 
 
