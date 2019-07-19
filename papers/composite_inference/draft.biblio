@@ -1,0 +1,191 @@
+\begin{thebibliography}{10}
+
+\bibitem{Aeberhard-92}
+S.~Aeberhard, D.~Coomans, and O.~de~Vel.
+\newblock The classification performance of {RDA}.
+\newblock Technical report, James Cook University of North Queensland, 1992.
+\newblock \url{archive.ics.uci.edu/ml/datasets/wine}.
+
+\bibitem{Allard-12}
+D.~Allard, A.~Comunian, and P.~Renard.
+\newblock {Probability aggregation methods in Geoscience}.
+\newblock {\em Mathematical Geosciences}, 44(5):545--581, 2012.
+
+\bibitem{Baggenstoss-03}
+P.~Baggenstoss.
+\newblock {The PDF projection theorem and the class-specific method}.
+\newblock {\em IEEE Transactions on Signal Processing}, 51(3):672--685, 2003.
+
+\bibitem{BergerA-96}
+A.~L. Berger, S.~D. Pietra, and V.~J.~D. Pietra.
+\newblock A maximum entropy approach to natural language processing.
+\newblock {\em Computational Linguistics}, 22(1):39--71, 1996.
+
+\bibitem{Berger-99}
+J.~O. Berger, B.~Liseo, and R.~L. Wolpert.
+\newblock Integrated likelihood methods for eliminating nuisance parameters.
+\newblock {\em Statistical Science}, 14(1):1--28, 1999.
+
+\bibitem{Besag-74}
+J.~Besag.
+\newblock Spatial interaction and the statistical analysis of lattice systems.
+\newblock {\em Journal of the Royal Statistical Society: Series B},
+  36(2):192--236, 1974.
+
+\bibitem{Byrd-95}
+R.~H. Byrd, P.~Lu, J.~Nocedal, and C.~Zhu.
+\newblock A limited memory algorithm for bound constrained optimization.
+\newblock {\em SIAM Journal on Scientific Computing}, 16(5):1190--1208, 1995.
+
+\bibitem{Csiszar-84}
+I.~Csisz\'ar and G.~Tusn\'ady.
+\newblock {Information Geometry and Alternating Minimization Procedures}.
+\newblock {\em Statistics \& Decisions}, 1:205--237, 1984.
+\newblock Supplement Issue.
+
+\bibitem{Fischer-14}
+A.~Fischer and C.~Igel.
+\newblock {Training restricted Boltzmann machines: an introduction}.
+\newblock {\em Pattern Recognition}, 47(1):25--39, 2014.
+
+\bibitem{Garg-04}
+A.~Garg, T.~Jayram, S.~Vaithyanathan, and H.~Zhu.
+\newblock Generalized opinion pooling.
+\newblock In {\em 8th International Symposium on Artificial Intelligence and
+  Mathematics}, pages 79--86, 2004.
+
+\bibitem{Genest-86b}
+C.~Genest, K.~J. McConway, and M.~J. Schervish.
+\newblock {Characterization of externally Bayesian pooling operators}.
+\newblock {\em Annals of Statistics}, 14(2):487--501, 1986.
+
+\bibitem{Genest-86}
+C.~Genest and J.~V. Zidek.
+\newblock Combining probability distributions: A critique and an annotated
+  bibliography.
+\newblock {\em Statistical Science}, 1(1):114--135, 1986.
+
+\bibitem{Goodfellow-16}
+I.~Goodfellow, Y.~Bengio, A.~Courville, and Y.~Bengio.
+\newblock {\em Deep learning}, volume~1.
+\newblock MIT press Cambridge, 2016.
+
+\bibitem{Grunwald-07}
+P.~Gr\"unwald.
+\newblock {\em {The Minimum Description Length Principle}}.
+\newblock MIT Press, 2007.
+
+\bibitem{Grunwald-04}
+P.~Gr\"unwald and A.~Dawid.
+\newblock {Game theory, maximum entropy, minimum discrepancy and robust
+  Bayesian decision theory}.
+\newblock {\em Annals of Statistics}, 32:1367--1433, 2004.
+
+\bibitem{Hinton-06}
+G.~E. Hinton, S.~Osindero, and Y.-W. Teh.
+\newblock A fast learning algorithm for deep belief nets.
+\newblock {\em Neural computation}, 18(7):1527--1554, 2006.
+
+\bibitem{Ho-95}
+T.~K. Ho.
+\newblock Random decision forests.
+\newblock In {\em Document analysis and recognition, 1995., proceedings of the
+  third international conference on}, volume~1, pages 278--282. IEEE, 1995.
+
+\bibitem{Lecun-15}
+Y.~LeCun, Y.~Bengio, and G.~Hinton.
+\newblock Deep learning.
+\newblock {\em Nature}, 521(7553):436, 2015.
+
+\bibitem{Minka-04}
+T.~P. Minka.
+\newblock {Exemplar-based likelihoods using the PDF projection theorem}.
+\newblock Technical Report MSR-TR-2004-148, Microsoft Research Ltd., Cambridge,
+  UK, 2004.
+
+\bibitem{Molnar-18}
+C.~Molnar.
+\newblock {\em Interpretable Machine Learning}.
+\newblock https://christophm.github.io/interpretable-ml-book, 2018.
+
+\bibitem{Ng-01}
+A.~Y. Ng and M.~I. Jordan.
+\newblock {On discriminative vs.~generative classifiers: a comparison of
+  logistic regression and naive Bayes}.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  841--848, 2001.
+
+\bibitem{Pauli-11}
+F.~Pauli, W.~Racugno, and L.~Ventura.
+\newblock {Bayesian composite marginal likelihoods}.
+\newblock {\em Statistica Sinica}, 21:149--164, 2011.
+
+\bibitem{Peng-05}
+H.~Peng, F.~Long, and C.~Ding.
+\newblock Feature selection based on mutual information criteria of
+  max-dependency, max-relevance, and min-redundancy.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  27(8):1226--1238, 2005.
+
+\bibitem{Rasmussen-06}
+C.~Rasmussen and C.~Williams.
+\newblock {\em {Gaussian processes for machine learning}}.
+\newblock MIT Press, 2006.
+
+\bibitem{Ribatet-12}
+M.~Ribatet, D.~Cooley, and A.~C. Davison.
+\newblock {Bayesian inference from composite likelihoods, with an application
+  to spatial extremes}.
+\newblock {\em Statistica Sinica}, 22:813--845, 2012.
+
+\bibitem{Tarantola-82}
+A.~Tarantola and B.~Valette.
+\newblock Inverse problems = quest for information.
+\newblock {\em Journal of Geophysics}, 50(3):150--170, 1982.
+
+\bibitem{Vapnik-00}
+V.~N. Vapnik.
+\newblock {\em {The Nature of Statistical Learning Theory}}.
+\newblock Springer, 2nd edition, 2000.
+
+\bibitem{Varin-11}
+C.~Varin, N.~Reid, and D.~Firth.
+\newblock An overview of composite likelihood methods.
+\newblock {\em Statistica Sinica}, 21(1):5--42, 2011.
+
+\bibitem{Walker-13}
+S.~G. Walker.
+\newblock Bayesian inference with misspecified models.
+\newblock {\em Journal of Statistical Planning and Inference},
+  143(10):1621--1633, 2013.
+
+\bibitem{Wang-14}
+X.~Wang and Y.~Wu.
+\newblock Theoretical properties of composite likelihood.
+\newblock {\em Open Journal of Statistics}, 4:188--197, 2014.
+
+\bibitem{White-82}
+H.~White.
+\newblock Maximum likelihood estimation of misspecified models.
+\newblock {\em Econometrica}, 50(1):1--25, 1982.
+
+\bibitem{Wolberg-94}
+W.~H. Wolberg, W.~N. Street, and O.~Mangasarian.
+\newblock Machine learning techniques to diagnose breast cancer from
+  image-processed nuclear features of fine needle aspirates.
+\newblock {\em Cancer letters}, 77(2-3):163--171, 1994.
+\newblock
+  \url{archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+(diagnostic)}.
+
+\bibitem{Xu-11}
+X.~Xu and N.~Reid.
+\newblock On the robustness of maximum composite likelihood estimate.
+\newblock {\em Journal of Statistical Planning and Inference},
+  141(9):3047--3054, 2011.
+
+\bibitem{Yuan-99b}
+A.~Yuan and B.~Clarke.
+\newblock An information criterion for likelihood selection.
+\newblock {\em IEEE Transactions on Information Theory}, 45(2):562--571, 1999.
+
+\end{thebibliography}

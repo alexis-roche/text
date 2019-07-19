@@ -1,5 +1,0 @@
-Anonymous1 Feb 2018, 14:36:00
-
-If I follow you, each run with 6 jars would match one of these 3 categories, therefore the total counts within each category in Table 1 should be all multiples of 6. This is not the case. For instance, summing up the 'correct negative' and 'false positive' rows for 'Uncontaminated or contaminated by living' yields 46 for K, which is not a multiple of 6.
-
-It is after realizing this that I came up with an alternative explanation, but I am really not sure.

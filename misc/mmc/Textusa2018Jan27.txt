@@ -1,9 +1,0 @@
-Anonymous27 Jan 2018, 11:26:00
-
-PUBLISH IF YOU WANT.
-
-I don't want to go into a technical fight, because I really think that the bulk of your reasoning is correct.
-
-We agree that my assumptions are not minimally realistic, they correspond to a very unfavorable scenario. I think we also agree that, even in such very unfavorable scenario, there is no way that an ERVD dog can mark multiple locations. I did overlook several aspects that should indeed be taken into account: contamination time, simultaneous markings of ERVD & Blood dogs, ... and would further decrease the probability down to a very, very small number. I am talking about the probability of marking several locations IF there is no cadaver trace at all (regardless of whether there is blood of a live human being or not).
-
-However, re the 3% vs 9% as a worst-case estimate of the false positive rate, I respectfully disagree with your calculation because the experimental "universe" contained samples contaminated with deceased tissue, which, by definition, do not impact the false positive rate. If the dog had been presented with more of those, the number of false positives would have been the same (4) and the false positive rate would remain the same too. Please remember that I work under the assumption that there was no cadaver trace at all in the crime scene, and evaluate (in a basic and conservative way) to which extent this assumption is contradicted by the evidence.
