@@ -1,0 +1,1946 @@
+@string{jrssa="Journal of the Royal Statistical Society: Series A"}
+@string{jrssb="Journal of the Royal Statistical Society: Series B"}
+@string{jasa="Journal of the American Statistical Association"}
+@string{jcgs="Journal of Computational and Graphical Statistics"}
+@string{anstat="Annals of Statistics"}
+@string{statcomp="Statistics and Computing"}
+@string{jspi="Journal of Statistical Planning and Inference"}
+@string{ml="Machine Learning"}
+@string{ba="Bayesian Analysis"}
+@string{statsin="Statistica Sinica"}
+@string{statsci="Statistical Science"}
+
+@string{lncs="Lecture Notes in Computer Science"}
+@string{nips="Advances in Neural Information Processing Systems"}
+
+@string{tsp = "IEEE Transactions on Signal Processing"}
+@string{tip = "IEEE Transactions on Image Processing"}
+@string{tit = "IEEE Transactions on Information Theory"}
+@string{tnn = "IEEE Transactions on Neural Networks"}
+@string{tassp = "IEEE Transactions Acoustics, Speech and Signal Processing"}
+@string{tac = "IEEE Transactions on Automatic Control"}
+@string{tpami = "IEEE Transactions on Pattern Analysis and Machine Intelligence"}
+
+@string{inria = {INRIA}}
+@string{kluwer = "Kluwer Academic Publishers"}
+@string{springer = "Springer"}
+@string{wiley = {John Wiley \& Sons, Inc.}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% EM algorithm
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@INPROCEEDINGS{Couvreur-96,
+ AUTHOR = {Couvreur, C.},
+ ADDRESS = {Prague, Czech Republik},
+ BOOKTITLE = {{Proc. 2d IEEE European Workshop on Computationaly 
+               Intensive Methods in Control and Signal Processing}},
+ MONTH = aug,
+ TITLE = {{The EM Algorithm: A Guided Tour}},
+ YEAR = {1996}
+}
+
+@unpublished{BergerA-98,
+ AUTHOR = {Berger, A.},
+ TITLE = {{Convexity, Maximum Likelihood and All That}},
+ INSTITUTION = {Carnegie Mellon University},
+ NOTE = {Tutorial published on the web},
+ YEAR = {1998}
+}
+
+@unpublished{Dellaert-02,
+ AUTHOR = {Dellaert, F.},
+ TITLE = {{The Expectation Maximization Algorithm}},
+ NOTE = {Tutorial published on the web},
+ YEAR = {2002}
+}
+
+
+@TECHREPORT{Bilmes-98,
+ AUTHOR = {Bilmes, J.},
+ TITLE = {{A Gentle Tutorial of the EM Algorithm and its Application
+    to Parameter Estimation for Gaussian Mixture and Hidden Markov
+    Models}},
+ INSTITUTION = {University of Berkeley},
+ MONTH = apr,
+ NUMBER = {ICSI-TR-97-021},
+ YEAR = {1998}
+}
+
+@ARTICLE{Dempster-77, 
+  AUTHOR = {Dempster, A. P. and Laird, N. M. and Rubin, D. B.},
+  TITLE = {{Maximum likelihood from incomplete data via the EM  
+            algorithm}},
+  JOURNAL = jrssb,
+  VOLUME = 39,
+  YEAR = 1977,
+  PAGES = {1-38}
+}
+
+@ARTICLE{Besag-86, 
+  AUTHOR = {Besag, J.},
+  TITLE = {{On the statistical analysis of dirty pictures}},
+  JOURNAL = jrssb,
+  VOLUME = 48,
+  YEAR = 1986,
+  PAGES = {259--302}
+}
+
+
+@ARTICLE{Celeux-85, 
+  AUTHOR = {Celeux, G. and Diebolt, J.},
+  TITLE = {{The SEM Algorithm: a Probabilistic Teacher Algorithm
+  Derived from the EM Algorithm for the Mixture Problem}},
+  JOURNAL = {Computational Statistics Quaterly},
+  VOLUME = 2,
+  PAGES = {73--82},
+  YEAR = 1985
+}
+
+
+@TECHREPORT{Celeux-91,
+  AUTHOR = {Celeux, G. and Govaert, G.},
+  INSTITUTION = inria,
+  TITLE = {{Comparison of the mixture and the 
+            classification maximum likelihood in cluster analysis}},
+  NUMBER = {1517},
+  MONTH = sep,
+  YEAR = 1991
+}
+
+
+@ARTICLE{Celeux-92, 
+  AUTHOR = {Celeux, G. and Govaert, G.},
+  TITLE = {{A classification EM algorithm for clustering and two
+                  stochastic versions}},
+  JOURNAL = {Computational Statistics and Data Analysis},
+  VOLUME = 14,
+  PAGES = {315--332},
+  YEAR = 1992
+}
+
+@TECHREPORT{Celeux-95,
+  AUTHOR = {Celeux, G. and Chauveau, D. and Diebolt, J.},
+  INSTITUTION = inria,
+  TITLE = {{On Stochastic Versions of the EM Algorithm}},
+  NUMBER = {2514},
+  MONTH = mar,
+  YEAR = 1995
+}
+
+
+@TECHREPORT{Celeux-99,
+  AUTHOR = {Celeux, G. and Chr\'etien, S. and Forbes, F. and Mkhadri, A.},
+  INSTITUTION = inria,
+  TITLE = {{A Component-wise EM Algorithm for Mixtures}},
+  NUMBER = {3746},
+  MONTH = aug,
+  YEAR = 1999
+}
+
+@ARTICLE{Celeux-01, 
+  AUTHOR = {Celeux, G. and Chr\'etien, S. and Forbes, F. and Mkhadri, A.},
+  TITLE = {{A Component-wise EM Algorithm for Mixtures}},
+  JOURNAL = jcgs, 
+  VOLUME = 10,
+  PAGES = {699--712},
+  YEAR = 2001
+}
+
+@INPROCEEDINGS{Neal-98,
+ AUTHOR = {Neal, R.M. and Hinton, G.E.},
+ TITLE = {{A view of the EM algorithm that justifies incremental, 
+          sparse, and other variants}},
+ EDITOR = {M.I. Jordan},
+ PAGES = {355-368},
+ PUBLISHER = kluwer,
+ BOOKTITLE = {Learning in Graphical Models},
+ YEAR = {1998}
+}
+
+@article{Neal-01, 
+ author = {Neal, R.M.}, 
+ title = {{Annealed importance sampling}}, 
+ journal = statcomp, 
+ volume = 11,
+ number = 2, 
+ pages = {125--139}, 
+ year = 2001
+}
+
+@article{Hinton-06,
+  title={A fast learning algorithm for deep belief nets},
+  author={Hinton, Geoffrey E and Osindero, Simon and Teh, Yee-Whye},
+  journal={Neural computation},
+  volume={18},
+  number={7},
+  pages={1527--1554},
+  year={2006}
+}
+
+@article{Hinton-02,
+  title={Training products of experts by minimizing contrastive divergence},
+  author={Hinton, Geoffrey E},
+  journal={Neural computation},
+  volume={14},
+  number={8},
+  pages={1771--1800},
+  year={2002}
+}
+
+
+@inproceedings{Larochelle-08,
+  title={{Classification using discriminative restricted Boltzmann machines}},
+  author={Larochelle, Hugo and Bengio, Yoshua},
+  booktitle={Proceedings of the 25th international conference on Machine learning},
+  pages={536--543},
+  year={2008},
+  organization={ACM}
+}
+
+@article{Fischer-14,
+  title={{Training restricted Boltzmann machines: an introduction}},
+  author={Fischer, Asja and Igel, Christian},
+  journal={Pattern Recognition},
+  volume={47},
+  number={1},
+  pages={25--39},
+  year={2014}
+}
+
+
+
+@article{Tierney-86, 
+  title = {{Accurate approximations for posterior moments and marginal densities}}, 
+  author = {Luke Tierney and Joseph B. Kadane}, 
+  journal = jasa, 
+  volume = 81, 
+  number = 393, 
+  pages = {82--86}, 
+  year = 1986
+}
+
+
+@article{Tierney-94, 
+  title = {{Markov Chains for Exploring Posterior Distributions}}, 
+  author = {Luke Tierney}, 
+  journal = anstat, 
+  volume = 22, 
+  number = 4, 
+  pages = {1701--1728}, 
+  year = 1994
+}
+
+@article{Cappe-04, 
+ author = {Capp\'e, O. and Guilin, A. and Marin, J.-M. and Robert, C.P.}, 
+ title = {{Population Monte Carlo}}, 
+ journal = jcgs,
+ volume = 13,
+ number = 4, 
+ pages = {907--929}, 
+ year = 2004
+}
+
+
+@article{Kirkpatrick-84,
+  title={Optimization by simulated annealing: Quantitative studies},
+  author={Kirkpatrick, Scott},
+  journal={Journal of statistical physics},
+  volume={34},
+  number={5-6},
+  pages={975--986},
+  year={1984}
+}
+
+@article{Bucher-88, 
+  author = {Bucher, C. G.}, 
+  title = {{Adaptive sampling -- an iterative fast Monte Carlo
+                  procedure}}, 
+  journal = {Structural Safety}, 
+  volume = 5, 
+  pages = {119--126}, 
+  year = 1988
+}
+
+@article{Andrieu-03, 
+ author = {Andrieu, C. and de Freitas, N. and Doucet, A. and Jordan,
+                  M.I.},  
+ title = {{An introduction to MCMC for machine learning}}, 
+ journal = ml,
+ volume = 50, 
+ pages = {5-43}, 
+ year = 2003
+}
+
+@article{Andrieu-08, 
+ author = {Andrieu, C. and Thoms, J.},  
+ title = {{A tutorial on adaptive MCMC}}, 
+ journal = statcomp, 
+ volume = 18,
+ number = 4,  
+ pages = {343--373}, 
+ year = 2008
+}
+
+@article{DelMoral-06,
+  title={{Sequential Monte Carlo samplers}},
+  author={Del Moral, Pierre and Doucet, Arnaud and Jasra, Ajay},
+  journal=jrssb,
+  volume={68},
+  number={3},
+  pages={411--436},
+  year={2006}
+}
+
+
+@article{Weinstein-90, 
+  title = {{Sequential algorithms for parameter estimation based on
+                  the Kullback-Leibler information measure}}, 
+  author = {E. Weinstein and M. Feder and A.V. Oppenheim, A.V.}, 
+  journal = tassp, 
+  volume = 38, 
+  number = 9, 
+  pages = {1652--1654}, 
+  year = 1990
+}
+
+@inproceedings{Ng-01,
+ title = {{On discriminative vs.~generative classifiers: a comparison
+                  of logistic regression and naive Bayes}},
+ author = {Andrew Y. Ng and Michael I. Jordan},
+ booktitle = nips,
+ pages = {841--848},
+ year = {2001}
+}
+
+@inproceedings{Carbonetto-09, 
+ title = {{A Stochastic approximation method for inference in
+                  probabilistic graphical models}}, 
+ author = {Peter Carbonetto and Matthew King and Firas Hamze},
+ booktitle = nips,
+ pages = {216--224},
+ year = {2009}
+}
+@Comment editor = {Y. Bengio and D. Schuurmans and J. Lafferty and
+@Comment                   C. K. I. Williams and A. Culotta},
+
+
+@inproceedings{Smola-03,
+  title={Laplace Propagation},
+  author={Smola, Alexander J and Vishwanathan, Vishy and Eskin, Eleazar},
+  booktitle=nips,
+  pages={441--448},
+  year={2003}
+}
+
+@inproceedings{Zoeter-04,
+  title={{Improved unscented Kalman smoothing for stock volatility estimation}},
+  author={Zoeter, Onno and Ypma, Alexander and Heskes, Tom},
+  booktitle={14th IEEE Signal Processing Society Workshop},
+  pages={143--152},
+  year={2004},
+  organization={IEEE}
+}
+
+@INPROCEEDINGS{Zoeter-05,
+AUTHOR = {Onno Zoeter and Tom Heskes},
+TITLE = {Gaussian quadrature based expectation propagation},
+BOOKTITLE = {International Workshop on Artificial Intelligence and Statistics},
+EDITOR = {Ghahramani, Z. and Cowell, R.},
+YEAR = {2005},
+PAGES = {445-452},
+PUBLISHER = {Society for Artificial Intelligence and Statistics}
+}
+
+@article{Ypma-05,
+  title={{Novel approximations for inference in nonlinear dynamical systems using expectation propagation}},
+  author={Ypma, Alexander and Heskes, Tom},
+  journal={Neurocomputing},
+  volume={69},
+  number={1},
+  pages={85--99},
+  year={2005}
+}
+
+@inproceedings{Yu-06,
+  title={{Expectation propagation for inference in non-linear dynamical models with Poisson observations}},
+  author={Yu, Byron M and Shenoy, Krishna V and Sahani, Maneesh},
+  booktitle={Nonlinear Statistical Signal Processing Workshop, 2006 IEEE},
+  pages={83--86},
+  year={2006},
+  organization={IEEE}
+}
+
+
+@inproceedings{Li-15,
+  title={Stochastic expectation propagation},
+  author={Li, Yingzhen and Hern{\'a}ndez-Lobato, Jos{\'e} Miguel and Turner, Richard E},
+  booktitle=nips,
+  pages={2314--2322},
+  year={2015}
+}
+
+@article{Dehaene-16,
+  title={Expectation propagation in the large-data limit},
+  author={Dehaene, Guillaume and Barthelm{\'e}, Simon},
+  journal={arXiv preprint arXiv:1503.08060},
+  year={2016}
+}
+
+@article{Dehaene-18,
+  title={Expectation propagation in the large data limit},
+  author={Dehaene, Guillaume and Barthelm{\'e}, Simon},
+  journal=jrssb,
+  volume={80},
+  number={1},
+  pages={199--217},
+  year={2018},
+  publisher={Wiley Online Library}
+}
+
+
+@ARTICLE{Meng-93, 
+  AUTHOR = {Meng, X. L. and Rubin, D. B.},
+  TITLE = {{Maximum likelihood via the ECM algorithm: a general framework}},
+  JOURNAL = {Biometrika},
+  VOLUME = 80,
+  PAGES = {267--278},
+  YEAR = 1993
+}
+
+
+@ARTICLE{Meng-97, 
+  AUTHOR = {Meng, X. L. and van Dyk, D. A.},
+  TITLE = {{The EM Algorithm - An Old Folk Song Sung To A Fast New Tune}},
+  JOURNAL = jrssb,
+  VOLUME = 59,
+  SERIES = {B},
+  PAGES = {511--567},
+  YEAR = 1997
+}
+
+
+@ARTICLE{Meng-99, 
+  AUTHOR = {Meng, X. L. and van Dyk, D. A.},
+  TITLE = {{Seeking efficient data augmentation schemes via
+  conditional and marginal data augmentation}},
+  JOURNAL = {Biometrika},
+  VOLUME = 86,
+  NUMBER = 2,
+  PAGES = {301--320},
+  YEAR = 1999
+}
+
+
+
+@INPROCEEDINGS{vanDyk-00,
+ AUTHOR = {van Dyk, D. A. and Meng, X. L.},
+ TITLE = {{Algorithms based on data augmentation: A graphical
+                  representation and comparison}},
+ EDITOR = {Berk, K. and Pourahmadi, M.},
+ PAGES = {230-239},
+ PUBLISHER = {Interface Foundation of North America},
+ BOOKTITLE = {Computing Science and Statistics: Proceedings of the
+ 31st Symposium on the Interface},
+ YEAR = {2000}
+}
+
+@article{Gelman-98, 
+ author = {Gelman, A. and Meng, X.-L.},
+ title = {{Simulating normalizing constants: From importance sampling
+                  to bridge sampling to path sampling}}, 
+ journal = statsci,
+ volume = 13, 
+ pages = {163--185}, 
+ year = 1998
+}
+
+@article{Skilling-06, 
+ author = {Skilling, John},
+ title = {{Nested sampling for general Bayesian computation}}, 
+ journal = ba,
+ volume = 1,
+ number = 4, 
+ pages = {833--860},
+ year = 2006
+}
+
+
+@ARTICLE{Liu-94,
+  AUTHOR = {Liu, C. and  Rubin, D. B.},
+  TITLE = {{The ECME algorithm: a simple extension of EM and ECM with
+  faster monotone convergence}},
+  JOURNAL = {Biometrika},
+  VOLUME = 81,
+  PAGES = {633--648},
+  YEAR = 1994
+}
+
+
+@unpublished{Liu-03,
+ AUTHOR = {Liu, C.},
+ TITLE = {{An Example of Algorithm Mining: Covariance Adjustment to
+ Accelerate EM and Gibbs}},
+ EDITOR = {Huang, J. and Zhang, H.},
+ BOOKTITLE = {Development of Modern Statistics and
+      Related Topics},
+ NOTE = {To appear in Development of Modern Statistics and Related
+      Topics},
+ YEAR = {2003}
+}
+
+
+@ARTICLE{Liu-98, 
+  AUTHOR = {Liu, C. and Rubin, D. B. and Wu, Y. N.},
+  TITLE = {{Parameter Expansion to Accelerate EM: The PX-EM Algorithm}},
+  JOURNAL = {Biometrika},
+  VOLUME = 85,
+  PAGES = {755--770},
+  YEAR = 1998
+}
+
+@ARTICLE{Liu-99, 
+  AUTHOR = {Liu, J. S. and Wu, Y. N.},
+  TITLE = {{Parameter Expansion for Data Augmentation}},
+  JOURNAL = jasa,
+  VOLUME = 94,
+  PAGES = {1264--1274},
+  YEAR = 1999
+}
+
+
+
+@ARTICLE{Fessler-94, 
+  AUTHOR = {Fessler, J. A. and Hero, A. O.},
+  TITLE = {{Space-Alternating Generalized Expectation-Maximization Algorithm}},
+  JOURNAL = tsp,
+  VOLUME = 42,
+  NUMBER = 10,
+  PAGES = {2664--2677},
+  YEAR = 1994
+}
+
+@ARTICLE{Fessler-95, 
+  AUTHOR = {Fessler, J. A. and Hero, A. O.},
+  TITLE = {{Penalized Maximum-Likelihood Image Reconstruction Using
+  Space-Alternating Generalized EM Algorithms}},
+  JOURNAL = tip,
+  VOLUME = 4,
+  NUMBER = 10,
+  PAGES = {1417--1429},
+  YEAR = 1995
+}
+
+
+@ARTICLE{Chretien-00, 
+  AUTHOR = {Chr\'etien, S. and Hero, A. O.},
+  TITLE = {{Kullback Proximal Algorithms for Maximum Likelihood Estimation}},
+  JOURNAL = tit,
+  VOLUME = 46,
+  NUMBER = 5,
+  PAGES = {1800--1810},
+  YEAR = 2000
+}
+
+
+@ARTICLE{Tanner-87, 
+  AUTHOR = {Tanner, M. A. and Wong, W. H.},
+  TITLE = {{The Calculation of Posterior Distributions by Data Augmentation}},
+  JOURNAL = jasa,
+  VOLUME = 82,
+  PAGES = {528--550},
+  YEAR = 1987
+}
+
+@ARTICLE{Wei-90, 
+  AUTHOR = {Wei, G. and Tanner, M. A},
+  TITLE = {{A Monte Carlo implementation of the EM algorithm and the
+  poor man's data augmentation algorithm}},
+  JOURNAL = jasa,
+  VOLUME = 85,
+  PAGES = {699--704},
+  YEAR = 1990
+}
+
+@article{Delyon-99,
+ title = {{Convergence of a stochastic approximation version of the EM
+                  algorithm}},
+ author = {Delyon, B. and Lavielle, M. and Moulines, E.},
+ pages = {94--128},
+ journal = anstat, 
+ volume = 27,
+ number = 1,
+ year = 1999
+}
+
+
+@unpublished{Kuhn-02,
+ author = {Kuhn, E. and Lavielle, M.},
+ title = {{Coupling a stochastic approximation version of EM with a
+                  MCMC procedure}},
+ year = 2002,
+ note = {Submitted}
+}
+
+
+@article{Louis-82,
+ title = {{Finding the observed information matrix when using the EM
+                  algorithm}},
+ author = {Louis, T. A.},
+ journal = jrssb,
+ volume = 44,
+ series = {B},
+ pages = {226--233},
+ year = 1982
+}
+
+@article{Meilijson-89,
+ title = {{A fast improvement of the EM algorithm on its own terms}},
+ author = {Meilijson, I.},
+ journal = jrssb,
+ volume = 51,
+ series = {B},
+ pages = {127--138},
+ year = 1989
+}
+
+@article{Jamshidian-93,
+ title = {{Conjugate gradient acceleration of the EM algorithm}},
+ author = {Jamshidian, M. and Jennrich, R. I.},
+ journal = jasa,
+ volume = 88,
+ pages = {221--228},
+ year = 1993
+}
+
+@article{Shao-89,
+  title = {{Monte Carlo approximations in Bayesian decision theory}}, 
+  author = {J. Shao}, 
+  journal = jasa, 
+  volume = 84, 
+  number = 407,
+  pages = {727--732}, 
+  year = 1989
+}
+
+@article{Jacobsen-89,
+  title = {{Existence and Unicity of MLEs in Discrete Exponential
+                  Family Distributions}}, 
+  author = {M. Jacobsen}, 
+  journal = {Scandinavian Journal of Statistics}, 
+  volume = 16, 
+  pages = {335--349}, 
+  year = 1989
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Density estimation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@article{Loader-96,
+ title = {Local likelihood density estimation},
+ author = {Loader, C. R.},
+ pages = {1602-1618},
+ journal = anstat, 
+ volume = 24,
+ number = 4,
+ year = 1996
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Approximation theory
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@ARTICLE{Unser-93,
+  AUTHOR = {Unser, M. and Aldroubi, A. and Eden, M.},
+  JOURNAL = tsp,
+  MONTH = feb,
+  NUMBER = {2},
+  PAGES = {821--833},
+  TITLE = {{B-spline signal processing: Part I-theory}},
+  VOLUME = {30},
+  YEAR = {1993},
+}
+
+@ARTICLE{Unser-93b,
+  AUTHOR = {Unser, M. and Aldroubi, A. and Eden, M.},
+  JOURNAL = tsp,
+  MONTH = feb,
+  NUMBER = {2},
+  PAGES = {834--848},
+  TITLE = {{B-spline signal processing: 
+            Part II-efficient design and applications}},
+  VOLUME = {30},
+  YEAR = {1993},
+}
+
+@ARTICLE{Unser-99,
+  AUTHOR = {Unser, M.},
+  JOURNAL = {{IEEE Signal Processing Magazine}},
+  MONTH = nov,
+  NUMBER = {6},
+  PAGES = {22-38},
+  TITLE = {{Splines : a perfect fit for signal/image processing}},
+  VOLUME = {16},
+  YEAR = {1999},
+}
+
+@TECHREPORT{Girosi-93,
+  AUTHOR = {Girosi, F. and Jones, M. and Poggio, T.},
+  INSTITUTION = {M.I.T., A.I. Laboratory},
+  TITLE = {Priors, Stabilizers and Basis Functions: from regularization 
+           to radial, tensor and additive splines},
+  YEAR = {1993},
+  number = "A.I. Memo No 1430",
+  month = "June",
+  }
+
+@ARTICLE{Girosi-95,
+  AUTHOR = {Girosi, F. and Jones, M. and Poggio, T.},
+  JOURNAL = {{Neural Computation}},
+  PAGES = {219--269},
+  TITLE = {{Regularization Theory and Neural Networks Architectures}},
+  VOLUME = {7},
+  YEAR = {1995}
+}
+
+@INPROCEEDINGS{Duchon-77,
+  AUTHOR = {Duchon, J.},
+  BOOKTITLE = {{Constructive Theory of Functions of Several Variables}},
+  PAGES = {85--100},
+  TITLE = {{Spline minimizing rotation-invariant semi-norms in Sobolev
+            spaces}},
+  EDITORS = {Schempp, W. and Keller, Z.},
+  ADDRESS = {Berlin-Heidelberg}, 
+  PUBLISHER = springer, 
+  SERIES = {Lecture Notes in Mathematics}, 
+  YEAR = {1977} 
+}
+
+@INPROCEEDINGS{Schaback-99,
+  AUTHOR = {Schaback, R.},
+  BOOKTITLE = {{New Developments in Approximation Theory}},
+  PAGES = {255--282},
+  TITLE = {{Native Hilbert Spaces for Radial Basis Functions I}},
+  EDITORS = {Muller, M.W. and Buhmann, M.D. and Mache, D.H.},
+  ADDRESS = {Basel}, 
+  PUBLISHER = {Birkhauser Verlag}, 
+  SERIES = {International Series of Numerical Mathematics}, 
+  YEAR = {1999} 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Kalman filtering
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@inproceedings{Julier-97,
+  author = "S. Julier and J. Uhlmann",
+  title = "A new extension of the Kalman filter to nonlinear systems",
+  booktitle = "Int. Symp. Aerospace/Defense Sensing, Simul. and Controls",
+  year = "1997"
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General books
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@BOOK{Saporta-90,
+  AUTHOR = {Saporta, G.},
+  PUBLISHER = {Editions Technip, Paris},
+  TITLE = {{Probabilit\'es, analyse des donn\'ees et statistique}},
+  YEAR = {1990}
+}
+
+@BOOK{Blahut-87,
+  AUTHOR = {Blahut, R. E.},
+  PUBLISHER = {Addison-Wesley Pub. Comp.},
+  TITLE = {Principles and Practice of Information Theory},
+  YEAR = {1987}
+}
+
+@BOOK{Cover-91,
+  AUTHOR = {Cover, T. M. and Thomas, J. A.},
+  PUBLISHER = wiley, 
+  TITLE = {Elements of Information Theory},
+  YEAR = {1991}
+}
+
+@BOOK{Cover-06,
+  AUTHOR = {Cover, T. M. and Thomas, J. A.},
+  PUBLISHER = wiley, 
+  EDITION = {Second},
+  TITLE = {Elements of Information Theory},
+  YEAR = {2006}
+}
+
+
+@BOOK{Papoulis-91,
+  AUTHOR = {Papoulis, A.},
+  EDITION = {Third},
+  PUBLISHER = {McGraw-Hill, Inc.},
+  TITLE = {{Probability, Random Variables, and Stochastic Processes}},
+  YEAR = {1991}
+}
+
+@BOOK{Holland-75,
+  AUTHOR = {Holland, J. H.},
+  PUBLISHER = {University of Michigan Press, Ann Arbor},
+  TITLE = {{Adaptation in Natural and Artificial Systems}},
+  YEAR = {1975}
+}
+
+
+@BOOK{Titterington-85,
+  AUTHOR = {Titterington, D. M. and Smith, A. F. M. and Makov, U. E.},
+  PUBLISHER = wiley, 
+  TITLE = {{Statistical Analysis of Finite Mixture Distributions}},
+  YEAR = {1985}
+}
+
+@book{Nocedal-99,
+  author = {Nocedal, J. and Wright, S.J.},
+  title = {{Numerical Optimization}},
+  publisher = springer,
+  address = {New York},
+  year = 1999
+}
+
+@BOOK{Press-92,
+ AUTHOR = {Press, W. H. and Flannery, B. P. and 
+           Teukolsky, S. A. and Vetterling, W. T.},
+ EDITION = {2nd},
+ PUBLISHER = {Cambrige University Press},
+ TITLE = {{Numerical Recipes in C}},
+ YEAR = {1992}
+}
+
+@BOOK{Lemarechal-89,
+ AUTHOR = {Lemar\'echal, C.},
+ PUBLISHER = inria,
+ TITLE = {{M\'ethodes num\'eriques d'optimisation}},
+ YEAR = {1989}
+}
+
+@BOOK{Wahba-90,
+    Author = {Wahba, Grace},
+    Title = {Spline Models for Observational Data},
+    Year = 1990,
+    Publisher = {Society for Industrial and Applied Mathematics},
+    Pages = {169}
+}
+
+
+@article{Owen-00, 
+  title = {{Safe and effective importance sampling}}, 
+  author = {A. Owen and Y. Zhou}, 
+  journal = jasa, 
+  volume = 95,
+  number = 449, 
+  pages = {135--143}, 
+  year = 2000
+}
+
+@BOOK{Owen-01,
+  title = {{Empirical Likelihood}},
+  publisher = {CRC Press, New York},
+  year = {2001},
+  author = {Art B. Owen}
+}
+
+@BOOK{Good-05,
+  title = {{Permutation, Parametric, and Bootstrap Tests of
+  Hypotheses}},
+  publisher = springer,
+  edition = {3rd}, 
+  year = {2005},
+  author = {Phillip Good}
+}
+
+@BOOK{Bertsekas-99,
+  title = {{Nonlinear Programming}},
+  publisher = {Athena Scientific},
+  edition = {2nd}, 
+  year = {1999},
+  author = {Dimitri P. Bertsekas}
+}
+
+@book{Vapnik-00,
+  title = {{The Nature of Statistical Learning Theory}},
+  author = {Vladimir N. Vapnik},
+  publisher = springer,
+  edition = {2nd}, 
+  year = 2000
+}
+
+@book{Vapnik-98,
+  title = {{Statistical Learning Theory}},
+  author = {Vladimir N. Vapnik},
+  publisher = wiley, 
+  year = 1998
+}
+
+@article{Vapnik-99, 
+  title = {{An Overview of Statistical Learning Theory}},
+  author = {Vladimir N. Vapnik},
+  journal = tnn,  
+  volume = 10, 
+  number = 5, 
+  pages = {988--999}, 
+  year = 1999
+}
+
+
+@inproceedings{Boser-92,
+  title={A training algorithm for optimal margin classifiers},
+  author={Boser, Bernhard E and Guyon, Isabelle M and Vapnik, Vladimir N},
+  booktitle={Proceedings of the fifth annual workshop on Computational learning theory},
+  pages={144--152},
+  year={1992},
+  organization={ACM}
+}
+
+@article{Bernardo-96,
+  author = {Bernardo, Jose  M. },
+  booktitle = {Bhattacharya Memorial Volume},
+  citeulike-article-id = {823278},
+  journal = {Far East J. Math. Sci.},
+  volume = {4}, 
+  pages = {111--121},
+  title = {The Concept of Exchangeability and its Applications},
+  year = {1996}
+}
+
+@article{Bernardo-98,
+ author = {Bernardo, Jose  M.  and Ram\'on, Jose  M. },
+ title = {An Introduction to Bayesian Reference Analysis: Inference on
+                  the Ratio of Multinomial Parameters},
+ journal = jrssb, 
+ volume = {47},
+ pages = {101--135}, 
+ year = {1998}
+}
+
+@article{Yuan-99,
+  author = {Yuan, A. and Clarke, B.},
+  title = {A minimally informative likelihood for decision analysis:
+                  illustration and robustness},
+  year = {1999},
+  journal = {The Canadian Journal of Statistics},
+  volume = {27},
+  number = {3}, 
+  pages = {649--665}
+}
+
+@article{Yuan-99b,
+  author = {Yuan, A. and Clarke, B.},
+  title = {An Information Criterion for Likelihood Selection},
+  year = {1999},
+  journal = tit,
+  volume = {45},
+  number = {2}, 
+  pages = {562--571}
+}
+
+@inproceedings{Globerson-04,
+  title={The minimum information principle for discriminative learning},
+  author={Globerson, Amir and Tishby, Naftali},
+  booktitle={Uncertainty in Artificial Intelligence},
+  pages={193--200},
+  year={2004},
+  organization={AUAI Press}
+}
+
+@incollection{Jaynes-88,
+   title={{The relation of Bayesian and maximum entropy methods}},
+   author={Jaynes, E.T.},
+   booktitle={Maximum-entropy and Bayesian methods in science and engineering},
+   pages={25--29},
+   year={1988},
+   publisher=springer
+ }
+
+@book{Jaynes-03,
+ author={E.T. Jaynes},
+ title={Probability Theory - The Logic of Science},
+ publisher={Cambridge University Press},
+ year={2003},
+ address={Cambridge}
+}
+
+@article{White-82,
+  title={Maximum likelihood estimation of misspecified models},
+  author={White, Halbert},
+  journal={Econometrica},
+  volume = 50,
+  number = 1,
+  pages={1--25},
+  year={1982}
+}
+
+@article{Walker-13,
+  title={Bayesian inference with misspecified models},
+  author={Walker, Stephen G},
+  journal=jspi,
+  volume={143},
+  number={10},
+  pages={1621--1633},
+  year={2013}
+}
+
+@article{Varin-05,
+  title={A note on composite likelihood inference and model selection},
+  author={Varin, Cristiano and Vidoni, Paolo},
+  journal={Biometrika},
+  volume={92},
+  number={3},
+  pages={519--528},
+  year={2005},
+  publisher={Biometrika Trust}
+}
+
+@article{Varin-11,
+  title={An overview of composite likelihood methods},
+  author={Varin, Cristiano and Reid, Nancy and Firth, David},
+  journal=statsin,
+  volume={21},
+  number={1},
+  pages={5--42},
+  year={2011}
+}
+
+@article{Mueller-13,
+  title={{Risk of Bayesian inference in misspecified models, and the
+                  sandwich covariance matrix}},
+  author={M{\"u}ller, Ulrich K},
+  journal={Econometrica},
+  volume={81},
+  number={5},
+  pages={1805--1849},
+  year={2013},
+  publisher={Wiley Online Library}
+}
+
+@article{Pauli-11,
+  title={{Bayesian composite marginal likelihoods}},
+  author={Pauli, Francesco and Racugno, Walter and Ventura, Laura},
+  journal=statsin,
+  volume={21},
+  pages={149--164},
+  year={2011}
+}
+
+@article{Ribatet-12,
+  title={{Bayesian inference from composite likelihoods, with an application to spatial extremes}},
+  author={Ribatet, Mathieu and Cooley, Daniel and Davison, Anthony C.},
+  journal=statsin,
+  volume={22},
+  pages={813--845},
+  year={2012}
+}
+
+@article{Wang-14,
+  title={Theoretical properties of composite likelihood},
+  author={Wang, Xiaogang and Wu, Yuehua},
+  journal={Open Journal of Statistics},
+  volume=4,
+  pages={188--197},
+  year={2014}
+}
+
+@article{Xu-11,
+  title={On the robustness of maximum composite likelihood estimate},
+  author={Xu, Ximing and Reid, Nancy},
+  journal=jspi,
+  volume={141},
+  number={9},
+  pages={3047--3054},
+  year={2011},
+  publisher={Elsevier}
+}
+
+
+@article{Akaike-74,
+  title={A new look at the statistical model identification},
+  author={Akaike, Hirotugu},
+  journal={Automatic Control, IEEE Transactions on},
+  volume={19},
+  number={6},
+  pages={716--723},
+  year={1974},
+  publisher={IEEE}
+}
+
+@inproceedings{Grunwald-99, 
+ author = {P.D. Gr\"unwald}, 
+ title = {{Viewing all models as 'probabilistic'}}, 
+ booktitle = {Proc. Computational Learning Theory}, 
+ pages = {171--182}, 
+ address = {Santa Cruz, CA, USA},
+ year = 1999
+}
+
+
+@ARTICLE{Grunwald-04,
+  author = {P.D. Gr\"unwald and A.P. Dawid},
+  title = {{Game theory, maximum entropy, minimum discrepancy and
+                  robust Bayesian decision theory}},
+  journal = anstat, 
+  volume = {32},
+  pages = {1367--1433},
+  year = {2004}
+}
+
+@book{Grunwald-07, 
+ author = {P.D. Gr\"unwald}, 
+ title = {{The Minimum Description Length Principle}}, 
+ year = 2007, 
+ publisher = {MIT Press}
+}
+
+@inproceedings{Grunwald-08, 
+ author = {P.D. Gr\"unwald}, 
+ title = {{That Simple Device Already Used By Gauss}}, 
+ booktitle = {Festschrift in Honor of Jorma Rissanen on the Occasion
+                  of his 75th Birthday}, 
+ publisher = {Tampere University Press}, 
+ year = 2008
+}
+
+@article{Hannig-06, 
+  author = {Hannig, J. and Iyer, H. and Patterson, P.}, 
+  title = {Fiducial generalized confidence intervals}, 
+  journal = jasa, 
+  volume = 101, 
+  number = 473, 
+  pages = {254--269}, 
+  year = 2006
+}
+
+
+@article{Gunawardana-05,
+  author = {A. Gunawardana and W. Byrne},
+  title = {{Convergence Theorems for Generalized Alternating
+                  Minimization Procedures}},
+  journal = {Journal of Machine Learning Research},
+  volume = 6,
+  pages = {2049--2073},
+  year = 2005
+}
+
+
+@article{Csiszar-84, 
+ author = {I. Csisz\'ar and G. Tusn\'ady}, 
+ title = {{Information Geometry and Alternating Minimization
+                  Procedures}},
+ journal = {Statistics \& Decisions},
+ note = {Supplement Issue},
+ volume = 1, 
+ pages = {205--237},
+ year = 1984
+}
+
+ 
+
+@book{Csiszar-04, 
+ author = {Imre Csisz\'ar and Paul C. Shields}, 
+ title = {{Information Theory and Statistics: A Tutorial}}, 
+ year = 2004, 
+ publisher = {now Publishers Inc.}, 
+ series = {Foundations and Trends in Communications and Information
+                  Theory}
+}
+ 
+@book{Amari-00, 
+ author = {Shun-ichi Amari and Hiroshi Nagaoka}, 
+ title = {{Methods of Information Geometry}}, 
+ year = 2000, 
+ publisher = {Oxford University Press}, 
+ volume = 191, 
+ series = {Translations of Mathematical Monographs}
+}
+
+@book{Berger-85, 
+  author = {James O. Berger}, 
+  title = {{Statistical Decision Theory and Bayesian Analysis}}, 
+  year = 1985, 
+  edition = {2nd}, 
+  publisher = {Springer Series in Statistics}
+}
+
+@article{Berger-99,
+  title={Integrated likelihood methods for eliminating nuisance
+                  parameters},
+  author={Berger, James O and Liseo, Brunero and Wolpert, Robert L},
+  journal=statsci,
+  volume={14},
+  number={1},
+  pages={1--28},
+  year = 1999
+}
+
+@book{Robert-07, 
+  author = {Christian P. Robert}, 
+  title = {{The Bayesian choice: from decision-theoretic foundations
+                  to computational implementation}},
+  year = 2007, 
+  edition = {2nd}, 
+  publisher = {Springer Texts in Statistics}
+}
+
+@unpublished{Fieller-05,
+ AUTHOR = {Fieller, N.},
+ TITLE = {{Statistical Modelling and Computing}},
+ INSTITUTION = {University of Sheffield},
+ NOTE = {Lecture notes published on the web},
+ URL = {http://www.nickfieller.staff.shef.ac.uk/sheff-only/StatModall05.pdf},
+ YEAR = {2005}
+}
+
+
+@INPROCEEDINGS{Escobar-98,
+ AUTHOR = {M.D. Escobar and M. West},
+ ADDRESS = {New York},
+ BOOKTITLE = {{Practical Nonparametric and Semiparametric Bayesian
+Statistics}},
+ MONTH = aug,
+ TITLE = {{Computing Bayesian Nonparametric Hierarchical Models}},
+ PAGES = {1--22},
+ PUBLISHER = springer, 
+ YEAR = {1998}
+}
+
+
+@ARTICLE{Laird-82,
+  author = {N. M. Laird and J. H. Ware},
+  title = {{Random-Effects Models for Longitudinal Data}},
+  journal = {Biometrics},
+  volume = {38},
+  number = {4},
+  pages = {963--974},
+  year = {1982}
+}
+
+@article{BergerA-96,
+    author = "Adam L. Berger and Stephen Della Pietra and Vincent
+    J. Della Pietra",
+    title = "A Maximum Entropy Approach to Natural Language Processing",
+    journal = "Computational Linguistics",
+    volume = "22",
+    number = "1",
+    pages = "39-71",
+    year = "1996"
+}
+
+@book{Bishop-06, 
+ author = {Bishop, C.M.}, 
+ title = {{Pattern Recognition and Machine Intelligence}}, 
+ publisher = springer, 
+ year = 2006
+}
+
+@book{Rasmussen-06, 
+ author = {Rasmussen, C.E. and Williams, C.K.I.}, 
+ title = {{Gaussian processes for machine learning}},
+ publisher = {MIT Press}, 
+ year = 2006
+}
+
+
+@inproceedings{Minka-01,
+  author    = {Thomas P. Minka},
+  title     = {{Expectation Propagation for approximate Bayesian inference}},
+  booktitle = {Uncertainty in Artificial Intelligence},
+  publisher = {Morgan Kaufmann},
+  year      = {2001},
+  pages     = {362-369}
+}
+
+@techreport{Minka-00, 
+  author    = {Thomas P. Minka},
+  title = {{Deriving quadrature rules from Gaussian processes}}, 
+  institution = {Statistics Department, Carnegie Mellon University}, 
+  year = 2000
+}
+
+@techreport{Minka-05, 
+ AUTHOR = {Thomas P. Minka},
+ TITLE = {{Divergence measures and message passing}},
+ INSTITUTION = {Microsoft Research Ltd.}, 
+ address = {Cambridge, UK}, 
+ number = {MSR-TR-2005-173}, 
+ year = 2005
+}
+
+@techreport{Minka-04,
+  title={{Exemplar-based likelihoods using the PDF projection
+                  theorem}},
+  author    = {Thomas P. Minka},
+  institution = {Microsoft Research Ltd.}, 
+  number = {MSR-TR-2004-148}, 
+  address = {Cambridge, UK}, 
+  year={2004}
+}
+
+@techreport{Minka-04b,
+  title={{Power EP}},
+  author    = {Thomas P. Minka},
+  institution = {Microsoft Research Ltd.}, 
+  number = {MSR-TR-2004-149}, 
+  address = {Cambridge, UK}, 
+  year={2004}
+}
+
+@inproceedings{Knowles-11,
+  title={{Non-conjugate variational message passing for multinomial
+                  and binary regression}},
+  author={Knowles, David A and Minka, Tom},
+  booktitle = nips,
+  pages={1701--1709},
+  year={2011}
+}
+
+
+@article{Vehtari-14,
+  title={Expectation propagation as a way of life: A framework for Bayesian inference on partitioned data},
+  author={Vehtari, Aki and Gelman, Andrew and Sivula, Tuomas and Jyl{\"a}nki, Pasi and Tran, Dustin and Sahai, Swupnil and Blomstedt, Paul and Cunningham, John P and Schiminovich, David and Robert, Christian},
+  journal={arXiv preprint arXiv:1412.4869},
+  year={2014}
+}
+
+
+@article{DeBoer-05, 
+  author = {De Boer, P.-T. and Kroese, D.P and Mannor, S. and
+                  Rubinstein, R.Y.},  
+  title = {A Tutorial on the Cross-Entropy Method},
+  journal = {Annals of Operations Research}, 
+  volume = 134, 
+  number = 1, 
+  pages = {19--67}, 
+  year = 2005
+}
+
+@inproceedings{Beal-03,
+ AUTHOR = {Matthew J. Beal and Zoubin Ghahramani},
+ TITLE = {{The variational Bayesian EM algorithm for incomplete
+                  data: with application to scoring graphical model
+                  structures}},
+ YEAR = 2003,
+ BOOKTITLE = {Bayesian Statistics 7},
+ PUBLISHER = {Oxford University Press}
+}
+@Comment EDITOR = {J.M. Bernardo and M.J. Bayarri and J.O. Berger and
+@Comment                  A.P. Dawid and D. Heckerman and A.F.M. Smith and
+@Comment                  M. West},
+
+
+@INPROCEEDINGS{Rasmussen-03, 
+ author = {Carl Edward Rasmussen and Zoubin Ghahramani},
+ title = {{Bayesian Monte Carlo}},
+ booktitle = nips,
+ year = {2003},
+ pages = {489--496},
+ publisher = {MIT Press}
+}
+
+
+@article{Metropolis-87, 
+  author = {Nicolas Metropolis}, 
+  title = {{The beginning of the Monte Carlo method}}, 
+  journal = {Los Alamos Science}, 
+  volume = 15, 
+  pages = {125--130}, 
+  note = {Special Issue}, 
+  year = 1987
+}
+
+@article{OHagan-87, 
+  author = {O'Hagan, A.},
+  title = {{Monte Carlo is fundamentally unsound}}, 
+  journal = {The Statistician}, 
+  volume = 36, 
+  pages = {247--249}, 
+  year = 1987
+}
+
+@article{OHagan-91,
+  author = {O'Hagan, A.}, 
+  title = {{Bayes-Hermite quadrature}}, 
+  journal = jspi, 
+  volume = 29, 
+  pages = {245--260}, 
+  year = 1991
+}
+
+@article{Kennedy-98, 
+  author = {Kennedy, M.}, 
+  title = {Bayesian quadrature with non-normal approximating functions}, 
+  journal = statcomp, 
+  volume = 8, 
+  number = 4, 
+  pages = {365--375},  
+  year = 1998
+}
+
+
+@article{Besag-74,
+  author = {Besag, Julian},
+  title = {Spatial Interaction and the Statistical Analysis of Lattice
+                  Systems},
+  doi = {10.2307/2984812},
+  journal = jrssb,
+  number = {2},
+  pages = {192--236},
+  volume = {36},
+  year = {1974}
+}
+
+
+@ARTICLE{Weiss-01,
+  author = {Weiss, Y. and Freeman, W.T.}, 
+  title = {On the optimality of solutions of the max-product
+                  belief-propagation algorithm in arbitrary graphs},
+  journal = tit,
+  year = 2001,
+  volume = 47, 
+  number = 2, 
+  pages = {723--735}
+}
+
+@inbook{Weiss-01b,
+ author = {Weiss, Y.},
+ chapter = {{Comparing the mean field method and belief propagation for
+                  approximate inference in MRFs}}, 
+ title = {Advanced Mean Field Methods}, 
+ publisher = {MIT Press}, 
+ pages = {229--239}, 
+ year = 2001
+}
+% editor = {Saad and Opper}, 
+
+
+@ARTICLE{Baggenstoss-03,
+  AUTHOR = {Baggenstoss, P.M.},
+  TITLE = {{The PDF projection theorem and the class-specific method}},
+  JOURNAL = tsp,
+  VOLUME = 51,
+  NUMBER = 3,
+  PAGES = {672--685},
+  YEAR = 2003
+}
+
+
+@ARTICLE{Baggenstoss-15,
+  author={Baggenstoss, P.M.},
+  journal=tsp,
+  title={{Maximum entropy PDF design using feature density constraints: applications in signal processing}},
+  year={2015},
+  volume={63},
+  number={11},
+  pages={2815-2825},
+  doi={10.1109/TSP.2015.2419189},
+  ISSN={1053-587X}
+}
+
+
+@inproceedings{Bezdek-02, 
+  author = {James C. Bezdek and Richard J. Hathaway}, 
+  title = {{Some Notes on Alternating Optimization}}, 
+  booktitle = {Advances in Soft Computing -- AFSS International
+                  Conference on Fuzzy Systems},
+  pages = {288--300},  
+  series = lncs, 
+  volume = 2275, 
+  year = 2002
+}
+
+@BOOK{Rousseeuw-87,
+ AUTHOR = {Rousseeuw, Peter J. and Leroy, Annick M.},
+ EDITION = {First},
+ PUBLISHER = {Wiley Series In Probability And Mathematical Statistics},
+ TITLE = {{Robust Regression and Outlier Detection}},
+ YEAR = {1987}
+}
+
+@MISC{Bell-11,
+     author = "Bell, W. N. and Olson, L. N. and Schroder, J. B.",
+     title = "{PyAMG}: Algebraic Multigrid Solvers in {Python} v2.0",
+     year = "2011",
+     url = "http://www.pyamg.org",
+     note = "Release 2.0"
+}
+
+
+@article{Yates-84,
+ title = {{Tests of Significance for $2\times 2$ Contingency Tables}},
+ author = {Yates, F.},
+ journal = jrssa,
+ volume = {147},
+ number = {3},
+ pages = {426--463},
+ ISSN = {00359238},
+ year = {1984}
+}
+
+@article{Gerstner-98,
+  title={Numerical integration using sparse grids},
+  author={Gerstner, Thomas and Griebel, Michael},
+  journal={Numerical algorithms},
+  volume={18},
+  number={3-4},
+  pages={209--232},
+  year={1998},
+  publisher=springer,
+}
+
+
+@article{Julier-00,
+  title={A new method for the nonlinear transformation of means and covariances in filters and estimators},
+  author={Julier, S.J. and Uhlmann, J.K.},
+  journal={IEEE Transactions on Automatic Control},
+  volume={45},
+  number={3},
+  pages={477--478},
+  year={2000}
+}
+
+@inproceedings{Julier-02,
+  title={The scaled unscented transformation},
+  author={Julier, Simon J},
+  booktitle={American Control Conference},
+  volume={6},
+  pages={4555--4559},
+  year={2002},
+  organization={IEEE}
+}
+
+@article{Julier-04,
+  title={Unscented filtering and nonlinear estimation},
+  author={Julier, Simon J and Uhlmann, Jeffrey K},
+  journal={Proceedings of the IEEE},
+  volume={92},
+  number={3},
+  pages={401--422},
+  year={2004},
+  publisher={IEEE}
+}
+
+@article{Girolami-11,
+  title={{Riemann manifold Langevin and Hamiltonian Monte Carlo methods}},
+  author={Girolami, Mark and Calderhead, Ben},
+  journal=jrssb,
+  volume={73},
+  number={2},
+  pages={123--214},
+  year={2011},
+  publisher={Wiley Online Library}
+}
+
+@article{Jordan-99,
+  title={An introduction to variational methods for graphical models},
+  author={Jordan, Michael I and Ghahramani, Zoubin and Jaakkola, Tommi
+                  S and Saul, Lawrence K},
+  journal=ml,
+  volume={37},
+  number={2},
+  pages={183--233},
+  year={1999},
+  publisher=springer
+}
+
+@article{Opper-09,
+  title={{The variational Gaussian approximation revisited}},
+  author={Opper, Manfred and Archambeau, C{\'e}dric},
+  journal={Neural computation},
+  volume={21},
+  number={3},
+  pages={786--792},
+  year={2009},
+  publisher={MIT Press}
+}
+
+@article{Ormerod-12,
+  title={{Gaussian variational approximate inference for generalized
+                  linear mixed models}},
+  author={Ormerod, JT and Wand, MP},
+  journal=jcgs,
+  volume={21},
+  number={1},
+  pages={2--17},
+  year={2012}
+}
+
+@article{Hall-11,
+  title={{Theory of Gaussian variational approximation for a Poisson
+                  mixed model}},
+  author={Hall, Peter and Ormerod, JT and Wand, MP},
+  journal = statsin,
+  volume = 21,
+  pages = {369--389},
+  year={2011}
+}
+
+@article{Seeger-10,
+  title={{Variational Bayesian inference techniques}},
+  author={Seeger, Matthias W and Wipf, David P},
+  journal={Signal Processing Magazine, IEEE},
+  volume={27},
+  number={6},
+  pages={81--91},
+  year={2010},
+  publisher={IEEE}
+}
+
+@article{Mackay-98,
+  title={Choice of basis for Laplace approximation},
+  author={MacKay, David JC},
+  journal=ml,
+  volume={33},
+  number={1},
+  pages={77--86},
+  year={1998},
+  publisher=springer
+}
+
+@misc{Bache-13,
+author = "K. Bache and M. Lichman",
+year = "2013",
+title = "{UCI} Machine Learning Repository",
+url = "http://archive.ics.uci.edu/ml",
+institution = "University of California, Irvine, School of Information
+                  and Computer Sciences"
+}
+
+@inproceedings{Bottou-08,
+  author = {Bottou, L\'{e}on and Bousquet, Olivier},
+  title = {The Tradeoffs of Large Scale Learning},
+  booktitle = nips,
+  pages = {161--168},
+  year = {2008}
+}
+@Comment publisher = {NIPS Foundation (http://books.nips.cc)},
+@Comment editor = {Platt, J.C. and Koller, D. and Singer, Y. and Roweis, S.},
+@Comment url = {http://leon.bottou.org/papers/bottou-bousquet-2008},
+
+@incollection{Bottou-10,
+  title={Large-scale machine learning with stochastic gradient descent},
+  author={Bottou, L{\'e}on},
+  booktitle={Proceedings of COMPSTAT'2010},
+  pages={177--186},
+  year={2010},
+  publisher=springer
+}
+
+@article{Ertekin-11,
+  title={Nonconvex online support vector machines},
+  author={Ertekin, Seyda and Bottou, L{\'e}on and Giles, C Lee},
+  journal=tpami,
+  volume={33},
+  number={2},
+  pages={368--381},
+  year={2011}
+}
+
+@article{Little-07,
+  title={Exploiting nonlinear recurrence and fractal scaling properties for voice disorder detection},
+  author={Little, Max A and McSharry, Patrick E and Roberts, Stephen J and Costello, Declan AE and Moroz, Irene M},
+  journal={BioMedical Engineering OnLine},
+  volume={6},
+  number={1},
+  pages={23},
+  year={2007},
+  publisher={BioMed Central Ltd}
+}
+
+
+@inproceedings{Jaakkola-97,
+  title={{A variational approach to Bayesian logistic regression models
+                  and their extensions}},
+  author={Jaakkola, T and Jordan, M},
+  booktitle={Sixth International Workshop on Artificial Intelligence
+                  and Statistics},
+  year={1997}
+}
+
+
+
+%% Bayesian Brain
+@article{Ma-06,
+  title={Bayesian inference with probabilistic population codes},
+  author={Ma, Wei Ji and Beck, Jeffrey M and Latham, Peter E and Pouget, Alexandre},
+  journal={Nature neuroscience},
+  volume={9},
+  number={11},
+  pages={1432--1438},
+  year={2006}
+}
+
+@article{Knill-04,
+  title={{The Bayesian brain: the role of uncertainty in neural coding and computation}},
+  author={Knill, David C and Pouget, Alexandre},
+  journal={TRENDS in Neurosciences},
+  volume={27},
+  number={12},
+  pages={712--719},
+  year={2004}
+}
+
+@article{Rao-04,
+  title={Bayesian computation in recurrent neural circuits},
+  author={Rao, Rajesh PN},
+  journal={Neural computation},
+  volume={16},
+  number={1},
+  pages={1--38},
+  year={2004}
+}
+
+@article{Friston-06,
+  title={A free energy principle for the brain},
+  author={Friston, Karl and Kilner, James and Harrison, Lee},
+  journal={Journal of Physiology-Paris},
+  volume={100},
+  number={1},
+  pages={70--87},
+  year={2006}
+}
+
+@article{Buesing-11,
+  title={Neural dynamics as sampling: A model for stochastic computation in recurrent networks of spiking neurons},
+  author={Buesing, Lars and Bill, Johannes and Nessler, Bernhard and Maass, Wolfgang},
+  journal={PLoS computational biology},
+  volume={7},
+  number={11},
+  pages={e1002211},
+  year={2011}
+}
+
+@inproceedings{Pandey-13,
+  title={Minimum description length principle for maximum entropy model selection},
+  author={Pandey, Gaurav and Dukkipati, Ambedkar},
+  booktitle={Information Theory Proceedings (ISIT), 2013 IEEE International Symposium on},
+  pages={1521--1525},
+  year={2013},
+  organization={IEEE}
+}
+
+
+@inproceedings{Bostanci-13,
+  title={{An evaluation of classification algorithms using Mc Nemar's test}},
+  author={Bostanci, Betul and Bostanci, Erkan},
+  booktitle={Proceedings of Seventh International Conference on
+                  Bio-Inspired Computing: Theories and Applications
+                  (BIC-TA 2012)},
+  pages={15--26},
+  year={2013},
+  organization=springer
+}
+
+
+@article{Eisinga-13,
+  title={{The reliability of a two-item scale: Pearson, Cronbach, or
+                  Spearman-Brown?}},
+  author={Eisinga, Rob and Te Grotenhuis, Manfred and Pelzer, Ben},
+  journal={International Journal of Public Health},
+  volume={58},
+  number={4},
+  pages={637--642},
+  year={2013},
+  publisher=springer
+}
+
+
+
+@manual{Bates-12,
+ title = {lme4: Linear mixed-effects models using S4 classes},
+ author = {Douglas Bates and Martin Maechler and Ben Bolker},
+ year = {2012},
+ note = {R package version 0.999999-0},
+ url = {http://CRAN.R-project.org/package=lme4}
+ }
+
+@article{Tarantola-82,
+  title={Inverse problems = quest for information},
+  author={Tarantola, Albert and Valette, Bernard},
+  journal={Journal of Geophysics},
+  volume={50},
+  number={3},
+  pages={150--170},
+  year={1982}
+}
+
+@article{Genest-86,
+  title={Combining probability distributions: A critique and an
+                  annotated bibliography},
+  author={Genest, Christian and Zidek, James V},
+  journal={Statistical Science},
+  volume=1,
+  number=1,
+  pages={114--135},
+  year={1986}
+}
+
+@article{Genest-86b,
+  title={{Characterization of externally Bayesian pooling operators}},
+  author={Genest, Christian and McConway, Kevin J and Schervish, Mark J},
+  journal=anstat,
+  pages={487--501},
+  volume=14,
+  number=2,
+  year={1986}
+}
+
+@inproceedings{Garg-04,
+  title={Generalized Opinion Pooling},
+  author={Garg, Ashutosh and Jayram, TS and Vaithyanathan, Shivakumar
+                  and Zhu, Huaiyu},
+  booktitle={8th International Symposium on Artificial Intelligence
+                  and Mathematics},
+  pages = {79--86},
+  year={2004}
+}
+
+@article{Allard-12,
+  title={{Probability aggregation methods in Geoscience}},
+  author={Allard, D and Comunian, A and Renard, P},
+  journal={Mathematical Geosciences},
+  volume={44},
+  number={5},
+  pages={545--581},
+  year={2012},
+  publisher={Springer}
+}
+
+@article{Freund-97,
+  title={A decision-theoretic generalization of on-line learning and an application to boosting},
+  author={Freund, Yoav and Schapire, Robert E},
+  journal={Journal of computer and system sciences},
+  volume={55},
+  number={1},
+  pages={119--139},
+  year={1997}
+}
+
+@inproceedings{Tishby-99,
+  title={The information bottleneck method},
+  author={Tishby, Naftali and Pereira, Fernando C and Bialek, William},
+  booktitle={37th annual Allerton Conference on Communication, Control, and Computing},
+  pages={368--377},
+  year={1999}
+}
+
+
+@book{Goodfellow-16,
+  title={Deep learning},
+  author={Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron and Bengio, Yoshua},
+  volume={1},
+  year={2016},
+  publisher={MIT press Cambridge}
+}
+
+@article{Lecun-15,
+  title={Deep learning},
+  author={LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey},
+  journal={Nature},
+  volume={521},
+  number={7553},
+  pages={436},
+  year={2015},
+  publisher={Nature Publishing Group}
+}
+
+@inproceedings{Ho-95,
+  title={Random decision forests},
+  author={Ho, Tin Kam},
+  booktitle={Document analysis and recognition, 1995., proceedings of the third international conference on},
+  volume={1},
+  pages={278--282},
+  year={1995},
+  organization={IEEE}
+}
+
+
+@book{Molnar-18,
+  title = {Interpretable Machine Learning},
+  author = {Christoph Molnar},
+  publisher = {https://christophm.github.io/interpretable-ml-book},
+  url = {https://christophm.github.io/interpretable-ml-book},
+  year = {2018}
+}
+
+
+@article{Benjamini-10,
+  title={Simultaneous and selective inference: Current successes and future challenges},
+  author={Benjamini, Yoav},
+  journal={Biometrical Journal},
+  volume={52},
+  number={6},
+  pages={708--721},
+  year={2010},
+  publisher={Wiley Online Library}
+}
+
+@article{Byrd-95,
+  title={A limited memory algorithm for bound constrained optimization},
+  author={Byrd, Richard H and Lu, Peihuang and Nocedal, Jorge and Zhu, Ciyou},
+  journal={SIAM Journal on Scientific Computing},
+  volume={16},
+  number={5},
+  pages={1190--1208},
+  year={1995},
+  publisher={SIAM}
+}
+
+
+@article{Peng-05,
+  title={Feature selection based on mutual information criteria of max-dependency, max-relevance, and min-redundancy},
+  author={Peng, Hanchuan and Long, Fuhui and Ding, Chris},
+  journal=tpami,
+  volume={27},
+  number={8},
+  pages={1226--1238},
+  year={2005},
+  publisher={IEEE}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Datasets
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@article{Wolberg-94,
+  title={Machine learning techniques to diagnose breast cancer from image-processed nuclear features of fine needle aspirates},
+  author={Wolberg, William H and Street, W Nick and Mangasarian, OL},
+  journal={Cancer letters},
+  volume={77},
+  number={2-3},
+  pages={163--171},
+  year={1994},
+  publisher={Elsevier},
+  note={\url{archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+(diagnostic)}}
+}
+
+@inproceedings{Street-93,
+  title={Nuclear feature extraction for breast tumor diagnosis},
+  author={Street, W Nick and Wolberg, William H and Mangasarian, Olvi L},
+  booktitle={Biomedical image processing and biomedical visualization},
+  volume={1905},
+  pages={861--871},
+  year={1993},
+  organization={International Society for Optics and Photonics},
+  url={http://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+(diagnostic)}
+}
+
+@techreport{Aeberhard-92,
+  title={The classification performance of {RDA}},
+  author={Aeberhard, Stefan and Coomans, Danny and de Vel, Olivier},
+  institution={James Cook University of North Queensland},
+  pages={92--01},
+  year={1992},
+  note = {\url{archive.ics.uci.edu/ml/datasets/wine}}
+}

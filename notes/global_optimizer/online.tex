@@ -1,0 +1,941 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,subfigure}
+
+\def\x{\mathbf{x}}
+\def\th{{\boldsymbol{\theta}}}
+\def\n{{\boldsymbol{\nu}}}
+\def\u{\mathbf{u}}
+\def\m{\mathbf{m}}
+\def\v{\mathbf{v}}
+\def\f{\mathbf{f}}
+\def\E{\mathbb{E}}
+\def\g{\mathbf{g}}
+\def\h{\mathbf{h}}
+\def\A{\mathbf{A}}
+\def\B{\mathbf{B}}
+
+\title{Online variational sampling} 
+\author{Alexis Roche} 
+%\date{} 
+
+\begin{document}
+
+\maketitle      
+
+\section{Basic algorithm}
+
+Given a factor~$f(\x)$, we aim to minimize the local KL divergence $D(wf\|wg_\theta)$, where $w(\x)$ is a known distribution and $g_\th(\x)=\exp[\th^\top \phi(\x)]$ is a parametric distribution to be determined. Instead of a plain variational sampling implementation, consider the following iteration (which defines a Markov chain if I am not mistaken). Start with initial guesses~$\th_0$ and $\u_0$, then:
+\begin{eqnarray*}
+\x_n & \sim & w(\x),\\
+\u_{n+1} & = & (1-\beta)\u_n + \beta [g_{\th_n} (\x_n) - f(\x_n)] \phi(\x_n),\\
+\th_{n+1} & = & \th_n - \gamma_n \u_{n+1},
+\end{eqnarray*}
+where $0\leq \beta\leq 1$ and $\gamma_n$ satisfies the Robbins-Monro condition, therefore we can hope as a general property of stochastic approximation algorithms that $\th_n$ converges to a fixed value~$\th_\star$ such that $\E(\u_n) = 0$. Now, from the second update rule, this condition implies:
+$$
+\E \left\{[g_{\th_\star} (\x_n) - f(\x_n)] \phi(\x_n) \right\}= 0,
+$$ 
+but, since $\x_n$ is distributed like $w(\x)$ by construction, this means:
+$$
+\int w(\x) [g_\th (\x) - f(\x)] \phi(\x) d\x = 0.
+$$
+
+This is exactly the first-order KL minimality condition. So, IF convergence occurs, the limit~$\th_\star$ is necessarily the KL minimizer, which is unique since the KL divergence is convex:
+$$
+\th_\star = \arg\min_\theta D(wf\|wg_\th). 
+$$
+
+In fact, we see that~$\u_n$ is an online estimate of the KL divergence gradient using an exponentially weighted average, which may be thought as roughly computing the average of the latest $1/\beta$ values. The smaller~$\beta$, the more stable this estimate but the slower it reaches steady state.
+
+\section{Alternative formulation}
+
+Rather than saying that we fit the factor~$f(\x)$, we may say that we fit a target distribution $p(\x)$ with an exponential family distribution~$q_\th(\x)$. The above iteration may then be rewritten as follows:
+\begin{eqnarray*}
+\x_n & \sim & w(\x),\\
+\u_{n+1} & = & (1-\beta)\u_n + \beta \frac{q_{\th_n} (\x_n) - p(\x_n)}{w(\x)} \phi(\x_n),\\
+\th_{n+1} & = & \th_n - \gamma_n \u_{n+1}.
+\end{eqnarray*}
+
+The only difference is that~$\th$ now encodes for~$q_\th$ as opposed to~$g_\th$. In parameter space (assuming that~$w$ belongs to the parametric family), one is just found by applying an offset to the other. This form is  more general as we don't assume the target to be of the form $p(\x)=w(\x)f(\x)$. As a result, we get the ``infamous'' division by the kernel value. 
+
+
+\section{Adaptive sampling version}
+
+The above algorithm is dramatically dependent on the kernel~$w(\x)$, not only by the result of divergence minimization, but also by the speed of convergence. We cannot guarantee in advance that the chosen kernel is suitable? To work around this problem, let us consider a variant of the above iteration in which the sampling kernel is updated on each iteration depending on the current fit $q_\th(\x)$. Assume that, given a current~$\th$, we decide to do pick:
+$$
+w(\x) = q_\th^{1-\alpha}(\x), 
+$$
+for some fixed $0<\alpha<1$. Why exactly we do this will be explained later. It amounts to sampling from a slightly more widespread distribution than the current fit. The other trick is to also re-define the target distribution on each iteration as being:
+$$
+t(\x) = w(\x) p(\x)^\alpha = q_\th^{1-\alpha}(\x) p(\x)^\alpha,
+$$
+which means that it is somewhere on the geometric path between the current fit and the actual target~$p(\x)$. 
+
+We may then apply the above update rules in the exact same way as above. By construction, we have:
+$$
+\frac{q_\th(\x)}{w(\x)} = q_\th(\x)^\alpha,
+\qquad
+\frac{p(\x)}{w(\x)} = p(\x)^\alpha.
+$$
+
+Therefore, the iteration reads:
+\begin{eqnarray*}
+\x_n & \sim & q_{\th_n}^{1-\alpha}(\x),\\
+\u_{n+1} & = & (1-\beta)\u_n + \beta \big[q_{\th_n}(\x_n)^\alpha - p(\x_n)^\alpha \big] \phi(\x_n),\\
+\th_{n+1} & = & \th_n - \gamma_n \u_{n+1}.
+\end{eqnarray*}
+
+We can check similarly to above that, IF $\th_n$ converges almost surely, it does so towards the unique and well-defined $\alpha$-divergence minimizer:
+$$
+\th_\star = \arg\min_{\th} D_\alpha(p \| q_\th).
+$$
+
+Hence, we have solved the ``chicken and egg'' problem of choosing a sampling kernel by replacing the local KL divergence objective with an $\alpha$-divergence. It took me time to realize that this was the right thing to do after being stuck for so many years in the asymptotic approach.
+
+In large-scale problems, the target is computed from a random mini-batch, hence further adding noise to the procedure. Is that a problem? I don't think so. 
+
+We will argue that this iterative algorithm can replace stochastic gradient methods for large-scale machine learning. One fairly pleasant and maybe surprising property is that it does not require any gradient computation (hence, no back-propagation involved)! The other one is that its fixed point is `more global' and better-defined than for gradient methods (although not necessarily unique except for $\alpha=1$), which only converge to one of the many saddle points of the learning objective. 
+
+
+\section{KL divergence minimization}
+
+Consider the problem:
+$$
+\min_\theta D(wf \| wg_\th),
+\qquad
+g_\th(\x) = e^{\th^\top \phi(\x)}
+$$
+
+$$
+D(\th) \equiv  \int (-wf \log g_\th + w g_\th) 
+$$
+
+$$
+\nabla D = \int w(g_\th - f)\phi
+$$
+
+$$
+\nabla\nabla^\top D = \int wg_\th \phi\phi^\top
+$$
+
+Note that the Hessian is independent from the target factor. 
+
+
+\section{Basis change}
+
+Consider minimizing the KL divergence via a gradient descent and consider a single gradient update. If we cannot afford to compute the Hessian (and to invert it), the gradient update relies on an arbitrary metric and may be rather ineffective. An important property of the KL divergence with exponential families is that its Hessian is independent from the target distribution and is associated with a dot product on the linear space spanned by~$\phi$ (which is a subspace of polynomials of order~2 for the factorial Gaussian family):
+$$
+H = \int q(\x) \phi(\x) \phi(\x)^\top d\x 
+\quad \Rightarrow \quad
+H_{ij} = \langle \phi_i , \phi_j \rangle .
+$$
+
+A natural idea is then to pick an orthonormal basis to use temporarily for a single gradient update as the divergence Hessian is scalar in such a basis. 
+
+Can we easily compute such as basis? The answer is yes. Assume for now and for simplicity that $\int q = 1$. In one dimension, it is easy to find an orthonormal basis:
+$$
+\phi_0(x) = 1,
+\quad \phi_1(x) = \frac{(x-m)}{s},
+\quad \phi_2(x) = \frac{1}{\sqrt{2}}\left[\frac{(x-m)^2}{s^2} - 1\right].
+$$
+
+It is straightforward to see that $\|P_0\|=1$, $\|P_1\|=1$, $\langle P_0, P_1 \rangle=0$ and $\langle P_0, P_2 \rangle=0$. The reason why $\langle P_1, P_2 \rangle=0$ is that it subtracts two centered moments of order~1 and~3, respectively, which both vanish because~$q$ is symmetric. Finally, note that:
+$$
+\phi_2(x)^2 = \frac{1}{2} 
+\left[\frac{(x-m)^4}{s^4} - 2 \frac{(x-m)^2}{s^2} + 1 \right],
+$$
+hence, given that the 4th-order centered moment of a Gaussian is~3 (which can be seen using the $\chi_1^2$ distribution), we have:
+$$
+\E_q [\phi_2^2(x)] = \|P_2\|^2 = \frac{1}{2} (3 - 2 + 1) = 1.
+$$
+
+In multiple dimensions, we do:
+$$
+\phi_0(\x) = 1, 
+\quad
+\phi_{1i}(\x) = \frac{(x_i-m_i)}{s_i},
+\quad
+\phi_{2i}(\x) = \frac{1}{\sqrt{2}}\left[\frac{(x_i-m_i)^2}{s_i^2} - 1\right].
+$$
+This defines an orthonormal basis because the components of~$\x$ are mutually independent under the factorial distribution~$q(\x)$, hence for different basis vectors: 
+$$
+\forall (i,j), \quad i\not= j, \quad
+\langle \phi_{ki}, \phi_{\ell j} \rangle = \E_q[\phi_{ki}]\E_q[\phi_{ki}] = \langle \phi_{ki}, 1 \rangle \langle P_{\ell j}, 1 \rangle = 0.
+$$
+Moreover, when it comes to dot products involving the same component, the one-dimensional results apply.
+
+In the general case where~$q$ does not integrate to one, we simply need to divide each basis vector by $Z=\int q_0$ to fulfill the unit norm conditions. Alternatively, we may leave the basis as is and later remember that the Hessian is $Z\text{Id}$.
+
+So we have an orthonormal basis that is very easy to compute! Now, consider decreasing the KL divergence $D(p\|q)$ starting from some current guess~$q_0$. To this end, we may compute an orthonormal basis associated with~$q_0$ and perform one Newton iteration in that basis. More specifically, we search for a new fit under the form:
+$$
+q_\th(\x) = q_0(\x) e^{\th^\top \phi(\x)},
+$$
+where~$\phi$ is the orthonormal basis. Clearly, the initial parameter is $\th_0=0$. The Newton update yields:
+$$
+\th = \gamma \f,
+\qquad
+\f = -\frac{1}{Z} \u,
+\quad
+\u \equiv \nabla D(\th_0) = \int (q_0 - p)\phi,
+$$
+where $\gamma$ is a given step size ($\gamma=1$ for a genuine Newton iteration) and~$Z$ is there for the Hessian correction. 
+
+The gradient is generally intractable as it depends on~$p$, but we can approximate it via random sampling or quadrature. There are essentially two options. One is:
+$$
+\u \approx \int q_0\phi - {\cal I}(p\phi),
+$$
+where~${\cal I}$ denotes a numerical integration operator. The other option is:
+$$
+\u \approx {\cal I}[(q_0- p)\phi].
+$$
+This is where the variational sampling story may start. Option~1 amounts to a direct moment approximation. Option~2, which corresponds to our initial variational sampling idea, is perhaps less intuitive as it ignores the fact that we can compute the ``fitted moment'' exactly, but is arguably better because the error is smaller whenever~$q_0$ is close enough to~$p$. Hence, for a near Gaussian target, we expect less numerical instabilities. Note that, at this level of description, there is no sampling kernel involved -- this is a specific detail of numerical integration.
+
+So, our gradient update takes on the simple form $\th = \gamma\tilde{\f}$, but this is computed in a moving coordinate system since the orthonormal basis changes on each iteration. Is it easy to compute the `natural' parameters of $q_\th=q_0\exp(\th^\top \phi)$ from the moving coordinates~$\th$? Yes, it is.
+
+First, consider the right hand side and try to do the identification:
+$$
+e^{\th^\top \phi} = \kappa e^{-\frac{(\x-\mu)^2}{2\sigma^2}},
+$$
+hence, by taking the log:
+$$
+\log\kappa - \frac{1}{2} \sum_i \frac{(x_i-\mu_i)^2}{\sigma_i^2}
+= 
+\theta_0 + \sum_i \theta_{1i}\frac{x_i-m_i}{s_i}
++ \frac{1}{\sqrt{2}} \sum_i \theta_{2i}\big[ \frac{(x_i-m_i)^2}{s_i^2} -1 \big]. 
+$$
+We may differentiate this wrt $x_i$, yielding: 
+$$
+\frac{x_i-\mu_i}{\sigma_i^2} 
+= \frac{\theta_{1i}}{s_i} + \sqrt{2} \theta_{2i} \frac{x_i-m_i}{s_i^2}
+= \frac{\sqrt{2} \theta_{2i}}{s_i^2} \big[x_i - m_i + \frac{s_i\theta_{1i}}{\sqrt{2} \theta_{2i}} \big].
+$$
+By identification, we find:
+$$
+\sigma_i^2 = - \frac{s_i^2}{\sqrt{2}\theta_{2i}},
+$$
+and:
+$$
+\mu_i = m_i - \frac{s_i\theta_{1i}}{\sqrt{2}\theta_{2i}} = m_i + \frac{\sigma_i^2}{s_i}\theta_{1i}.
+$$
+
+To find $\kappa$, we note that the integral of $\th^\top \phi$ wrt~$q_0$ is equal to its dot product with~$\phi_0\equiv 1$, which is $\theta_0 \|\phi_0\|^2=\theta_0 Z$ since the basis $\phi/\sqrt{Z}$ is orthonormal. The constant $Z$ cancels out as it appears on both sides, and we find, using the K\"onig formula:
+$$
+\log \kappa = \theta_0 + \frac{1}{2}\sum_i \frac{s_i^2 + (\mu_i-m_i)^2}{\sigma_i^2}.
+$$
+
+We also need to get the parameter~$\th_0$ of~$q_0$, which act as an offset. For this, we just do $\kappa=K_0$, $\mu_i=m_i$, and $\sigma_i=s_i$, yielding:
+$$
+\theta_{2i}^0=-\frac{1}{\sqrt{2}},
+\quad
+\theta_{1i}^0 = 0,
+\quad
+\theta_0^0 = \log K_0 - \frac{d}{2}.
+$$
+
+Therefore, the updated fit is a function $\Psi(q_0,\th)$ of the current fit and parameter variation:
+$$
+v_{i1} =  \frac{v_{i0}}{1-\sqrt{2}\theta_{2i}},
+\quad
+m_{i1} = m_{i0} + \frac{v_{i1}}{\sqrt{v_{i0}}} \theta_{1i},
+\quad
+\log K_1 = \log K_0 + \theta_0 + \frac{1}{2} \left[\sum_i \frac{v_{i0} + (m_{i1}-m_{i0})^2}{v_{i1}} - d\right].
+$$
+
+\section{Stochastic gradient}
+
+To approximate the gradient~$\u$, we may sample a point~$\x$ (or several ones) from some distribution $w(\x)$ and compute one of the following approximations.
+\begin{enumerate}
+\item Discrete KL proxy:
+$$
+\u \approx Z_w \frac{q(\x)-p(\x)}{w(\x)} \phi(\x)
+$$
+\item Likelihood proxy:
+$$
+\u \approx \int q\phi - Z_w\frac{p(\x)}{w(\x)} 
+\phi(\x)
+$$
+\end{enumerate}
+
+The discrete KL proxy provides a lower variance estimate of~$\u$ whenever the fit~$q$ is close enough to the target~$p$, and is even exact if $q=p$. The likelihood proxy is considered for historical reasons as it is the online version of direct Monte Carlo moment estimation.
+
+Note that:
+$$
+\int q\phi_0 = Z,
+\quad
+\int q\phi_1 = 0,
+\quad
+\int q\phi_2 = 0.
+$$
+
+Therefore, the likelihood approximation to $\f=-\u/Z$ is:
+$$
+f_0 = \frac{Z_w}{Z}\frac{p(\x)}{w(\x)} - 1 
+$$
+
+$$
+f_{i>0} = \frac{Z_w}{Z}\frac{p(\x)}{w(\x)}\phi_i(\x) 
+$$
+
+\section{Optimal sampling}
+
+Using the discrete KL proxy, we estimate $\u=\int (q-p)\phi$ by sampling a point from an arbitrary distribution~$w(\x)$:
+$$
+\tilde{\u} = Z_w \frac{q(\x)-p(\x)}{w(\x)} \phi(\x),
+$$
+which clearly satisfies $\E(\tilde{\u})=\u$ whatever the sampling distribution and is therefore unbiased. However, its variance depends on~$w$, and we ought to pick~$w$ so as to make the variance as small as possible. 
+
+Since the mean is independent from~$w$, the variance depends on~$w$ only through the squared expectation matrix:
+$$
+\text{Var}(\tilde{\u}) 
+= \E(\tilde{\u}\tilde{\u}^\top) - \E(\tilde{\u})\E(\tilde{\u})^\top
+= \E(\tilde{\u}\tilde{\u}^\top) + {\rm cte},
+$$
+with:
+$$
+\E(\tilde{\u}\tilde{\u}^\top) = Z_w \int\frac{(q-p)^2}{w}\phi\phi^\top.
+$$
+
+This is a matrix, not a real-valued function, so it can't be minimized in a strict sense, reflecting the fact that no sampling distribution is optimal for all coordinates of a multidimensional integral. What matters most is that the function $(q-p)^2/w$ be a well-behaved distribution in the sense that  $\E_f(\phi\phi^\top)$ is finite. Since~$\phi$ represents second-order polynomials, this essentially means that it should vanish exponentially for $\|x\|\to\infty$. If this is the case, then all the elements of the squared matrix will be finite, therefore we may focus on one particular element, e.g., the constant term, for the sake of practicality:
+$$
+V(w) = Z_w \int\frac{(q-p)^2}{w}.
+$$
+
+The minimizer of~$V(w)$ is $w\propto |q-p|$ but this does not help much as there is no closed-form expression for~$p$. Note that, for the likelihood proxy, the problem is to estimate $\int p\phi$, for which the variance reads (up to an additive constant):
+$$
+V_{\ell}(w) = Z_w \int \frac{p^2}{w},
+$$
+in which case the optimal kernel is~$p$, which is neat and simple, although impractical... Intuition would tell us to choose a sampling distribution similar to the target, so the current fit~$q$ would be a candidate, but $V_\ell(q)$ is infinite whenever~$p$ has heavier distribution tails than a Gaussian. Intuition is thus misleading.
+
+Back to the discrete KL proxy, the choice~$w=q$ is unsafe for the very same reason. Then, you say: ok, heavy tails do not happen if one uses a Gaussian prior. But then a sufficient condition for $p^2/q$ to have finite integral is that the variance of~$q$ be larger than half the prior variance (assuming a finite likelihood). This condition is clearly unrealistic, therefore the prior does not do the trick. 
+
+We remark that, if there happens to exist a context distribution $c(\x)$ such that $p=cf$, $q=cg$ {\em and} both~$f$ and~$g$ are upper bounded, then~$c$ is a valid candidate for the sampling distribution since $V(c)$ is finite:
+$$
+V(c)= Z_c \int c (f-g)^2 \leq Z_c^2 (f_{\max}^2 + g_{\max}^2) 
+$$ 
+The gradient estimator is then:
+$$
+\tilde{\u} = [g(\x)-f(\x)] \phi(\x).
+$$
+
+One way to meet this condition is to replace the target by $q^{1-\alpha}p^\alpha$ for $0<\alpha<1$ and set $c=q^{1-\alpha}$, $f=p^\alpha$ and $g=q^\alpha$. If the target is upper bounded (which is usually easy to verify), then it works cause $g=q^\alpha$ is upper bounded if~$q$ is. This means that we are changing the target at each iteration of the algorithm, but that's the idea of the star approximation. 
+
+The larger~$\alpha$, the larger the variance tends to be. It blows up when $\alpha\to 1$ as $Z(q^{1-\alpha})$ becomes infinite, meaning that this strategy then becomes ineffective. 
+
+%What about the extreme cases $\alpha=0$ and $\alpha=1$? When $\alpha\to 0$, $\tilde{\u}\to 0$, and the variance vanishes. It means that this strategy is not appropriate to 
+
+This contextual factor is also the very principle behind expectation propagation and more general message passing \cite{Minka-05}. Very interesting to note that it can be motivated by sampling purposes! Here, it is not brought in by the target factorial structure -- it is imposed by brute force. 
+
+
+
+\section{More coordinates}
+
+We might wish to average increments in the above procedure for variance reduction purpose. The problem is that these are expressed in a moving coordinate system, so it does not really make sense to average them. To that end, we may need to convert increments back to a fixed coordinate system which is linearly related to the `moving theta', e.g.,
+$$
+\log q_\th(\x) = \theta_0 + \sum_i \theta_{1i} x_i + \sum_i \theta_{2i} x_i^2 .
+$$
+
+We denote by~$\n$ the moving coordinates to avoid confusion. A linear update in~$\n$ amounts to a linear update in~$\th$. If the increment in moving coordinates is $\Delta\n$, is it easy to find the equivalent $\Delta\th$? Yes it is. Let us equate $q_{\Delta\th}$ with $\exp(\Delta\n^\top \phi)$:
+\begin{eqnarray*}
+\Delta\theta_0 + \sum_i \Delta\theta_{1i} x_i + \sum_i \Delta\theta_{2i} x_i^2
+& = & 
+\Delta\nu_0 
++ \sum_i \Delta\nu_{1i} \frac{x_i-m_i}{s_i} 
++ \sum_i \frac{\Delta\nu_{2i}}{\sqrt{2}} \left[\frac{(x_i-m_i)^2}{s_i^2}-1\right] \\
+& = & 
+\Delta\nu_0 
++ \sum_i \Delta\nu_{1i} \frac{x_i-m_i}{s_i}
++ \sum_i \frac{\Delta\nu_{2i}}{\sqrt{2}} 
+\left[\frac{x_i^2 - 2m_ix_i + m_i^2}{s_i^2}-1\right]
+\end{eqnarray*}
+
+We find by identification: 
+\begin{eqnarray*}
+\Delta\theta_{2i} & = & \frac{\Delta\nu_{2i}}{\sqrt{2}s_i^2},\\
+\Delta\theta_{1i} & = & 
+\frac{\Delta\nu_{1i}}{s_i} - \frac{\sqrt{2}m_i}{s_i^2}\Delta\nu_{2i},\\
+\Delta\theta_0 & = & \Delta\nu_0 + \sum_i \left[
+-\frac{m_i}{s_i}\Delta\nu_{1i} + \frac{m_i^2 - s_i^2}{\sqrt{2}s_i^2} \Delta\nu_{2i}
+\right].
+\end{eqnarray*}
+
+These imply $\Delta\nu_{2i} = \sqrt{2}s_i^2 \Delta\theta_{2i}$, hence:
+$$
+\Delta\theta_{1i} = 
+\frac{\Delta\nu_{1i}}{s_i} - 2m_i \Delta \theta_{2i},
+$$
+implying in turn $\Delta\nu_{1i} = s_i(2m_i \Delta\theta_{2i} + \Delta\theta_{1i})$, hence:
+$$
+\Delta\theta_0 = \Delta\nu_0 - \sum_i \left[
+m_i \Delta\theta_{1i} + (m_i^2 + s_i^2) \Delta\theta_{2i}
+\right]
+$$
+
+Now, assume that we have just performed an update: $\th_1 = \th_0 + \Delta$. How are the natural parameters $K$, $m$ and $s$ affected? This is a third coordinate system in this story, which we need for sampling and is non-linearly related to the other two! However, we can easily switch from~$\th$ to natural parameters by equating the two forms:
+\begin{eqnarray*}
+\theta_0 + \sum_i \theta_{1i} x_i + \sum_i \theta_{2i} x_i^2
+& = & \log K - \frac{1}{2} \sum_i \frac{(x_i-m_i)^2}{s_i^2},\\
+& = & \log K - \frac{1}{2} \sum_i \frac{x_i^2 - 2 m_ix_i + m_i^2}{s_i^2},\\
+& = & \log K - \frac{1}{2} \sum_i \frac{m_i^2}{s_i^2} 
++ \sum_i \frac{m_i x_i}{s_i^2} 
+- \frac{1}{2} \sum_i \frac{x_i^2}{s_i^2},
+\end{eqnarray*}
+yielding:
+\begin{eqnarray*}
+\theta_0 & = & \log K -\frac{1}{2}\sum_i \frac{m_i^2}{s_i^2},\\
+\theta_1 & = & \frac{m}{s^2},\\
+\theta_2 & = & -\frac{1}{2 s^2}.
+\end{eqnarray*}
+
+Therefore:
+\begin{eqnarray*}
+s^2 & = & -\frac{1}{2\theta_2},\\
+m & = & s^2 \theta_1,\\
+\log K & = & \theta_0 + \frac{1}{2}\sum_i \frac{m_i^2}{s_i^2}.
+\end{eqnarray*}
+
+
+\section{Improved algorithm}
+
+Taking the basis change into account, we may perform the following iteration:
+\begin{eqnarray*}
+\x_n & \sim & q_n^{1-\alpha}(\x),\\
+\f_n & = & \rho_n \big[p(\x_n)^\alpha - q_n(\x_n)^\alpha \big] \Phi(q_n, \x_n),\\
+q_{n+1} & = & \Psi(q_n, \gamma \f_n),
+\end{eqnarray*}
+where $\Phi(q,\x)$ is the basis associated with~$q$ evaluated at~$\x$, and $\Psi(q,\th)$ is the fit updater depending on moving coordinates~$\th$. The factor~$\rho_n$ normalizes the basis function values to unit norm, and is defined by:
+$$
+\rho_n
+= \frac{Z(q_n^{1-\alpha})}{Z(q_n)},
+$$
+and the reason why $Z(q_n^{1-\alpha})$ is in the numerator is that $\x_n$ is actually distributed like the normalized version of $q_n^{1-\alpha}$. The integral~$Z$ of an unnormalized distribution depends on~$K$ and~$v$ via: 
+$$
+Z = (2\pi)^\frac{d}{2} K  \prod_i v_i^\frac{1}{2}.
+$$
+
+For $q^{1-\alpha}$, we have $K_\alpha = K^{1-\alpha}$ and $v_\alpha=v/(1-\alpha)$, thus:
+$$
+\rho_n = K^{-\alpha} (1-\alpha)^{-\frac{d}{2}}.
+$$
+The dimension-dependent term $(1-\alpha)^{-d/2}$ scales exponentially with dimension, suggesting the need to adjust~$\alpha$ for the dimension in practice. The larger the dimension, the further away $q^{1-\alpha}p^\alpha$ from~$q$ for a constant~$\alpha$, so intuition confirms that~$\alpha$ should decrease with dimension.
+
+Throughout the algorithm, we need to keep track of the natural parameters $K$, $m$ and $v$ of the fit~$q$. Besides the correction factor~$\rho_n$, the basis vectors are defined from those via:
+$$
+\phi_0(\x) = 1, 
+\quad
+\phi_{1i}(\x) = \frac{(x_i-m_i)}{s_i},
+\quad
+\phi_{2i}(\x) = \frac{1}{\sqrt{2}}\left[\frac{(x_i-m_i)^2}{s_i^2} - 1\right],
+$$
+which are computed on-the-fly (no need to store a `design matrix' as in offline variational sampling). After computing the force~$\f_n$ (the negated stochastic gradient normalized by the `genuine' Hessian), we update the moving coordinates as $\th=\gamma \f_n$ and update the fit accordingly:
+$$
+v_{i1} =  \frac{v_{i0}}{1-\sqrt{2}\theta_{2i}},
+\quad
+m_{i1} = m_{i0} + \frac{v_{i1}}{\sqrt{v_{i0}}} \theta_{1i},
+\quad
+\log K_1 = \log K_0 + \theta_0 + \frac{1}{2} \left[\sum_i \frac{v_{i0} + (m_{i1}-m_{i0})^2}{v_{i1}} - d\right].
+$$
+
+%%Are $\f_n$ values comparable (and thus can we average them) across iterations given that they rely on 
+
+%$(n+1)x_{n+1} = n x_n + y_n$
+
+
+
+\section{Implementation details}
+
+We note that $\rho_n=K_n^{-\alpha}(1-\alpha)^{-d/2}$ where $K_n=q_n(\mu_n)$ is the current fit's peak height, while the second term is a constant, and a cumbersome one at that as it takes on large values in high~D. For the sake of numerical stability, as will be seen below, we are better off re-writing the `force' as: 
+$$
+\f_n = \varepsilon_n \Phi(q_n,\x_n),
+\qquad
+\varepsilon_n \equiv
+(1-\alpha)^{-\frac{d}{2}}\left\{
+\left[\frac{p(\x_n)}{K_n}\right]^\alpha
+-\left[\frac{q(\x_n)}{K_n}\right]^\alpha
+\right\},
+$$
+showing that the peak height $K_n$ acts as a normalizing factor. 
+
+%In practice, we do not need to compute $(1-\alpha)^{-d/2}$ in~$\rho_n$ as it is a constant, and a cumbersome one at that as it takes on large values in high~D. For the sake of numerical stability, we are better off re-defining the `force' as:
+
+%All it means is that the computed force is $(1-\alpha)^{d/2}$ times the effective one, hence it is smaller, and conversely the effective step size is smaller than~$\gamma$: $\gamma_\star = (1-\alpha)^{d/2} \gamma$. A constant~$\gamma$ thus results in an effective step size that decreases with the dimension.
+
+%In practice, $(1-\alpha)^{-d/2}\approx 1.0513$ is constant across dimensions, hence we may drop this term as it boils down to a (slight) change in step size. The remaining term in~$\rho_n$ is~$K_n^{-\alpha}$, where $K_n$ is the current fit's peak height, $K_n=q_n(\mu_n)$, which acts as normalizing the distribution values for the `delta' computation:
+%$$
+%\varepsilon_n = \gamma\left\{
+%\left[\frac{p(\x_n)}{K_n}\right]^\alpha
+%-\left[\frac{q(\x_n)}{K_n}\right]^\alpha
+%\right\}.
+%$$
+
+Next, we update the fit parameters via $\delta_n\equiv\gamma\varepsilon_n$ as follows:
+$$
+\frac{1}{\v_{n+1}} = \left\{
+1 - \left[\frac{(\x_n-\m_n)^2}{\v_n} - 1\right] \delta_n
+\right\} \frac{1}{\v_{n}},
+$$
+$$
+\m_{n+1} = \m_{n} + \frac{\v_{n+1}}{\v_n}
+(\x_n-\m_n)\delta_n,
+$$
+$$
+\log K_{n+1} = \log K_n + \frac{1}{2}\left[\mathbf{1}^\top
+\frac{\v_n + (\m_{n+1}-\m_n)^2}{\v_{n+1}} - d
+\right]
++ \delta_n.
+$$
+
+Note that it is easy to enforce positive variances by thresholding $\delta_n=\gamma\varepsilon_n$ appropriately. In practice, however, this is not needed as $\delta_n$ should be small enough on each iteration. If it does happen, then it is an indication that the effective step size is too large.
+
+
+\section{Ultimate algorithm}
+
+The scaling factor $(1-\alpha)^{-d/2}$ is a constant, so it can be dropped. 
+$$
+\delta_n = \gamma' \varepsilon_n',
+\qquad 
+\varepsilon' = (p/K)^\alpha - (q/K)^\alpha,
+\quad
+\gamma = (1-\alpha)^{d/2} \gamma'
+$$
+
+Noise control (constant variance):
+$$
+\gamma' = \frac{k_\gamma}{\alpha\sqrt{d}}
+$$
+
+For $\alpha\approx 0$,  we fall back to the minimum exclusive KL limiting case (see below). For $\alpha\to 1$, $\delta_n$ is magically well-conditioned. 
+
+Default $\alpha$ setting (to make~$\gamma'$ independent from~$d$):
+$$
+\alpha = \frac{k_\alpha}{\sqrt{d}}
+\quad
+\Rightarrow
+\quad \gamma' = \frac{k_\alpha}{k_\gamma}.
+$$
+This is a good starting point, but makes the algorithm quite similar to Carbonetto so only useful if one plans to further increase~$\alpha$.
+
+Speculation: when increasing $\alpha$ in a progressive manner, there is a way to adjust $\gamma'$ so as to maintain stochastic convergence (wishing that the increase in noise variance would be compensated for by the smaller fitting error compared to the start). There could be a warming up phase in which $\alpha$ is increased to one in such a way, followed by an annealing phase in which $\gamma$ is decreased to zero for deterministic convergence.
+
+What is the best way to adjust~$\gamma'$ in such context? We have to trade off between the intrinsically slower convergence for larger~$\alpha$ and the larger noise level for a constant step size. There are two extreme choices: keep the effective step size~$\gamma$ constant (try and maintain deterministic convergence speed), or keep the noise level constant (try and maintain stochastic convergence speed). Noise control (i.e. dividing the initial~$\gamma'$ by the ratio $\alpha/\alpha_{init}$) seems to make overall convergence hopelessly slow as the effective step size $\gamma=(1-\alpha)^{d/2}\gamma'$ is a fast decreasing function of~$\alpha$. What about keeping the effective step size constant? This means that $\gamma'$ is chosen according to $\gamma' \propto (1-\alpha)^{-\frac{d}{2}}$ and is not reasonable as the variance blows up!
+
+The heuristic I lean to is to keep~$\gamma'$ constant. This seems to make convergence quite smooth. 
+
+Removing the `prime' symbols, this leads to the implementation-ready form:
+\begin{eqnarray*}
+\x_n & \sim & q_n^{1-\alpha}(\x),\\
+\varepsilon_n & = & 
+\left[\frac{p(\x_n)}{K_n}\right]^\alpha
+-\left[\frac{q(\x_n)}{K_n}\right]^\alpha,\\
+\f_n & = & \varepsilon_n \Phi(q_n, \x_n),\\
+q_{n+1} & = & \Psi(q_n, \gamma \f_n),
+\end{eqnarray*}
+
+
+
+\section{Parameter tuning}
+
+The algorithm has two parameters: the divergence index~$\alpha$ and the stepsize~$\gamma$, which should not be tuned independently, in particular because the correction factor $(1-\alpha)^{d/2}$ blows up in high~D, leading to huge increments unless~$\alpha$ is set to a lower value as the dimension decreases. The basic reason why this problem is happening is because the `force' is noisy, and its variance depends on both~$\alpha$ and the dimension. 
+
+One way to tackle the problem is to assume that~$q$ is the $\alpha$-divegence minimizer and thus has zero gradient. The values of $\f_n$ are then pure noise. We see that the variance is then:
+$$
+\text{Var}(\f_n) = (1-\alpha)^{-d} 
+\int \tilde{q}_{1-\alpha} 
+\left[(p/K)^\alpha - (q/K)^\alpha\right]^2\phi\phi^\top,
+$$
+where $\tilde{q}$ is the normalized version of~$q^{1-\alpha}$. For small~$\alpha$, the integral can be approximated at order~1, yielding:
+$$
+\text{Var}(\f_n) = (1-\alpha)^{-d} \alpha^2
+\int \tilde{q} [\log(p/q)]^2 \phi\phi^\top . 
+$$
+
+The integral above depends on both~$p$ and~$q$, its $\alpha$-proximal distribution. For the sake of getting an order of magnitude, we may assume that $\log p/q=a$ is roughly constant, therefore: 
+$$
+\text{Var}(\f_n) \approx 
+(1-\alpha)^{-d} \alpha^2
+a^2 \int \tilde{q} \phi\phi^\top
+= (1-\alpha)^{-d} \alpha^2
+a^2 \mathbf{I}_d.
+$$
+
+In other words, the expected noise level roughly depends on both~$\alpha$ and the dimension~$d$ via: 
+$$
+\sqrt{\E[\|\f_n\|^2]} \propto (1-\alpha)^{-\frac{d}{2}} \alpha \sqrt{d} .
+$$
+
+We may thus pick~$\gamma$ depending on~$\alpha$ and~$d$ so as to control the noise level at a fixed value, yielding the rule:
+$$
+\gamma = k_\gamma \frac{(1-\alpha)^\frac{d}{2}}{\alpha\sqrt{d}},
+$$
+which is a decreasing function of~$\alpha$ that vanishes when $a\to 1$. As a function of dimension, $\gamma\sim \/\sqrt{d}$ for small~$\alpha$ and $\gamma\to 0$ for~$\alpha\to 1$ (keeping in mind that the derivation relies on a Taylor expansion around $\alpha=0$).
+
+In practice, $k_\gamma=0.01$ seems to warrant convergence most often. The convergence speed is, however, highly dependent on~$\alpha$ because it critically depends on the step size~$\gamma$, itself determined by both~$\alpha$ and the dimension. To make sure that convergence speed scales well with dimension, we may force  $\gamma$ to keep a constant order of magnitude across dimensions. To this end, we may tune~$\alpha$ depending on the dimension so that~$\gamma$ is roughly constant. Since the solution is near zero, we may approximate~$\gamma$ by $\gamma\approx k_\gamma/\alpha\sqrt{d}$ to find it, hence:
+$$
+\alpha \approx \frac{k_\alpha}{\sqrt{d}}
+\qquad \Rightarrow \quad
+\gamma \approx \frac{k_\gamma}{k_\alpha}.
+$$
+
+A simple rule of thumb is therefore to choose~$\alpha$ inversely proportional to the square rooted dimension. The factor $k_\alpha$ represents the divergence index in dimension~$1$, and $k_\alpha=0.1$ seems to work well in practice, implying $\gamma\approx 0.1$ in any dimension. In this setting, the number of iterations required for convergence seems to scale proportionally to~$\sqrt{d}$: $1000\sqrt{d}$ seems to be fair. 
+
+%In this scenario, $\alpha_1=0.1$ seems to work fine with a step size $\gamma=0.1$ independent from the dimension. Larger values of~$\gamma$ sometimes enable faster convergence, but also make the algorithm less stable, so convergence may not happen at all.
+
+For the iteration to converge almost surely, $\gamma$ needs be decreased according to the Robbins-Monro condition. When~$\gamma$ is tied to~$\alpha$ through the above relationship, this amounts to increasing~$\alpha$ throughout the algorithm, hence converging to the KL~optimal distribution provided convergence occurs... That's what we wanted, isn't it?
+
+%How do we go about arbitrary~$\alpha$ values? We then have the above mentioned issue that the correction factor may be orders of magnitude larger, making the algorithm diverge if we use the same step size. One general way to address this is to start the algorithm with the auto-tuned~$\alpha$, which is close to zero, and increase~$\alpha$ as the fit gets better. Still, we need to be able to adapt the step size to increases in~$\alpha$.
+
+
+
+
+\section{Variant}
+
+Rather than sampling from~$q_n^{1-\alpha}$ and considering~$p^\alpha$ as the factor to be fitted, why not sampling from~$q_n$ with target factor $(p/q_n)^\alpha$? By doing so, we always have $\rho_n=1$, and the `epsilon' simplifies to:
+$$
+\varepsilon_n = 
+\left[\frac{p(\x_n)}{q(\x_n)}\right]^\alpha -1 ,
+$$
+which no longer involves peak height. For the `likelihood' proxy, the `delta' is the same for the constant term and does not involve the subtraction by one for the other terms:
+$$
+\varepsilon_{ni} = 
+\left[\frac{p(\x_n)}{q(\x_n)}\right]^\alpha - \delta_{0i}.
+$$
+
+Hence,   
+\begin{eqnarray*}
+\x_n & \sim & q_n(\x),\\
+\f_n & = & \left\{\left[\frac{p(\x_n)}{q(\x_n)}\right]^\alpha -1 \right\} \Phi(q_n, \x_n),\\
+q_{n+1} & = & \Psi(q_n, \gamma \f_n),
+\end{eqnarray*}
+
+It looks like this variant works similarly to the above under the same conditions (in particular, $\alpha$ needs be smaller in larger dimension), however it happens to diverge occasionally. Using the likelihood proxy, it is clearly less stable in practice than the previous version. 
+
+The underlying question is: what is the ideal sampling kernel to approximate the gradient:
+$$
+\u = \int q^{1-\alpha} (q^\alpha-p^\alpha) \phi
+$$
+
+The potential trouble with this version of~$\varepsilon_n$ is the division by~$q(\x_n)$. One can easily see that~$\varepsilon_n$ can be arbitrarily large -- that happens with low probability but still can and will happen in many trials. The previous version does not have this drawback, so we shall stick to it. 
+
+Generally speaking, the variance of the gradient estimator is related to:
+$$
+\int w(f-g)^2 \phi\phi^\top,
+$$
+where~$w$ is the sampling distribution, $f$ is the target factor and $g$ is the current factor fit. A sufficient condition for this integral to be finite is that both factors are bounded given that~$w$ is a proper gaussian distribution, hence $\int w \phi\phi^\top$ is finite in each element as a linear combination of moments up to order~4.
+
+We have two options here. One is to set $w=q^{1-\alpha}$, $f=p^\alpha$, $g=q^\alpha$, in which the two factors are bounded, the other is to set $w=q$, $f=(p/q)^\alpha$ and $g=1$, in which the target factor is not necessarily bounded due to the division by~$q^\alpha$. It does not take much effort to realize which version is more risky. In fact, using~$q$ as a sampling distribution means that we simply have no convergence warranty, so it's not just risky, it's crap. This reflects the fact that, without assumptions regarding the target~$p$, we cannot reliably estimate the integral $\int (p-q)\phi$ by just looking at~$p$ in the neighborhood defined by~$q$.
+
+The `tilting' $p\to q^{1-\alpha}p^\alpha$ is the trick to save the day but, for $\alpha\approx 1$, it becomes ineffective as the variance controlled approach tends to draw points very far off the peak, leading to very small increments and very slow convergence... We thus need to make further assumptions about the target to deal with~$\alpha$ close to one. 
+
+The VS variance when sampling from a distribution~$\pi$ is driven by the ratio $f={(p-q)^2}/{\pi}$. Specifically,
+$$
+V = \int f \phi \phi^\top
+- gg^\top,
+$$
+where $g=\int (p-q)\phi$. We may see~$f$ as an unnormalized distribution. For the VS variance to be finite, this distribution needs have finite moments of order 0, 1 and 2 (in particular, it needs to be proper). 
+
+Assume now that~$\pi$ is some Gaussian prior distribution and that the likelihood $p/\pi$ is bounded. We may constrain the algorithm to approximating distributions~$q$ verifying the same condition, {\em i.e.}, $q/\pi$ is bounded. This amounts to a maximum variance constraint. If this condition holds for both~$p$ and~$q$, then $(p-q)^2 \leq \pi^2 [(\max p/\pi)^2 + (\max q/\pi)^2]$, therefore $f\leq \pi M$ verifies the same condition. This implies that we can safely sample from the prior~$\pi$, which is certainly better than sampling from the uniform distribution.
+
+Therefore, as $\alpha\to 1$, we may implement a maximum variance constraint in the sampling kernel... 
+
+\section{Carbonetto}
+
+This a paper from NIPS'09: \cite{Carbonetto-09}. The authors employ a stochastic approximation scheme that shares some similarity with ours. Their objective is the exclusive KL divergence $D(q_\theta\|p)$, which they attempt to minimize on an exponential family. We have:
+$$
+D(q_\theta\|p) \equiv \int (q_\theta \log \frac{q_\theta}{p} - q_\theta),
+$$
+hence,
+$$
+\nabla D = \int q_\theta (\log q_\theta - \log p) \phi.
+$$
+
+This is not quite the presentation of Carbonetto (they do not consider the generalized KL divergence and seem to struggle with other technicalities) but this is where their logic would lead. The potential advantage of the above expression is that the expectation is taken wrt the known fitting distribution, hence it is natural to estimate it by sampling from this same distribution. The idea is then to update $\theta$ via a quasi-Newton iteration (hence estimating the inverse Hessian by accumulating gradient estimates across iterations). 
+
+What is the difference between this scheme and ours? Essentially, the choice of divergence. At a given iteration, we consider $D(q_n^{1-\alpha}p^\alpha\|q_\theta)$, which is dependent on the current fit, they consider $D(q_\theta\|p)$, which is not. Our criterion is arguably easier to minimize, but it can also be argued that each iteration does not attempt to perform a full minimization, just to update the parameter in a sensible manner. 
+
+So... let's see if we could implement this. Rather than the damped BFGS hessian approximation, we may try and approximate it directly. We note that:
+$$
+\nabla \nabla^\top D = \int q_\theta \left[1 + \log \frac{q_\theta}{p} \right]\phi\phi^\top.
+$$
+
+At the optimum, we expect $q_\theta \approx p$ so the hessian is roughly:
+$$
+\nabla \nabla^\top D (\theta_\star) \approx \int q_\theta \phi\phi^\top.
+$$
+
+So, if we use the moving orthonormal basis, we will get a reasonable hessian approximation for free. The revisited Carbonetto algorithm becomes:
+\begin{eqnarray*}
+\x_n & \sim & q_n(\x),\\
+\f_n & = & \big[\log p(\x_n) - \log q_n(\x_n) \big] \Phi(q_n, \x_n),\\
+q_{n+1} & = & \Psi(q_n, \gamma \f_n),
+\end{eqnarray*}
+
+This looks quite similar to our algorithm, doesn't it? In fact, if we do a Taylor expansion at order~1 in ~$\alpha$ of the $\varepsilon_n$ above, what we get is:
+$$
+\varepsilon_n \approx \alpha \left[
+\log p(\x_n) - \log q_n(\x_n)
+\right],
+$$
+so our algorithm with step size~$\gamma$ boils down to the revisited Carbonetto algorithm with step size~$\alpha\gamma$ in the limit $\alpha\to 0$. Quite interesting, isn't it? Since the step size in Carbonetto has no reason to depend on~$\alpha$, it also suggests that our~$\gamma$ should vary in $1/\alpha$.
+
+Does it mean my contribution is worth it zero? No!
+
+First, we shall note a very important conceptual difference with Carbonetto's original work: they don't try to solve the same problem as us. What they try to do is to construct a sequential sampling scheme to perform standard Monte Carlo integration. They are not really trying to approximate the target distribution since it is assumed to lie in the exponential family. However, the integral of interest is not tractable and sampling from the target is not straighforward, which is why stochastic approximation comes into play. Their exponential family is not the Gaussian family as it would make their problem trivial.
+
+Second, on the technical side of things, it is not straightforward to adapt their algorithm to our situation because of the expression they use to compute the gradient (which inherently assumes the target distribution to belong to the exponential family). The generalized KL divergence trick saves the day -- and that's the key idea behind VS. It may look trivial, but it's such a game changer that many people would have considered it before if it was so obvious. Also, we (implicitly) compute the exact Hessian in a very efficient way, while they stick to an LBGS incremental approximation, which is clearly heavier in computation and memory. 
+
+Finally, our work connects to expectation propagation and, even more closely, to its practical variants, average EP and stochastic EP. 
+
+
+\section{The Laplace side of things}
+
+What happens in the star approximation algorithm if we replace the stochastic gradient update with a Laplace approximation? At a given iteration, we have a current fit~$q_0$ and we wish to approximate~$p^\alpha$ in the context~$q_0^{1-\alpha}$. A Taylor expansion around the current mode estimate~$\m_0$ may not be far off:
+$$
+\log p(\x) \approx a + \g^\top (\x-\m_0) + \frac{1}{2} (\x-\m_0)^\top\h \odot (\x-\m_0),
+$$
+with: 
+$$
+a \equiv \log p(\m_0),
+\qquad
+\g \equiv \nabla \log p,
+\qquad
+\h = \text{diag}(\nabla \nabla^\top) \log p.
+$$
+
+Note that this is not a fully blown second-order Taylor expansion since we approximate the hessian by its diagonal. An approximation to the tilted target~$t\equiv q^{1-\alpha}p^\alpha$ follows:
+$$
+\log t \approx 
+(1-\alpha)\left[ \log K_0 + \frac{1}{2} (\x-\m_0)^\top\h_0 (\x-\m_0) \right]
++ \alpha \left[ \log p(\m_0) + \g^\top (\x-\m_0) + \frac{1}{2} (\x-\m_0)^\top \h (\x-\m_0) \right],
+$$
+with $\h_0\equiv -1/\v_0$, and where we omit the elementwise product symbol $\odot$ as it should be clear from the context.
+
+This is of the form $\log t\approx a_1 + \g_1^\top(\x-\m_0) + (\x-\m_0)^\top\h_1(\x-\m_0)/2$ with:
+$$
+\h_1  = (1-\alpha) \h_0 + \alpha \h,
+\qquad
+\g_1 = \alpha \g,
+\qquad
+a_1 = (1-\alpha)\log K_0 + \alpha \log p(\m_0).
+$$
+
+So here we have our full fit update, but we still need to represent it in a fixed coordinate system. The hessian is~$\h_1$ and it is the negated inverse variance (precision) so $\v_1=-1/\h_1$. We find the mean by equating $\nabla \log t$ to zero, yielding:
+$$
+\m_1 = \m_0 - \g_1 / \h_1 = \m_0 + \alpha \v_1 \g .
+$$
+
+We get the constant factor $K_1$ by equating~$\log K_1$ to $\log t(\m_1)$:
+$$
+\log K_1 = a_1 + \g_1^\top (\m_1-\m_0) + \frac{1}{2}(\m_1-\m_0)^\top\h_1(\m_1-\m_0).
+$$
+Since $\m_1-\m_0 = -\g_1/\h_1$, this simplifies to:
+$$
+\log K_1 
+= a_1 - \frac{1}{2}\g_1^\top (\g_1/\h_1)
+= a_1 + \frac{\alpha^2}{2}\g^\top\v_1\g.
+$$
+Hence,
+$$
+\log K_1 = (1-\alpha)\log K_0 + \alpha \log p(\m_0) + \frac{\alpha^2}{2}\g^\top\v_1\g.
+$$
+
+To summarize, the `Laplace star' update rule is as follows:
+\begin{eqnarray*}
+\frac{1}{\v_{n+1}} & = & (1-\alpha)\frac{1}{\v_n} - \alpha\h \\
+\m_{n+1} & = & \m_n + \alpha \v_{n+1} \g \\
+\log K_{n+1} & = & (1-\alpha)\log K_n + \alpha \log p(\m_n) + \frac{\alpha^2}{2}\g^\top\v_{n+1}\g.
+\end{eqnarray*}
+
+The advantages of this algorithm over the stochastic ones considered above is that no step size is required, it's deterministic, it may be very fast (if the gradient and hessian have closed-form expressions). The drawback is that the fixed point condition is one of a saddle point of $\log p(\x)$, which is the usual crap. 
+
+
+
+
+\section{An algorithm for the inclusive KL divergence}
+
+The inclusive KL divergence corresponds to the case $\alpha=1$ and is of special interest because the divergence minimization is then a convex problem and admits a unique solution under mild conditions. The problem is that our SA algorithm is pretty inefficient for $\alpha\to 1$ because it samples from too wide a distribution, hence generating most of the time $\x$ values for which the force is very small, yielding hopelessly slow convergence...
+
+An idea to avoid this situation is to sample from a mixture distribution: $w = (1-\lambda) q + \lambda\pi$, where $\pi$ is some `prior' for which we assume that both the likelihood $p/\pi$ and the fitted likelihood $q/\pi$ are upper bounded. Since $w \geq \lambda \pi$, we find that $|p-q|/w\leq (1/\lambda)|p-q|/\pi$ is also bounded whenever $\lambda>0$. The reason for keeping the prior as part of the sampling distribution appears in its full glory: it is to guarantee bounded importance weights!
+
+Assuming that $Z_\pi=1$,
+\begin{eqnarray*}
+\x_n & \sim & (1-\lambda) q_n(\x) + \lambda \pi(\x),\\
+\f_n & = & \frac{p(\x_n) - q_n(\x_n)}{(1-\lambda)q_n(\x_n) + \lambda Z_n\pi(\x_n)} \Phi(q_n, \x_n),\\
+q_{n+1} & = & \Psi(q_n, \gamma \f_n),
+\end{eqnarray*}
+
+
+\section{The learning problem}
+
+In a typical learning scenario, the target has a factorial form:
+$$
+P(\x) = \prod_{i=1}^N f_i(\x),
+$$
+where each contribution $f_i$ arises from a single data point. The scale of such a distribution obviously depends on the training set size~$N$. However, for computational reasons, it is out of question to evaluate the full target at each iteration. We instead resort to the usual stochastic learning trick: pick a random batch of given size~$n$ and consider the `fake' target:
+$$
+\tilde{p}(\x) = \prod_{i=1}^n f_i(\x).
+$$
+
+This introduces a second source of randomness in the fitting algorithm. We have random data selection and random parameter generation, both of which are used for computational feasibility. We may treat $\tilde{p}(\x)$ exactly as before, as if it was a fixed target -- the only drawback that we incur is additional noise, so we might need to adjust the step size for that.
+
+But there is another consequence of doing so, which is the implicit re-scaling of the target distribution. With a fixed batch size, the actual target considered by the algorithm is:
+$$
+p(\x) = P(\x)^\lambda,
+\qquad \lambda \equiv \frac{n}{N}.
+$$
+
+An alternative approach would be to re-scale the `batch target' at each iteration by raising it to the power $N/n$, but that would probably cause numerical issues for very large~$N$... Intuitively, we'd better proceed as suggested using a `fake' target.
+
+Is it a problem? Not really. We may simply fit~$p$ and then rescale the fit as a post-processing, i.e. do $q\leftarrow q^\lambda$, to get the right variance. Is it equivalent to fitting~$P$ directly? Good question. It's not, unless we use the exclusive KL divergence (the case $\alpha\to 0$). 
+
+Indeed, the exclusive KL divergence is equivariant by re-scaling, unlike other $\alpha$-divergences. It's not a convex criterion on the Gaussian family but this may also be considered a safe property: for a multimodal target, it will pick one mode rather than computing a meaningless mean. We may have a strong case for the exclusive KL divergence!
+
+However, we may wonder about the numerical stability of directly injecting $\tilde{p}$ into the above algorithms. More generally, we may consider as a target the tilted distribution:
+$p = q_n^{1-\rho} \tilde{p}^\rho$, where $\rho$ is a learning rate parameter, which is formally very similar to the previous~$\alpha$, but fulfills a different goal: leverage the noise induced by batch selection.
+
+How does that play in the case of the Taylor-style fitting? If we have a current fit~$q$ and our current target is updated to $q^{1-\rho}\tilde{p}^\rho$, the question is how to update~$q$ so as to refine the fit... Loosely speaking, this is the same situation as before with $\rho\leftarrow\alpha$. We can forget about $\alpha$ as it is overshadowed by the learning rate in this context. 
+
+
+\section{Issues}
+
+Star approx: how to choose the starting fit? 
+
+Star-Taylor: does vmax constraint work ok?
+
+What about varying vmax across iterations (starting with a small value and increasing)?
+
+What we were doing previously with the star Taylor version was to start from $\alpha=1$ (considered to be a learning rate) so as to avoid the initialization problem... but this may make the 
+
+
+
+\section{Discussion}
+
+La raison pour laquelle j'ai \'echou\'e en partie \`a valoriser l'id\'ee du VS jusqu'\`a pr\'esent est que je l'ai mal situ\'ee par rapport \`a l'\'etat de l'art. 
+
+D'un c\^ot\'e, nous avons les m\'ethodes de Monte Carlo cens\'ees estimer exactement des int\'egrales pertinentes pour l'inf\'erence \`a la limite de grands \'echantillons (on peut consid\'erer dans la m\^eme cat\'egorie leur pendant d\'eterministe, les m\'ethodes de quadrature). De l'autre, nous avons les m\'ethodes d'inf\'erence variationnelle cens\'ees \^etre analytiques et donc rapides, pour lesquelles on accepte de substituer \`a l'erreur num\'erique des m\'ethodes de Monte Carlo ou de  quadrature une erreur syst\'ematique.
+
+Le tableau est tel qu'il n'y a pas, ou tr\`es peu, de recouvrement entre ces deux mondes. Le VS se situe justement dans cette zone de recouvrement t\'enue. C'est une m\'ethode de Monte Carlo d'un genre bizarre car {\em pas n\'ecessairement asymptotiquement exacte} et une m\'ethode variationnelle d'un genre bizarre car {\em non-analytique}. 
+
+Il y a pourtant de la place pour ce genre de m\'ethodes. Les pures m\'ethodes de Monte Carlo sont peu utilis\'ees en IA car trop lentes, et les pures m\'ethodes variationnelles ne sont pas applicables en toute circonstance. C'\'etait le vide que tentait de combler le `Bayesian Monte Carlo' de Rasmussen et Ghahramani, par ailleurs peu convaincant sur le plan technique, mais peu d'auteurs se sont aventur\'es sur ce terrain. Dans le m\^eme genre d'id\'ee, il y avait aussi la m\'ethode cross-entropy, inf\'eod\'ee \`a l'importance sampling et dont on se demande si elle a d\'ej\`a produit le moindre r\'esultat tant le sch\'ema it\'eratif sur lequel elle se base est na\"if.
+
+Mon erreur de conception du VS a \'et\'e de m'enfermer dans la contrainte d'exactitude asymptotique des m\'ethodes de Monte Carlo. Dans un monde o\`u il fallait ``choisir son erreur'', c'\'etait assez naturel, mais cette contrainte rend le VS inapplicable en grande dimension. Pour s'affranchir de cette limitation, il faut passer de la minimisation directe de la divergence de Kullback-Leibler \`a celle d'une $\alpha$-divergence pour $\alpha$ proche de z\'ero. On accepte ainsi de cumuler deux erreurs: une erreur num\'erique et une erreur syst\'ematique. 
+
+Le recours \`a la divergence~$\alpha$ est le m\^eme chemin que celui de Minka dans son papier de 2005 sur le {\em message passing}. La question qui reste en suspend pour moi, c'est pourquoi il n'\'evoque jamais le cas o\`u les messages n'ont pas d'expression analytique, ce qui arrive plus que le contraire en pratique! En fait, Minka semble avoir fait tout son possible pour \'eviter de marcher sur les plate-bandes du Monte Carlo...
+
+L'id\'ee fondamentale de son {\em message passing}, qui g\'en\'eralise son {\em expectation propagation}, c'est l'approximation contextuelle des facteurs, mais personne ne comprend vraiment pourquoi \c ca marche, si ce n'est en constatant que \c ca donne lieu \`a des formules analytiques de mise \`a jour dans quelques cas d'int\'er\^et (comme la r\'egression probit, par exemple). Ce qui est fou, c'est que la justification sous-jacente, la divergence~$\alpha$, se trouve dans ses papiers, mais pas \`a la bonne place selon moi. J'\'evoque Minka car son papier m'a beaucoup influenc\'e en 2010--11 lorsque j'essayais de mettre en place mon histoire du VS. Il m'a pouss\'e \`a voir \`a l'\'epoque le VS comme une alternative radicale au `message passing', l'un \'etant asymptotiquement exact, l'autre rapide car exploitant la structure de la loi cible. 
+
+Ces deux pr\'ejug\'es sont faux. Le VS a peu d'int\'er\^et pratique si on le contraint \`a \^etre asymptotiquement exact. Quant au message passing, il repose sur l'approximation contextuelle qui ne requiert pas fondamentalement de structure factorielle! D\`es qu'on prend conscience de cela, on voit apparaitre une variante du `message passing' plus g\'en\'erale, dans laquelle le concept de message n'est d'ailleurs pas pertinent, th\'eoriquement plus limpide car elle minimise une divergence~$\alpha$ sous r\'eserve de convergence, beaucoup plus parcimonieuse en m\'emoire... et qui s'imbrique naturellement avec le VS, offrant une solution naturelle au probl\`eme de la poule et de l'\oe uf qui a plomb\'e mes premiers articles: comment choisir la distribution d'\'echantillonnage si on n'a pas une bonne estim\'ee de la solution?
+
+J'ai tent\'e de r\'epondre \`a ce probl\`eme de diff\'erentes mani\`eres. La premi\`ere a \'et\'e de sugg\'erer une m\'ethode d'\'echantillonnage efficace et donc co\^uteuse, en l'occurrence annealed importance sampling, pour se mettre dans les conditions du VS de l'\'epoque. Pas si absurde car si on opte pour une m\'ethode de Monte Carlo sophistiqu\'ee, il y a mieux \`a faire que des moyennes empiriques, mais peu excitant car ce type de m\'ethode reste prohibitif en grande dimension. La seconde r\'eponse, en 2013, a \'et\'e de sugg\'erer l'approximation de Laplace comme noyau d'\'echantillonnage du VS, faisant apparaitre VS comme un l\'eger raffinement pas vraiment indispensable en pratique. La troisi\`eme r\'eponse, en 2016, a \'et\'e d'int\'egrer le VS \`a l'algorithme EP, ce qui nous rapprochait de la v\'erit\'e mais ne pr\'esentait pas d'avantage pratique marqu\'e par rapport \`a la m\'ethode de Laplace, encore elle, dans les probl\`emes convexes sur lesquels j'ai fait mes tests. 
+
+Tant qu'on reste confront\'e \`a des probl\`emes convexes, Laplace aka Newton aka Taylor aura toujours le dernier mot en raison de son efficacit\'e calculatoire imbattable. On peut toujours s'amuser \`a trouver des exemples de distributions unimodales dont l'approximation de Laplace est mauvaise (la loi de Laplace par exemple, LOL!), mais de tels cas pathologiques ne se rencontrent pas en pratique. 
+
+Le champ d'application du VS, ce sont les distributions multimodales. M\^eme s'il s'agit de faire une approximation gaussienne. La question \'etant de savoir si on pr\'ef\`ere faire une approximation de Laplace \`a partir d'un mode (ou plut\^ot d'un point selle) choisi au petit bonheur la chance, ou minimiser num\'eriquement une divergence~$\alpha$, probl\`eme convexe s'il en est et qui admet donc une solution unique. En somme: remplacer le paradigme de l'optimisation, mal pos\'e et vou\'e \`a l'\'echec pour des crit\`eres non-convexes, par l'approximation dudit crit\`ere au sens de la divergence~$\alpha$. Ou comment relaxer un probl\`eme non-convexe en probl\`eme convexe.
+
+Comme je l'ai pressenti d\`es le d\'epart, le VS peut jouer un r\^ole dans ce changement de paradigme comme brique de base d'un solveur num\'erique analogue \`a la descente de gradient stochastique pour l'optimisation. 
+
+Ce point de vue m'a fait \'evoluer vers un algorithme de type approximation stochastique qui rappelle notamment Carbonetto et al, NIPS 2009. Quelles sont les diff\'erences notables entre ce papier et la star approximation, ma vision actuelle du VS? 
+
+
+
+\appendix
+
+\section{Gaussian moments}
+
+Let a univariate Gaussian variable of mean $m$ and variance $v$.
+We have:
+$$
+\E(X^2) = m^2 + v
+$$
+
+We want to compute $\E(X^4)$. Note:
+$$
+X = \sqrt{v} \varepsilon + m,
+$$
+with $\varepsilon\sim N(0,1)$. We have: $\E(\varepsilon^2)=1$, and $\E(\varepsilon^4)={\rm Var}(\chi_1^2)+\E(\chi_1)^2 = 2+1 =3$. 
+From the identity:
+$$
+(x + y)^4 
+= x^4 + 4x^3y + 6x^2y^2 + 4xy^3 + y^4,
+$$
+we see that:
+$$
+X^4 = v^2 \varepsilon^4 + 6 v \varepsilon^2 m^2 + m^4 + \ldots,
+$$
+where we have omitted the monomials of odd degree in $\varepsilon$, which have zero mean. Therefore:
+$$
+\E(X^4) = 3 v^2 + 6 v m^2 + m^4
+$$
+
+
+\section{Wise man extension}
+
+In the general algorithm for arbitrary~$\alpha$, it seems wiser to sample from $\pi^\alpha q^{1-\alpha}$ rather than $q^{1-\alpha}$, where $\pi$ is our `maximum variance' prior. By doing this, we avoid uniform sampling over~$\mathbb{R}^d$ as $\alpha\to 1$. Instead, we will be sampling from the prior, which sucks but not to infinite extents. Looks like this simply involves replacing $p$ with $p/\pi$ and $q$ with $q/\pi$ above... but it's not that simple. 
+
+Assume $q$ has parameters $K$, $m$, $v$ and $\pi$ has parameters $1$, $0$, $v_{\text{max}}$. What are the parameters of $q_\alpha = \pi^\alpha q^{1-\alpha}$? 
+
+In 1D:
+$$
+\log q_\alpha(x) = -\alpha\frac{x^2}{2v_{\text{max}}} + (1-\alpha)
+\left[\log K - \frac{(x-m)^2}{2v} \right]
+$$
+
+We find:
+$$
+\frac{1}{v_\alpha}
+=
+\frac{\alpha}{v_{\text{max}}}
++ \frac{1-\alpha}{v}.
+$$
+
+$$
+v_\alpha = \frac{v}{1-\alpha + \alpha \epsilon},
+\qquad
+\epsilon \equiv \frac{v}{v_{\text{max}}}
+$$
+
+$$
+m_\alpha = (1-\alpha)\frac{v_\alpha m}{v}
+= \frac{m}{1 + \epsilon'},
+\qquad
+\epsilon' \equiv \frac{\alpha}{1-\alpha} \epsilon.
+$$
+
+$$
+m-m_\alpha = \frac{\epsilon' m}{1+\epsilon'}
+= \frac{\alpha\epsilon}{1-\alpha+\alpha\epsilon}m
+$$
+
+$$
+\log K_\alpha
+= (1-\alpha)\log K + \frac{1}{2}
+\left[
+\frac{(m-m_\alpha)^2}{v} - \alpha \frac{m^2}{v_{\text{max}}}
+\right]
+$$
+
+$$
+\log K_\alpha
+= (1-\alpha)\log K + 
+\frac{(m-m_\alpha)^2 - \alpha \epsilon m^2}{2v} 
+$$
+
+$$
+\log K_\alpha
+= (1-\alpha)\log K + 
+\alpha\epsilon
+\left[\frac{\alpha\epsilon}{(1-\alpha + \alpha\epsilon)^2}-1
+\right]
+\frac{m^2}{2v} 
+$$
+
+
+
+
+
+
+\bibliography{stat}
+\bibliographystyle{plain}
+
+
+\end{document}
