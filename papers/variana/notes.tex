@@ -7,6 +7,8 @@
 
 
 \def\x{\mathbf{x}}
+\def\y{\mathbf{y}}
+\def\e{\mathbf{e}}
 \def\th{{\boldsymbol{\theta}}}
 \def\n{{\boldsymbol{\nu}}}
 \def\u{\mathbf{u}}
@@ -156,132 +158,110 @@ This yields the same kind of variance upper bound for any moment estimator we ha
 
 \section{Custom optimizer}
 
-In the following, we consider the canonical problem of minimizing $D(p\|q)$ for some target~$p$, wrt some distribution log-quadratic distribution~$q$. I wrote the following section at Covii in Spring~2019. The goals is to have a scalable optimizer for VS, and the core idea is to re-parameterize the approximating family locally so as to implement~VS using a first-order gradient descent rather than a quasi-Newton method, which requires maninpulations on some Hessian approximation in one way or another and may thus be challenging in very large dimension. 
+We shall note that the basis functions $\phi_i$ underlying the fitting family are somewhat arbitrary, hence comes a natural question: which basis is most convenient for optimization?
 
-
-\subsection{Basis change}
-
-Consider minimizing the KL divergence via a gradient descent and consider a single gradient update. If we cannot afford to compute the Hessian (and to invert it), the gradient update relies on an arbitrary metric and may be rather ineffective. An important property of the KL divergence with exponential families is that its Hessian is independent from the target distribution and is associated with a dot product on the linear space spanned by~$\phi$ (which is a subspace of polynomials of order~2 for the factorial Gaussian family):
+Consider for now the case of the KL divergence $D(\theta)=D(\pi f\|\pi g_\theta)$ for a given set of $\phi$-functions. We have the relations:
 $$
-H = \int q(\x) \phi(\x) \phi(\x)^\top d\x 
-\quad \Rightarrow \quad
-H_{ij} = \langle \phi_i , \phi_j \rangle .
+\nabla D = \int \pi (g_\theta-f) \phi,
+\qquad
+\nabla^2 D = \int \pi g_\theta \phi\phi^\top.
 $$
 
-A natural idea is then to pick an orthonormal basis to use temporarily for a single gradient update as the divergence Hessian is scalar in such a basis. 
+From there, a key remark is that the Hessian at a particular $\theta$ is the identity matrix if $\phi$ defines an orthonormal basis for the dot product:
+$$
+\langle h_1, h_2 \rangle \equiv \int \pi g_{\theta} h_1 h_2,
+$$
+where $h_1$ and $h_2$ are real-valued functions... We have some Hilbert space structure here, but I'll skip these details for now as I am not a mathematician. What really matters is that the Hessian being the identity means that a Newton iteration is very easy to compute as it boils down to a first-order gradient iteration. Importantly, however, this property is achieved for a particular basis function that is {\em dependent on the current fit estimate}.
 
-Can we easily compute such as basis? The answer is yes. Assume for now and for simplicity that $\int q = 1$. In one dimension, it is easy to find an orthonormal basis:
+So, let's say that we have a current fit $g_n$ (which may be defined, for instance, by its coordinates in the canonical, fixed basis) and we want to perform one Newton iteration to improve it. Given an orthonormal basis $\phi_n$ associated with $g_n$ (in the sense of the above-defined dot product), we may look for the update under the form $g_\theta = g_n \exp({\theta^\top \phi_n})$. The Newton iteration from $\theta=0$ then takes the form:
 $$
-\phi_0(x) = 1,
-\quad \phi_1(x) = \frac{(x-m)}{s},
-\quad \phi_2(x) = \frac{1}{\sqrt{2}}\left[\frac{(x-m)^2}{s^2} - 1\right].
+\hat{\theta} = -\lambda \nabla D(0) = \lambda \int \pi(f - g_n)\phi_n,
+$$
+for some damping factor $\lambda > 0$ (the genuine Newton iteration corresponds to $\lambda=1$), yielding the update:
+$$
+g_{n+1} = g_n \exp (\hat{\theta}^\top \phi_n).
 $$
 
-It is straightforward to see that $\|P_0\|=1$, $\|P_1\|=1$, $\langle P_0, P_1 \rangle=0$ and $\langle P_0, P_2 \rangle=0$. The reason why $\langle P_1, P_2 \rangle=0$ is that it subtracts two centered moments of order~1 and~3, respectively, which both vanish because~$q$ is symmetric. Finally, note that:
+We will further need to represent $g_{n+1}$ in the same fixed coordinate system as $g_n$, which will require a linear coordinate change from $\phi_n$ to the fixed basis. 
+
+
+
+\subsection{Orthonormal basis}
+
+Let's start in one dimension for simplicity. Given a current fit $g$, let $q=\pi g$ (pig\'e?),  with integral, mean and scale parameters $(Z, m, s)$, the following three functions define an orthonormal basis:
 $$
-\phi_2(x)^2 = \frac{1}{2} 
+\phi_0(x) = \frac{1}{\sqrt{Z}},
+\quad \phi_1(x) = \frac{(x-m)}{\sqrt{Z}s},
+\quad \phi_2(x) = \frac{1}{\sqrt{2Z}}\left[\frac{(x-m)^2}{s^2} - 1\right].
+$$
+
+{\bf Proof.} It is easy to see that $\|\phi_0\|=1$, $\|\phi_1\|=1$, $\langle \phi_0, \phi_1 \rangle=0$ and $\langle \phi_0, \phi_2 \rangle=0$. The reason why $\langle \phi_1, \phi_2 \rangle=0$ is that it subtracts two centered moments of order~1 and~3, respectively, which both vanish because~$q$ is symmetric. Finally, note that:
+$$
+\phi_2(x)^2 = \frac{1}{2Z} 
 \left[\frac{(x-m)^4}{s^4} - 2 \frac{(x-m)^2}{s^2} + 1 \right],
 $$
 hence, given that the 4th-order centered moment of a Gaussian is~3 (which can be seen using the $\chi_1^2$ distribution), we have:
 $$
-\E_q [\phi_2^2(x)] = \|P_2\|^2 = \frac{1}{2} (3 - 2 + 1) = 1.
+\int q \phi_2^2 = \|\phi_2\|^2 = \frac{1}{2} (3 - 2 + 1) = 1.
 $$
 
 In multiple dimensions, we do:
 $$
-\phi_0(\x) = 1, 
+\phi_0(\x) = \frac{1}{\sqrt{Z}}, 
 \quad
-\phi_{1i}(\x) = \frac{(x_i-m_i)}{s_i},
+\phi_{1i}(\x) = \frac{(x_i-m_i)}{\sqrt{Z} s_i},
 \quad
-\phi_{2i}(\x) = \frac{1}{\sqrt{2}}\left[\frac{(x_i-m_i)^2}{s_i^2} - 1\right].
+\phi_{2i}(\x) = \frac{1}{\sqrt{2Z}}\left[\frac{(x_i-m_i)^2}{s_i^2} - 1\right].
 $$
 This defines an orthonormal basis because the components of~$\x$ are mutually independent under the factorial distribution~$q(\x)$, hence for different basis vectors: 
 $$
 \forall (i,j), \quad i\not= j, \quad
-\langle \phi_{ki}, \phi_{\ell j} \rangle = \E_q[\phi_{ki}]\E_q[\phi_{ki}] = \langle \phi_{ki}, 1 \rangle \langle P_{\ell j}, 1 \rangle = 0.
+\langle \phi_{ki}, \phi_{\ell j} \rangle
+= \left(\int q \phi_{ki}\right)\left(\int q \phi_{\ell j}\right)
+= \langle \phi_{ki}, 1 \rangle \langle \phi_{\ell j}, 1 \rangle = 0.
 $$
 Moreover, when it comes to dot products involving the same component, the one-dimensional results apply.
 
-In the general case where~$q$ does not integrate to one, we simply need to divide each basis vector by $Z=\int q_0$ to fulfill the unit norm conditions. Alternatively, we may leave the basis as is and later remember that the Hessian is $Z\text{Id}$.
 
+\subsection{Coordinate change}
 
-\subsection{Iteration}
-
-So we have an orthonormal basis that is very easy to compute! Now, consider decreasing the KL divergence $D(p\|q)$ starting from some current guess~$q_0$. To this end, we may compute an orthonormal basis associated with~$q_0$ and perform one Newton iteration in that basis. More specifically, we search for a new fit under the form:
+Given some ``moving'' coordinates in the orthonormal basis, we aim to compute the corresponding coordinates in the canonical basis $b_0=1$, $b_{11}=x_1$, $b_{12}=x_1^2$, $b_{21}=x_2$, $b_{22}x_2^2$, etc. This is a linear mapping. We easily get by identification, owing to the separability of Gaussian factors:
 $$
-q_\th(\x) = q_0(\x) e^{\th^\top \phi(\x)},
-$$
-where~$\phi$ is the orthonormal basis. Clearly, the initial parameter is $\th_0=0$. The Newton update yields:
-$$
-\th = \gamma \f,
+\phi_0 =
+\frac{1}{\sqrt{Z}} b_0,
 \qquad
-\f = -\frac{1}{Z} \u,
-\quad
-\u \equiv \nabla D(\th_0) = \int (q_0 - p)\phi,
-$$
-where $\gamma$ is a given step size ($\gamma=1$ for a genuine Newton iteration) and~$Z$ is there for the Hessian correction. 
-
-The gradient is generally intractable as it depends on~$p$, but we can approximate it via random sampling or quadrature. There are essentially two options. One is:
-$$
-\u \approx \int q_0\phi - {\cal I}(p\phi),
-$$
-where~${\cal I}$ denotes a numerical integration operator. The other option is:
-$$
-\u \approx {\cal I}[(q_0- p)\phi].
-$$
-This is where the variational sampling story may start. Option~1 amounts to a direct moment approximation. Option~2, which corresponds to our initial variational sampling idea, is perhaps less intuitive as it ignores the fact that we can compute the ``fitted moment'' exactly, but is arguably better because the error is smaller whenever~$q_0$ is close enough to~$p$. Hence, for a near Gaussian target, we expect less numerical instabilities. Note that, at this level of description, there is no sampling kernel involved -- this is a specific detail of numerical integration.
-
-So, our gradient update takes on the simple form $\th = \gamma\tilde{\f}$, but this is computed in a moving coordinate system since the orthonormal basis changes on each iteration. Is it easy to compute the `natural' parameters of $q_\th=q_0\exp(\th^\top \phi)$ from the moving coordinates~$\th$? Yes, it is.
-
-First, consider the right hand side and try to do the identification:
-$$
-e^{\th^\top \phi} = \kappa e^{-\frac{(\x-\mu)^2}{2\sigma^2}},
-$$
-hence, by taking the log:
-$$
-\log\kappa - \frac{1}{2} \sum_i \frac{(x_i-\mu_i)^2}{\sigma_i^2}
-= 
-\theta_0 + \sum_i \theta_{1i}\frac{x_i-m_i}{s_i}
-+ \frac{1}{\sqrt{2}} \sum_i \theta_{2i}\big[ \frac{(x_i-m_i)^2}{s_i^2} -1 \big]. 
-$$
-We may differentiate this wrt $x_i$, yielding: 
-$$
-\frac{x_i-\mu_i}{\sigma_i^2} 
-= \frac{\theta_{1i}}{s_i} + \sqrt{2} \theta_{2i} \frac{x_i-m_i}{s_i^2}
-= \frac{\sqrt{2} \theta_{2i}}{s_i^2} \big[x_i - m_i + \frac{s_i\theta_{1i}}{\sqrt{2} \theta_{2i}} \big].
-$$
-By identification, we find:
-$$
-\sigma_i^2 = - \frac{s_i^2}{\sqrt{2}\theta_{2i}},
-$$
-and:
-$$
-\mu_i = m_i - \frac{s_i\theta_{1i}}{\sqrt{2}\theta_{2i}} = m_i + \frac{\sigma_i^2}{s_i}\theta_{1i}.
+\phi_{1i} =
+-\frac{m_i}{\sqrt{Z}s_i} b_0
++ \frac{1}{\sqrt{Z}s_i} b_{1i},
+\qquad
+\phi_{2i} =
+\frac{1}{\sqrt{2Z}} \left(\frac{m_i^2}{s_i^2} - 1\right) b_0
+- \frac{\sqrt{2}m_i}{\sqrt{Z}s_i^2} b_{1i}
++ \frac{1}{\sqrt{2Z}s^2} b_{2i}.
 $$
 
-To find $\kappa$, we note that the integral of $\th^\top \phi$ wrt~$q_0$ is equal to its dot product with~$\phi_0\equiv 1$, which is $\theta_0 \|\phi_0\|^2=\theta_0 Z$ since the basis $\phi/\sqrt{Z}$ is orthonormal. The constant $Z$ cancels out as it appears on both sides, and we find, using the K\"onig formula:
-$$
-\log \kappa = \theta_0 + \frac{1}{2}\sum_i \frac{s_i^2 + (\mu_i-m_i)^2}{\sigma_i^2}.
-$$
+This shows that it the transition matrix from moving to fixed coordinates is block-diagonal, up to a first row corresponding to the constant terms. In the 1D case, it is upper triangular. In general, it never has more than three nonzero elements per column.
 
-We also need to get the parameter~$\th_0$ of~$q_0$, which act as an offset. For this, we just do $\kappa=K_0$, $\mu_i=m_i$, and $\sigma_i=s_i$, yielding:
-$$
-\theta_{2i}^0=-\frac{1}{\sqrt{2}},
-\quad
-\theta_{1i}^0 = 0,
-\quad
-\theta_0^0 = \log K_0 - \frac{d}{2}.
-$$
 
-Therefore, the updated fit is a function $\Psi(q_0,\th)$ of the current fit and parameter variation:
-$$
-v_{i1} =  \frac{v_{i0}}{1-\sqrt{2}\theta_{2i}},
-\quad
-m_{i1} = m_{i0} + \frac{v_{i1}}{\sqrt{v_{i0}}} \theta_{1i},
-\quad
-\log K_1 = \log K_0 + \theta_0 + \frac{1}{2} \left[\sum_i \frac{v_{i0} + (m_{i1}-m_{i0})^2}{v_{i1}} - d\right].
-$$
 
+
+\subsection{Application to VS}
+
+So far in this section, we have considered the problem of minimizing the KL~divergence. We have seen that we can elegantly work around the problem of inverting the Hessian in a Newton iteration by using appropriate orthonormal bases. However, as we know, the KL gradient may be intractable for the target factor under consideration, meaning that we need to approximate it via random sampling or quadrature, leading respectively to stochastic gradient and numerical approximation methods.
+
+There are essentially two options.
+
+One option is to approximate the moment involved in the KL gradient:
+$$
+\nabla D \approx \int \pi g_n\phi - {\cal I}(\pi f \phi),
+$$
+where~${\cal I}$ denotes a numerical integration operator.
+
+The other option is to approximate the KL gradient altogether:
+$$
+\nabla D \approx {\cal I}[\pi(g_n - f)\phi].
+$$
+This is where the variational sampling story may start. Option~2, which corresponds to our initial variational sampling idea, is arguably better because it is exact whenever $g_n=f$, meaning that the Newton iteration will converge deterministically whenever $f$ is in the approximating family. Hence, for a near Gaussian target, we expect less numerical instabilities with Option~2. Note that, at this level of description, there is no sampling kernel involved -- this is a specific detail of numerical integration.
 
 
 \section{Naive VS}
