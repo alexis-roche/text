@@ -156,6 +156,33 @@ $$
 This yields the same kind of variance upper bound for any moment estimator we have.
 
 
+\section{VS vs IS}
+
+The classical Monte Carlo approach to approximate an integral $\int p$ is to sample from some kernel $\pi$ and compute the empirical mean of importance weights $p(x_i)/\pi(x_i)$. This is known as importance sampling, but it's just the old Monte Carlo integration idea if we start from the form $p=\pi f$ and realize that the importance weighting function is then nothing but the target factor. The IS estimator is just a sample mean:
+$$
+\hat{I}(f) = \frac{1}{n}\sum_i f(x_i),
+\qquad x_i \stackrel{iid}{\sim} \pi(x),
+$$
+which has the same mean and $1/n$ times the variance of the random variable $f(X)$, for $X\sim\pi(x)$. Beside the obvious fact that:
+$$
+\mathbb{E}[f(X)] = \int\pi f,
+$$
+we also have that:
+$$
+{\rm Var}[f(X)]
+= \min_{c\in\mathbb{R}} \int \pi (f - c)^2.
+$$
+
+Note that the same story applies to $f\phi$ instead of just $f$ to deal with moments of order-1, order-2, and so on. But let's focus on~$f$ for simplicity.
+
+As mentionned before, the VS asymptotic variance is the same as the IS variance, but when applied to $(f-g_\star)$ instead of $f$. Interestingly, the variable $f(X)-g_\star(X)$ has zero mean by the moment matching property inherited from KL~minimization.
+
+Then comes a natural question: when is the variance of $(f-g_\star)$ smaller than that of $f$ under~$\pi$? Intuition suggests that, since $g_\star$ is the best fit to $f$ in the KL~sense, the residuals $f-g_\star$ tend to be ``small''. We can make this a little bit more precise using :
+$$
+\min_g \int \pi (f-g)^2 \leq \min_{c\in\mathbb{R}} \int \pi (f-c)^2 = {\rm Var}[f(X)].
+$$
+
+
 \section{Custom optimizer}
 
 We shall note that the basis functions $\phi_i$ underlying the fitting family are somewhat arbitrary, hence comes a natural question: which basis is most convenient for optimization?
@@ -261,14 +288,19 @@ The other option is to approximate the KL gradient altogether:
 $$
 \nabla D \approx {\cal I}[\pi(g_n - f)\phi].
 $$
-This is where the variational sampling story may start. Option~2, which corresponds to our initial variational sampling idea, is arguably better because it is exact whenever $g_n=f$, meaning that the Newton iteration will converge deterministically whenever $f$ is in the approximating family. Hence, for a near Gaussian target, we expect less numerical instabilities with Option~2. Note that, at this level of description, there is no sampling kernel involved -- this is a specific detail of numerical integration.
+
+Option~2, which corresponds to our initial variational sampling idea, is arguably better because it is exact whenever $g_n=f$, meaning that the Newton iteration will converge deterministically whenever $f$ is in the approximating family. Hence, for a near Gaussian target, we expect less numerical instabilities with Option~2. Note that, at this level of description, there is no sampling kernel involved -- this is a specific detail of numerical integration.
+
+What we have sketched here is nothing but a stochastic gradient method to minimize the KL~divergence, which is quite different in spirit from the initial VS~idea in that resampling could take place at each iteration of the optimization process. While this ensures that the successive gradient estimates are mutually independent, hence the method is unbiased and exact (not only asymptotically). This could be costly if the target factor takes time to evaluate, though. 
 
 
-\section{Naive VS}
+\section{Probability updating}
 
-What the variance inequalities essentially prescribe is that the target factor~$f$ be a fast decreasing bounded function (it should not have heavier tails than polynomial in the Gaussian case). In practice, this constraint is easily fulfilled, for instance if~$f$ is a posterior distribution arising from an exponential prior and a bounded likelihood function. Other compliant factors can be derived from this case, as we will see. However, importance weighting functions resulting from distribution ratios are ruled out.
+What the variance inequalities essentially prescribe is that the target factor~$f$ be a bounded function. If this condition holds, the product distribution $\pi f$ does not have heavier tails than $\pi$, therefore IS converges whenever $\pi \phi\phi^\top$ exists, which is guaranteed for instance if $\pi$ is Gaussian (proper) and  $\phi$ is polynomial, which is our standard setting. VS convergence follows from the same argument provided that $(f-g)$ is bounded, in other words that the best fitting~$g$ is also bounded. 
 
-Consider a Bayesian posterior distribution of the form $p=\pi L$, where $\pi$ is a prior and $L$ a likelihood function. A natural approach would be to apply VS with $\pi$ as the sampling distribution and $f=p/\pi=L$ as the factor to be approximated. This means that we are trying to approximate the likelihood function by a Gaussian function in the context of the prior. Makes sense. This is the canonical approach exposed in my previous publications on VS.
+polynomial in the Gaussian case. In practice, this constraint is easily fulfilled, for instance if~$f$ is a posterior distribution arising from an exponential prior and a bounded likelihood function. Other compliant factors can be derived from this case, as we will see. However, importance weighting functions resulting from distribution ratios are ruled out.
+
+Consider a Bayesian posterior distribution of the form $p=\pi L$, where $\pi$ is a prior and $L$ a likelihood function. It is natural to apply VS with $\pi$ as the sampling distribution and $f=p/\pi=L$ as the factor to be approximated. This means that we are trying to approximate the likelihood function by a Gaussian function in the context of the prior. Makes sense. This is the canonical approach exposed in my previous publications on VS.
 
 However, there are some issues with that. Firstly, the likelihood might not be fast-decreasing (this is the case in image registration), meaning that VS convergence is doubtful. It may not converge at all, or convergence may be super slow... But, even if $L$ is a nice friendly sharply peaked function, sampling from the prior is intuitively not the most efficient thing to do as most simulated points will have low likelihood.
 
