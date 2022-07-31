@@ -137,6 +137,8 @@ $$
 \int \pi (f-g)^2 \leq 2\max(\|f\|_\infty, \|g\|_\infty) D(\pi f\|\pi g).
 $$
 
+Note that this is only tight if $\max(f,g)$ is constant, 
+
 This tells us that, as intuition suggests, the mean squared error between factors smoothly goes to zero as the KL~divergence vanishes. But this holds under the mild condition that both $f$ and $g$ remain bounded. This practically rules out the naive application of VS to unbounded importance weight functions, hence the need to perform VS within a constrained framework such as Expectation Propagation.
 
 Note that, if~$f$ is such that all the moments $\int\pi f \phi$ exist, the same goes for $g_\star$ in virtue of the moment matching condition, implying under very mild conditions on the approximating family, that $g_\star$ is upper bounded (easy to see in the Gaussian case, which is BTW the only one we have considered in practice so far.
