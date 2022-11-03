@@ -202,16 +202,16 @@ $$
 $$
 where $h_1$ and $h_2$ are real-valued functions... We have some Hilbert space structure here, but I'll skip these details for now as I am not a mathematician. What really matters is that the Hessian being the identity means that a Newton iteration is very easy to compute as it boils down to a first-order gradient iteration. Importantly, however, this property is achieved for a particular basis function that is {\em dependent on the current fit estimate}.
 
-So, let's say that we have a current fit $g_n$ (which may be defined, for instance, by its coordinates in the canonical, fixed basis) and we want to perform one Newton iteration to improve it. Given an orthonormal basis $\phi_n$ associated with $g_n$ (in the sense of the above-defined dot product), we may look for the update under the form $g_\theta = g_n \exp({\theta^\top \phi_n})$. The Newton iteration from $\theta=0$ then takes the form:
+So, let's say that we have a current fit $g_n$ (which may be defined, for instance, by its coordinates in the canonical, fixed basis) and we want to perform one Newton iteration to improve it. Given an orthonormal basis $\phi_n$ associated with $g_n$ (in the sense of the above-defined dot product), we may look for the update under the form $g_\nu = g_n \exp({\nu^\top \phi_n})$. The Newton iteration from $\nu=0$ then takes the form:
 $$
-\hat{\theta} = -\lambda \nabla D(0) = \lambda \int \pi(f - g_n)\phi_n,
+\hat{\nu} = -\lambda \nabla D(0) = \lambda \int \pi(f - g_n)\phi_n,
 $$
 for some damping factor $\lambda > 0$ (the genuine Newton iteration corresponds to $\lambda=1$), yielding the update:
 $$
-g_{n+1} = g_n \exp (\hat{\theta}^\top \phi_n).
+g_{n+1} = g_n \exp (\hat{\nu}^\top \phi_n).
 $$
 
-We will further need to represent $g_{n+1}$ in the same fixed coordinate system as $g_n$, which will require a linear coordinate change from $\phi_n$ to the fixed basis. 
+We will further need to represent $g_{n+1}$ in the same fixed coordinate system as $g_n$, i.e. using a ``$\theta$ parameter'', which will require a linear coordinate change from $\phi_n$ to the fixed basis. 
 
 
 
@@ -266,15 +266,62 @@ $$
 \phi_{2i} =
 \frac{1}{\sqrt{2Z}} \left(\frac{m_i^2}{s_i^2} - 1\right) b_0
 - \frac{\sqrt{2}m_i}{\sqrt{Z}s_i^2} b_{1i}
-+ \frac{1}{\sqrt{2Z}s^2} b_{2i}.
++ \frac{1}{\sqrt{2Z}s_i^2} b_{2i}.
 $$
 
-This shows that it the transition matrix from moving to fixed coordinates is block-diagonal, up to a first row corresponding to the constant terms. In the 1D case, it is upper triangular. In general, it never has more than three nonzero elements per column.
+This shows that the transition matrix from moving to fixed coordinates is block-diagonal, up to a first row corresponding to the constant terms. In the 1D case, it is upper triangular. In general, it never has more than three nonzero elements per column.
 
-
+$$
+T =
+\frac{1}{\sqrt{Z}}
+\left[
+\begin{array}{ccccccc}
+1 & -\frac{m_1}{s_1} & -\frac{m_2}{s_2} & \ldots &
+  \frac{1}{\sqrt{2}} \left(\frac{m_1^2}{s_1^2} - 1\right) &
+  \frac{1}{\sqrt{2}} \left(\frac{m_2^2}{s_2^2} - 1\right) &
+  \ldots \\
+0 & \frac{1}{s_1} & 0 & \ldots &
+-\frac{\sqrt{2}m_1}{s_1^2} & 0 & \ldots \\
+  0 & 0 & \frac{1}{s_2} & 0 &
+  0 & -\frac{\sqrt{2}m_2}{s_2^2} & \ldots \\
+\vdots & \vdots & \vdots & \vdots &
+\vdots & \vdots & \vdots\\
+0 & 0 & 0 & 0 &
+  \frac{1}{\sqrt{2}s_1^2} & 0 & \ldots\\
+0 & 0 & 0 & 0 &
+  0 & \frac{1}{\sqrt{2}s_2^2} & \ldots\\
+\end{array}
+\right].
+$$
 
 
 \subsection{Application to VS}
+
+In VS, we approximate the KL divergence using some integration rule with weights~$w_i$:
+$$
+\hat{D}(\nu)
+\equiv \sum_i w_i \left[-f_i
+  \log g_\nu(\x_i) + g_\nu(\x_i) \right],
+$$
+yielding the gradient (with simplified notation):
+$$
+\nabla\hat{D} =
+\sum_i w_i (g_i - f_i) \phi(\x_i),
+$$
+where $\phi$ is the above defined orthonormal basis, which depends on the current fit~$g$.
+
+Hence, the VS approximation to the Newton iteration on the KL~divergence is:
+$$
+\hat{\nu} = -\lambda \sum_i w_i (g_i - f_i) \phi(\x_i).
+$$
+
+This requires evaluating both the current fit and the associated orthonormal basis functions at each sample point. Note that, in the canonical basis, we don't have to re-evaluate the basis functions on each iteration, but we have to re-evaluate the KL Hessian if we are to implement the genuine Newton method.
+
+Once the moving coordinates are updated through $\hat{\nu}$, we convert them to canonical coordinates by left multiplying $\hat{\nu}$ by the above transition matrix.
+
+
+
+\subsection{Utter bulshit}
 
 So far in this section, we have considered the problem of minimizing the KL~divergence. We have seen that we can elegantly work around the problem of inverting the Hessian in a Newton iteration by using appropriate orthonormal bases. However, as we know, the KL gradient may be intractable for the target factor under consideration, meaning that we need to approximate it via random sampling or quadrature, leading respectively to stochastic gradient and numerical approximation methods.
 
