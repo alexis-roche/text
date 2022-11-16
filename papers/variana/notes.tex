@@ -294,6 +294,29 @@ T =
 \right].
 $$
 
+Let $\theta=T\nu$.
+
+$$
+\sqrt{Z}\theta_0 =
+\nu_0
+- \sum_i \frac{m_i}{s_i} \nu_{1i}
++ \frac{1}{\sqrt{2}} \sum_i \left(\frac{m_i^2}{s_i^2} - 1\right) \nu_{2i}
+.
+$$
+
+$$
+\sqrt{Z}\theta_{1i}
+=
+\frac{\nu_{1i}}{s_i} - \sqrt{2} \frac{m_i\nu_{2i}}{s_i^2}.
+$$
+
+$$
+\sqrt{Z}\theta_{2i}
+=
+\frac{\nu_{2i}}{\sqrt{2}s_i^2}.
+$$
+
+
 
 \subsection{Application to VS}
 
@@ -315,9 +338,9 @@ $$
 \hat{\nu} = -\lambda \sum_i w_i (g_i - f_i) \phi(\x_i).
 $$
 
-This requires evaluating both the current fit and the associated orthonormal basis functions at each sample point. Note that, in the canonical basis, we don't have to re-evaluate the basis functions on each iteration, but we have to re-evaluate the KL Hessian if we are to implement the genuine Newton method.
+This requires evaluating both the current fit and the associated orthonormal basis functions at each sample point. Evaluating the basis function requires computing the natural parameters $(Z, m, s)$. Note that, in the canonical basis, we don't have to re-evaluate the basis functions on each iteration, but we have to re-evaluate the KL Hessian if we are to implement the genuine Newton method.
 
-Once the moving coordinates are updated through $\hat{\nu}$, we convert them to canonical coordinates by left multiplying $\hat{\nu}$ by the above transition matrix.
+Once the moving coordinates are updated through $\hat{\nu}$, we convert them to canonical coordinates by left multiplying $\hat{\nu}$ by the above transition matrix, which gives us the increment $\delta\theta=T\hat{\nu}$ to add to the current $\theta$ estimate for the next iteration.
 
 
 
