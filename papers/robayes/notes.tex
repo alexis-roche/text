@@ -1,0 +1,49 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,subfigure}
+%\usepackage[utf8]{inputenc}
+
+
+\def\x{\mathbf{x}}
+\def\y{\mathbf{y}}
+\def\e{\mathbf{e}}
+\def\th{{\boldsymbol{\theta}}}
+\def\n{{\boldsymbol{\nu}}}
+\def\u{\mathbf{u}}
+\def\m{\mathbf{m}}
+\def\v{\mathbf{v}}
+\def\f{\mathbf{f}}
+\def\E{\mathbb{E}}
+\def\g{\mathbf{g}}
+\def\h{\mathbf{h}}
+\def\A{\mathbf{A}}
+\def\B{\mathbf{B}}
+
+
+\title{Robust Bayes Reloaded}
+\author{Alexis Roche}
+%\date{}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+
+\maketitle
+
+\section{Initial toughts}
+
+The Bayesian paradigm is semi-generative in essence in that it relies on a parametric distribution model that incorporates a priori on unknown parameters. This a priori is non-testable in essence, and can thus be chosen in an arbitrary manner, which may lead to really poor inference models for high-dimensional models... This is an undeniable {\em weakness} of classical Bayesian analysis.
+
+Robust Bayes analysis can be used to work around this problem. We may see it as a minimax risk strategy (instead of Bayesian) to select a reasonably low-dimensional parametric model to fight the curse of dimensionality. It is, in essence, a dimension reduction scheme.
+
+Note that we are not talking about overfitting, at least in a traditional sense. 
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{alexis,stat}
+\end{document}
