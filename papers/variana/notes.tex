@@ -33,6 +33,35 @@
 
 \maketitle
 
+\section{2023 thoughts}
+
+Context: ill posedness (in the sense of Hadamard) of empirical risk minimization, including  maximum likelihood, MAP, etc. These methods are at the heart of statistical inference and machine learning, still they are based on ill-posed mathematical problems! Shouldn't we worry about that?
+
+The empirical risk is just a proxy for a Bayesian risk that we are not able to compute unless we know the {\em true} distribution of the training data. We don't really mean to optimize the empirical risk.
+
+Bayesian inference boils down to a problem of the form:
+$$
+r(\theta) = \int p(x) L(x, \theta) dx 
+$$
+where $p(x)$ is the distribution of some variable of interest and $\theta$ is the parameter to be learned. Because we don't know $p(x)$ in agnostic learning context, or we know it but it's intractable, we may resort to an empirical version of the risk:
+$$
+\hat{r}(\theta) = \frac{1}{n} L(x_i, \theta).
+$$
+
+
+You can use the Laplace approximation at the global optimum, it might work just as well as VS and probably faster. However, finding the global optimum is super challenging in high dimension: it usually exists (under mild conditions), but is hopeless to track using differential calculus based optimization, which generally converges to a saddle point. This is a fundamental limitation of numerical optimization techniques. Needless to say, Laplace is bound to work poorly at a saddle point since the Hessian is not definite positive, hence what you will get is a degenerate Gaussian fit.
+
+Yet, according to the Bernstein-von Mises theorem, we expect Bayesian posteriors to be nearly Gaussian in the limit of large samples. How many data points do we need in practice, we don't know, but we should be able to tell how well this approximation holds in the problem at hand.
+
+If it does hold, then the target distribution is peaked around a well-defined global optimum. Finding the global optimum is then akin to fitting a Gaussian distribution. 
+
+If it doesn't hold, then finding the global optimum makes little sense because we may have multiple local optima spread across the domain. But fitting a Gaussian may still make sense as it can at least tell us that the asymptotic regime is not reached, meaning that more training data is probably needed.
+
+The fact that we get many saddle points in practice suggests that we may lack data, however this restriction is not fundamental if we have an underlying generative model to produce the training data. 
+
+
+
+
 
 \section{Variational sampling recap}
 
