@@ -20,7 +20,7 @@
 \def\h{\mathbf{h}}
 \def\A{\mathbf{A}}
 \def\B{\mathbf{B}}
-
+\def\prec{\mathrm{prec}}
 
 \title{Variana Reloaded}
 \author{Alexis Roche}
@@ -33,33 +33,29 @@
 
 \maketitle
 
-\section{2023 thoughts}
+\section{History}
 
-Context: ill posedness (in the sense of Hadamard) of empirical risk minimization, including  maximum likelihood, MAP, etc. These methods are at the heart of statistical inference and machine learning, still they are based on ill-posed mathematical problems! Shouldn't we worry about that?
-
-The empirical risk is just a proxy for a Bayesian risk that we are not able to compute unless we know the {\em true} distribution of the training data. We don't really mean to optimize the empirical risk.
-
-Bayesian inference boils down to a problem of the form:
-$$
-r(\theta) = \int p(x) L(x, \theta) dx 
-$$
-where $p(x)$ is the distribution of some variable of interest and $\theta$ is the parameter to be learned. Because we don't know $p(x)$ in agnostic learning context, or we know it but it's intractable, we may resort to an empirical version of the risk:
-$$
-\hat{r}(\theta) = \frac{1}{n} L(x_i, \theta).
-$$
+It is time to assemble the pieces of the puzzle.
+\begin{itemize}
+\item 2010: discovery of the VS core idea and its intriguing exactness property.
+\item 2011--13: consolidation of the theory behind VS.
+\item 2014--16: realization that VS is useful in practice combined with Expectation Propagation.
+\item 2018--19: extension to large dimension via custom optimizer (avoiding big Hessian inversion).
+\item 2022: proven bound on VS asymptotic variance.
+\item 2023: final key insight: VS makes optimization possible in high dimension (at least locally) because it avoids saddle points unlike gradient-based methods.
+\end{itemize}
 
 
-You can use the Laplace approximation at the global optimum, it might work just as well as VS and probably faster. However, finding the global optimum is super challenging in high dimension: it usually exists (under mild conditions), but is hopeless to track using differential calculus based optimization, which generally converges to a saddle point. This is a fundamental limitation of numerical optimization techniques. Needless to say, Laplace is bound to work poorly at a saddle point since the Hessian is not definite positive, hence what you will get is a degenerate Gaussian fit.
+\section{FAQ}
 
-Yet, according to the Bernstein-von Mises theorem, we expect Bayesian posteriors to be nearly Gaussian in the limit of large samples. How many data points do we need in practice, we don't know, but we should be able to tell how well this approximation holds in the problem at hand.
+\paragraph{Is VS better than IS?} No. VS is asymptotically equivalent to IS applied to the residual Gaussian fitting error, {\em i.e.}, the difference between the target distribution and its KL optimal Gaussian fit. VS will thus be more accurate than IS whenever the residual importance weights vary less than the base importance weights in the sampling distribution support. This happens when the target is locally well approximated by a Gaussian. But this is not always the case. For instance, assume we want to estimate the normalizing constant of a distribution that we are able to sample from; in this case, the base importance weights are constant, and substracting the Gaussian fit doesn't help. VS doesn't even converge if the target has shorter tails than a Gaussian, while IS is exact no matter what. Generally speaking, VS doesn't appear as the method of choice when we have a good sampler.
 
-If it does hold, then the target distribution is peaked around a well-defined global optimum. Finding the global optimum is then akin to fitting a Gaussian distribution. 
+%\paragraph{What does ``nearly Gaussian'' mean?} Roughly speaking, it means that the distribution can be decomposed as the product of a Gaussian distribution and a slowly varying function within the Gaussian distribution's support. 
 
-If it doesn't hold, then finding the global optimum makes little sense because we may have multiple local optima spread across the domain. But fitting a Gaussian may still make sense as it can at least tell us that the asymptotic regime is not reached, meaning that more training data is probably needed.
-
-The fact that we get many saddle points in practice suggests that we may lack data, however this restriction is not fundamental if we have an underlying generative model to produce the training data. 
+\paragraph{Is VS better than Laplace?} The Laplace method has systematic bias, unlike VS. This is fundamentally because it works at fixed, infinitesimal scale, while VS works at adjustable scale. One can think of simple situations where Laplace fails miserably, such as fitting a Laplace distribution (isn't that ironical?), but it may also work very well provided that the target is nearly Gaussian. The problem is that it is impractical in high dimension since it requires maximizing the distribution (which is more or less the problem we are trying to solve using VS). In EP context, we can perform a second-order Taylor expansion of the log-factor at the cavity center, yielding a damped Newton iteration. The resulting approximate EP is has a tendency to get stuck at saddle points, just like most gradient-based methods. VS-based EP is able to escape saddle points by exploring the target distribution in neighborhoods of increasing sizes. 
 
 
+\paragraph{Can I choose any sampling kernel in practice?} Unfortunately, no.
 
 
 
@@ -119,7 +115,9 @@ In particular, VS has the key consistency property unlike IS to be exact when th
 
 Intuitively, the closer the target factor~$f$ to the approximating family, the smaller the VS~asymptotic variance. To show that formally, we would like to upper bound the mean square error $\int\pi(f-g)^2$ by some increasing function of the KL~divergence $D(\pi f\|\pi g)$. 
 
-I have been bumping into this issue for years... only to realize now (January 2022) that such an upper bound does exist and is actually pretty simple to exhibit. We will need a straightforward intermediate result:
+\subsection{VS variance inequality}
+
+I have been bumping into this issue for years... only to realize in January 2022 that such an upper bound does exist and is actually pretty simple to exhibit. We will need a straightforward intermediate result:
 
 \paragraph{Alexis theorem:} if $f:\Omega\in\mathbb{R}\to \mathbb{R}$ is a smooth convex function from some open interval reaching its minimum in $a\in\Omega$, assuming for simplicity that $f(a)=0$, and such that the second derivative $f''$ is a decreasing function, then we have that:
 $$
@@ -163,28 +161,64 @@ $$
 
 Integrating this over~$\pi$, we get this long-waited inequality:
 $$
-\int \pi (f-g)^2 \leq 2\max(\|f\|_\infty, \|g\|_\infty) D(\pi f\|\pi g).
+\int \pi (f-g)^2 \leq 2\max(\|f\|_\infty, \|g\|_\infty) D(\pi f\|\pi g),
 $$
+where the infinite norms are taken on the support of~$\pi$, which is infinite if $\pi$ is a Gaussian kernel.
 
-Note that this is only tight if $\max(f,g)$ is constant, 
+Note that this is only tight if $\max(f,g)$ is constant. The inequality tells us, as intuition suggests, that the mean squared error between factors smoothly goes to zero as the KL~divergence vanishes. But this holds under the condition that both~$f$ and~$g$ remain bounded on the support of~$\pi$. While this may be problematic if~$\pi$ has infinite support, we can just truncate~$\pi$ to guarantee the finiteness of the upper bound at the price of some possibly small bias. As noted in the 2013 paper, this boils down to using a localized version of the KL divergence as the target metric. It may also be justified in terms of a Bayesian prior, and may be a very reasonable thing to do. However, while removing the concern that the VS variance may be infinite, it doesn't prevent it in practice from being very large and yielding
+hopelessly slow convergence.
 
-This tells us that, as intuition suggests, the mean squared error between factors smoothly goes to zero as the KL~divergence vanishes. But this holds under the mild condition that both $f$ and $g$ remain bounded. This practically rules out the naive application of VS to unbounded importance weight functions, hence the need to perform VS within a constrained framework such as Expectation Propagation.
-
-Note that, if~$f$ is such that all the moments $\int\pi f \phi$ exist, the same goes for $g_\star$ in virtue of the moment matching condition, implying under very mild conditions on the approximating family, that $g_\star$ is upper bounded (easy to see in the Gaussian case, which is BTW the only one we have considered in practice so far.
-
-The above inequality gives a variance upper bound on the zero-order moment (the normalizing constant). More generally, consider a positive real $\phi$. The above result implies straighforwardly:
+The above inequality gives a variance upper bound on the zero-order moment (the normalizing constant). More generally, consider a positive real $\phi_i$. The above result implies straighforwardly:
 $$
-(f-g)\phi^2
-\leq 2 \max(f\phi, g\phi) \ell(f\phi, g\phi)
-= 2 \max(f\phi, g\phi) \phi\ell(f, g)
-= 2 \max(f\phi^2, g\phi^2) \ell(f, g)
+(f-g)\phi_i^2
+\leq 2 \max(f\phi_i, g\phi_i) \ell(f\phi_i, g\phi_i)
+= 2 \max(f\phi_i, g\phi_i) \phi_i\ell(f, g)
+= 2 \max(f\phi_i^2, g\phi_i^2) \ell(f, g)
 $$
-where we use the fact that $\ell(f\phi,g\phi)=\phi\ell(f,g)$. A more general inequality follows by integration, which I would happily call Alexis' inequality:
+where we use the fact that $\ell(f\phi_i,g\phi_i)=\phi_i\ell(f,g)$. A more general inequality follows by integration, which I would happily call Alexis' inequality:
 $$
-\int \pi (f-g)^2\phi^2 \leq 2\max(\|f\phi^2\|_\infty, \|g\phi^2\|_\infty) D(\pi f\|\pi g).
+\int \pi (f-g)^2\phi_i^2 \leq 2\max(\|f\phi_i^2\|_\infty, \|g\phi_i^2\|_\infty) D(\pi f\|\pi g).
 $$
 
 This yields the same kind of variance upper bound for any moment estimator we have.
+
+\subsection{Sufficient conditions for VS convergence}
+
+From this point, can we give practical sufficient conditions for VS convergence?  Convergence in distribution will occur under mild conditions if the integral $\int \pi (f-g_\star)^2\phi\phi^\top$ is finite. The above inequality relating the VS variance to the KL~divergence tells us that this holds whenever $\pi$ has finite support.
+
+What if~$\pi$ is stricly Gaussian, hence doesn't have finite support? 
+
+Similarly to IS, the condition that $f$ is upper bounded is sufficient for $\pi f^2 \phi\phi^\top$ to be finite, and may be easy to fulfill in practice.
+
+We are left with another sufficient condition (which IS doesn't have): that $\pi g_\star^2 \phi\phi^\top$ be finite too. Due to the log-quadratic nature of both $\pi$ and $g_\star$, this holds iff $\pi g_\star$ is Gaussian (i.e. its hegated log is a positive definite quadratic form).
+
+In 1D, let us denote $s^2$ and $\sigma^2$ the respective variances of $\pi$ and $\pi g_\star$. Clearly, $\sigma^2$ is finite because it is equal to the variance of $\pi f$ by the moment matching constraint, which is finite if $f$ is upper bounded. A simple asymptotic analysis then shows that the condition that $\pi g_\star^2$ has finite integral boils down to:
+$$
+\prec(\pi) + 2 [\prec(\pi f) - \prec(\pi)] > 0,
+\quad \Rightarrow \quad
+\prec(\pi) < 2 \prec(\pi f),
+$$
+where $\prec$ denotes the precision, {\em i.e.}, the inverse variance. The condition boils down to:
+$$
+s^2 > \frac{\sigma^2}{2}.
+$$
+
+The same reasoning can be extended in multiple dimension. If we use factorized Gaussians for fitting, the above condition simply applies to each axis.
+
+In short, the kernel size cannot be too small compared to the target distribution. However, we don't know $\sigma$, so how can we guarantee this in practice? 
+
+Let now consider a damping factor $0\leq \alpha \leq 1$, and raise our factor~$f$ to the power~$\alpha$. 
+
+
+is practically rules out the naive application of VS to unbounded importance weight functions, hence the need to perform VS within a constrained framework such as Expectation Propagation.
+
+
+
+Note that, if~$f$ is such that all the moments $\int\pi f \phi$ exist, the same goes for $g_\star$ in virtue of the moment matching condition, implying under very mild conditions on the approximating family, that $g_\star$ is upper bounded (easy to see in the Gaussian case, which is BTW the only one we have considered in practice so far.
+
+
+
+
 
 
 \section{VS vs IS}
@@ -1123,6 +1157,18 @@ The choice of context is, however, external to VS and rests upon the context upd
 But the target update is only part of a wider picture...
 
 The problem I see with this, is that the algorithm may get stuck in a poor local approximation if the actual target is `rugged'.
+
+\section{Some 2023 thoughts}
+
+You can use the Laplace approximation at the global optimum, it might work just as well as VS and probably faster. However, finding the global optimum is super challenging in high dimension: it usually exists (under mild conditions), but is hopeless to track using differential calculus based optimization, which generally converges to a saddle point. This is a fundamental limitation of numerical optimization techniques. Needless to say, Laplace is bound to work poorly at a saddle point since the Hessian is not definite positive, hence what you will get is a degenerate Gaussian fit.
+
+Yet, according to the Bernstein-von Mises theorem, we expect Bayesian posteriors to be nearly Gaussian in the limit of large samples. How many data points do we need in practice, we don't know, but we should be able to tell how well this approximation holds in the problem at hand.
+
+If it does hold, then the target distribution is peaked around a well-defined global optimum. Finding the global optimum is then akin to fitting a Gaussian distribution. 
+
+If it doesn't hold, then finding the global optimum makes little sense because we may have multiple local optima spread across the domain. But fitting a Gaussian may still make sense as it can at least tell us that the asymptotic regime is not reached, meaning that more training data is probably needed.
+
+The fact that we get many saddle points in practice suggests that we may lack data, however this restriction is not fundamental if we have an underlying generative model to produce the training data. 
 
 %\begin{figure}[h!]
 %\centering
