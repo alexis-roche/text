@@ -1,0 +1,115 @@
+\documentclass[english]{scrartcl}
+
+\usepackage{fullpage}
+\usepackage{amstext,amssymb,amsmath,amsthm}
+\usepackage{graphicx,subfigure}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{color}
+
+\graphicspath{{.}{pics/}}
+
+\title{Composite Bayesian inference in hindsight}
+%\date{}
+\author{Alexis Roche\thanks{\url{alexis.roche@centraliens.net}}}
+
+\def\x{{\mathbf{x}}}
+\def\y{{\mathbf{y}}}
+\newcommand{\blambda}{{\boldsymbol{\lambda}}}
+\newcommand{\Blambda}{{\boldsymbol{\Lambda}}}
+\newcommand{\bell}{{\boldsymbol{\ell}}}
+\newcommand{\E}{\mathbb{E}}
+
+\newcommand{\isep}{\mathrel{{.}\,{.}}\nobreak}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+In the years 2015--2019, I worked on an attempt to put forward a non-conventional statistical inference paradigm, which I called composite Bayesian inference.
+
+Composite Bayesian inference is a new viewpoint on the ``naive Bayes'' method that justifies it without relying on implausible independence assumptions. It also comes with a posterior distribution, which is a scaled version of the ``naive Bayes'' posterior, enabling the computation of conservative credibility sets.
+
+Whether composite Bayesian inference is the right way to look at naive Bayes methods is questionable. But the interpretation it provides seems to be useful.
+
+I tried to generalize it it using the concept of ``super composite likelihood'' function, where the weights assigned to the multiple atomic features are dependent on the variable to be inferred, {\em i.e.}, they are variable-of-interest dependent (VOID).
+
+My ultimate goal here was to justify image registration similarity measures in a neat statistical inference framework.
+
+I didn't do a great job at this. The super composite likelihood could more simply be derived as a regular composite likelihood using VOID features, without the need to introduce a more complex definition. The crux of the problem is to justify likelihood functions based on VOID features, but I didn't do that.
+
+\subsection{VOID feature likelihood}
+
+The idea of VOID feature-based likelihood was introduced by Baggenstoss in \cite{Baggenstoss-03}. It is definitely a relevant topic, but this initial work was not fully successful and didn't seem to convince many.
+
+On the positive side, Baggenstoss gave a simple and general way, which he called ``PDF~projection theorem'', to construct a VOID feature-based likelihood function. As noted by \cite{Minka-04}, it is just an application of the maximum entropy, or minimum KL~divergence, principle.
+
+However, it is easy to see how the PDF~projection method can lead to completely absurd likelihood functions, if the VOID features are chosen arbitrarily. Baggenstoss probably saw that but brushed the issue under the carpet: ``The choice of features remains an art requiring intuition''. This is nonsense. The choice of features should be driven by explicit assumptions.
+
+The PDF~projection method simply needs an additional constraint to work. I have known the solution for quite some time but have struggled to fully contemplate it.
+
+\subsection{The missing constraint}
+
+The least we can ask to the VOID feature likelihood is to be asymptotically consistent, that is, to be maximal at the true parameter value in the limit of large samples. If this property does not hold, then the method is worthwhile nothing.
+
+A sufficient condition to guarantee consistency is that the VOID feature function $t_\theta$ statisfies:
+$$
+\forall (\theta, \theta'),
+\quad
+\int p(t_{\theta'}|\theta) \log \frac{p(t_{\theta'}|\theta)}{\pi(t_{\theta'})} dt_{\theta'}
+  \leq
+\int p(t_{\theta}|\theta) \log \frac{p(t_{\theta}|\theta)}{\pi(t_{\theta})} dt_{\theta}
+.
+$$
+
+This condition may look complicated, but it only says that the VOID feature should always be the most informative about the variable of interest, among all feature candidates. In other words, $t_\theta$ should be, for any~$\theta$, the best statistic to test the hypothesis that~$\theta$ is the correct parameter vs the null hypothesis.
+
+Let's take the same example as in my initial paper on composite inference. Assume we want to infer a disease category (infectious / cardiovascular) using VOID likelihood based on two simple clinical measures, body temperature and blood pressure. The above condition tells us that we need to associate body temperature with the infectious category, and blood pressure with the cardiovascular category. If we do it the other way round, the VOID feature likelihood will at best be useless, at worst biased.
+
+It feels totally obvious. Which doctor in his right mind would look at blood pressure rather than body temperature to diagnose an infectious disease? 
+
+
+\subsection{Discarding evidence}
+
+I had this constraint in mind ever since I started working on composite inference, but I didn't bother to incorporate it into the method. Why?
+
+I believe the main reason is because I was (wrongly) looking for a justification of mutual information as a general similarity measure for image registration. I wanted consistency to follow from the formulation rather than imposing it by design.
+
+I have known for a while that mutual information is not always consistent, contrary to a claim made by \cite{Zollei-09}. It's quite easy to find counter-examples suggesting that noisy images with nonlinearly related intensities may break consistency, meaning that mutual information may be maximal far away from the correct alignment transformation; not only conventional mutual information, but basically any similarity measure based on matched intensity pairs.
+
+Also, I spent part of my PhD developing an alternative to mutual information for MR/US registration, arguing that conventional intensity-based similarity measures are not appropriate in this case due to the nature of US~images. This stresses the unsurprising fact that the choice of registration features is key. There is no such thing as a universal intensity-based similarity measure. They all have limited validity domains.
+
+Why did I insist so much in the opposite direction? My thinking was that it was possible to derive image registration similarity measures from some extented likelihood principle. Consistency is a property of standard likelihood. So it was kind of natural to expect consistency to similarly follow from generalized likelihood.
+
+What I overlooked is that the likelihood extension I was considering, basically VOID feature likelihood, stems from a semi-generative statistical model. In other words, it's a partial model that doesn't fully describe images. Now, can consistency follow from partial modeling assumptions? It would be a nice property, but isn't it too much to ask?
+
+It seems it is.
+
+
+\subsection{Getting VOID feature likelihood right}
+
+At the end of the day, the VOID feature likelihood method is just a restriction of Baggenstoss's 2003 proposal. We say: hey, this is a cool method but you can't choose VOID features randomly. 
+
+However, there are other aspects that differ.
+
+First, we can apply MaxEnt in a broader context: instead of assuming the distributions $p(t_\theta|\theta)$ and $\pi(t_\theta)$, we can just assume some mean-value constraints and obtain the distributions via game theory. This is conceptually important as it can justify voxel independence assumptions.
+
+Second, nuisance parameters are not correctly handled in Baggenstoss's work. He failed to see that the likelihood ratio involved in the PDF~projection fundamentally arises from a joint KL~minimization objective, hence it reflects a competition between two antagonist hypotheses. Parameter elimination should be consistent with that. This observation naturally leads to maximum likelihood ratio estimates rather than conventional likelihood parameter elimination. 
+
+
+
+
+
+
+
+
+\bibliographystyle{abbrv}
+\bibliography{cvis,stat,alexis}
+
+%%\input{draft.biblio}
+
+\end{document}
