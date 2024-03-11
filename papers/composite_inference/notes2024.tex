@@ -34,7 +34,7 @@ In the years 2015--2019, I worked on an attempt to put forward a non-conventiona
 
 Composite Bayesian inference is a new viewpoint on the ``naive Bayes'' method that justifies it without relying on implausible independence assumptions. It also comes with a posterior distribution, which is a scaled version of the ``naive Bayes'' posterior, enabling the computation of conservative credibility sets.
 
-Whether composite Bayesian inference is the right way to look at naive Bayes methods is questionable. But the interpretation it provides seems to be useful.
+I do believe at this point that Bayesian inference is the right way to look at naive Bayes. At the very least, the interpretation it provides is insightful.
 
 I tried to generalize it it using the concept of ``super composite likelihood'' function, where the weights assigned to the multiple atomic features are dependent on the variable to be inferred, {\em i.e.}, they are variable-of-interest dependent (VOID).
 
@@ -89,17 +89,18 @@ What I overlooked is that the likelihood extension I was considering, basically 
 
 It seems it is.
 
+\subsection{Conservativeness of VOID feature likelihood}
+
+An interesting remark is that the expected ratio $\log p(t_\theta|\theta)/\pi(t_\theta)$ is lower than the true log-likelihood ratio $\log p(x|\theta)/\pi(x)$ by the general fact that the KL~divergence decreases under feature extraction. This remains true in the more general context of mean-value constraints as the epistemic distributions involved in the VOID feature likelihood then minimize the KL~divergence by design. From there, we can argue that VOID feature likelihood is conservative if used in a Bayesian framework.
+
 
 \subsection{Getting VOID feature likelihood right}
 
-At the end of the day, the VOID feature likelihood method is just a restriction of Baggenstoss's 2003 proposal. We say: hey, this is a cool method but you can't choose VOID features randomly. 
+At the end of the day, the VOID feature likelihood method is just a restriction of Baggenstoss's 2003 proposal. We say: hey, this is a cool method but you can't choose VOID features randomly. However, there are two other aspects in which my approach significantly deviated from Baggenstoss's.
 
-However, there are other aspects that differ.
+First, the idea of applying MaxEnt in a broader context: instead of assuming the distributions $p(t_\theta|\theta)$ and $\pi(t_\theta)$, we may just assume some mean-value constraints and derive epistemic distributions via game theory, which brings connections with minimally informative likelihood, minimum description length and that kind of cool theoretical stuff \cite{Grunwald-04,Grunwald-06}. My motivation for this was primarily to justify voxel independence assumptions. However, this may be one of the worst ideas I had. In this more general framework, it seems that the key weak consistency property would be gone -- think about it, do we want a theory that justifies cross-correlation for multimodal images? Moreover, we don't even need that to justify voxel independence for feature registration models: de Finetti's representation theorem does the job, and I had seen it as early as in 2005. No need to generalize Baggenstoss's approach here: one point for him.
 
-First, we can apply MaxEnt in a broader context: instead of assuming the distributions $p(t_\theta|\theta)$ and $\pi(t_\theta)$, we can just assume some mean-value constraints and obtain the distributions via game theory. This is conceptually important as it can justify voxel independence assumptions.
-
-Second, nuisance parameters are not correctly handled in Baggenstoss's work. He failed to see that the likelihood ratio involved in the PDF~projection fundamentally arises from a joint KL~minimization objective, hence it reflects a competition between two antagonist hypotheses. Parameter elimination should be consistent with that. This observation naturally leads to maximum likelihood ratio estimates rather than conventional likelihood parameter elimination. 
-
+Second, the treatment of nuisance parameters. He failed to see that the likelihood ratio involved in the PDF~projection fundamentally arises from a joint KL~minimization objective, hence it reflects a competition between two antagonist hypotheses. Parameter elimination should be consistent with that. This observation naturally leads to maximum likelihood ratio estimates rather than conventional likelihood parameter elimination. Nuisance parameters are not correctly handled in Baggenstoss's work.That point is for me. I think.
 
 
 
