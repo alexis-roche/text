@@ -95,8 +95,14 @@ It seems it is.
 
 \subsection{Conservativeness of VF likelihood}
 
-An interesting remark is that the expected ratio $\log p(t_\theta|\theta)/\pi(t_\theta)$ is lower than the true log-likelihood ratio $\log p(x|\theta)/\pi(x)$ by the general fact that the KL~divergence decreases under feature extraction. From there, we can argue that VF likelihood is conservative if used in a Bayesian framework.
+A key remark is that the expected logarithm ratio $\log p(t_\theta|\theta)/\pi(t_\theta)$ is lower than the true log-likelihood ratio $\log p(x|\theta)/\pi(x)$ by the general fact that the KL~divergence decreases under feature extraction. It is also a direct consequence from the fact that VF likelihood minimizes the KL~divergence among all distributions $p(x)$ compatible with $p(t_\theta|\theta)$. 
 
+There is not much we can make from this result alone. But if, by any chance, the reference distribution is chosen so that there exists a $\theta_0$ for which $\pi(x)=p(x|\theta_0)$, then...
+
+(the expectation being taken under the {\em true} unknown distribution)
+
+
+From there, we can argue that VF likelihood is conservative if used in a Bayesian framework.
 
 \subsection{Getting VF likelihood right}
 
