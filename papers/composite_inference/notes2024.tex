@@ -16,6 +16,7 @@
 
 \def\x{{\mathbf{x}}}
 \def\y{{\mathbf{y}}}
+\def\z{{\mathbf{z}}}
 \newcommand{\blambda}{{\boldsymbol{\lambda}}}
 \newcommand{\Blambda}{{\boldsymbol{\Lambda}}}
 \newcommand{\bell}{{\boldsymbol{\ell}}}
@@ -44,17 +45,21 @@ I didn't do a great job at this. The super composite likelihood could more simpl
 
 \subsection{Variable feature likelihood}
 
-The idea of variable feature (VF) based likelihood was introduced by Baggenstoss in \cite{Baggenstoss-03}. It is definitely a relevant idea, and perhaps an important one too, but this initial work was not fully successful.
+The idea of variable feature (VF) likelihood was introduced by Baggenstoss in \cite{Baggenstoss-03} under the not very explicit name of ``class-specific method''. It is definitely a relevant idea, but this initial work was not fully successful for several reasons.
 
-On the positive side, Baggenstoss gave a simple and general way, which he called ``PDF~projection theorem'', to construct a VF-based likelihood function. As later noted by \cite{Minka-04}, it is just an application of the maximum entropy, or minimum KL~divergence, principle.
+On the positive side, Baggenstoss gave a simple and general way, which he called ``PDF~projection theorem'', to construct a VF-based likelihood function. As later noted by \cite{Minka-04}, it is just an application of the maximum entropy or, more generally, the minimum KL~divergence principle.
 
-However, it is easy to see how the PDF~projection method can lead to heavily biased, hence completely absurd, likelihood functions, if the variable features are chosen arbitrarily. Fixed features can be chosen arbitrarily -- at worst, they will lead to a flat likelihood, but can't bias inference. The same cannot be said for variable features. 
+However, there are three main flaws in Baggenstoss's presentation in my humble (or not so much) opinion:
+\begin{enumerate}
+\item {\em Bias}. It is easy to see how the PDF~projection method can lead to heavily biased likelihood functions if the variable features are chosen arbitrarily. The truth is that fixed features can be chosen arbitrarily -- at worst, they will lead to a flat likelihood, but can't bias inference. The same cannot be said for variable features. Baggenstoss may have seen that, but brushed the issue under the carpet: ``The choice of features remains an art requiring intuition''. Still, the assumptions under which a particular choice of features works or not should be made explicit.
+\item {\em Arbitrary reference hypothesis}. The PDF~projection theorem involves a reference, or null hypothesis distribution that Baggenstoss gives no guideline whatsoever on how to choose. Since the likelihood function that arises from PDF~projection clearly depends on the reference distribution, this choice matters. He tried to work around this issue by making the reference distribution parametric, which led him to the third flaw:
+\item {\em Inconsistent parameter elimination}. Baggenstoss treated the VF likelihood exactly as if it was a true likelihood function, and implicitely proposed to eliminate the nuisance parameters by maximization. The deep information-theoretic interpretation of PDF~projection shows that it is wrong. It is easy to see that Baggenstoss's approach doesn't work in the simplest instance of VF likelihood where the parameter space is a singleton -- the method should then be equivalent to the well-known maximum likelihood ratio method for binary hypothesis testing. This suggests that the nuisance parameters pertaining to the null hypothesis cannot be just mixed with those of the feature distribution; instead, they should be considered as competitive parameter sets.
+\end{enumerate}
 
-Baggenstoss probably saw that, but brushed the issue under the carpet: ``The choice of features remains an art requiring intuition''. This is nonsense. The choice of features should be driven by explicit assumptions.
 
-The PDF~projection method simply needs an additional constraint to work. I have known the solution for quite some time but have struggled to fully contemplate it.
+\subsection{Solving for the bias: the missing constraint}
 
-\subsection{The missing constraint}
+The PDF~projection method simply needs an additional assumption to be unbiased. I have known the solution for quite some time but have struggled to fully contemplate it.
 
 The least we can ask to the variable feature likelihood is to be weakly consistent, that is, to be maximal at the true parameter value in the limit of large samples. If this property does not hold, then the method is worthwhile nothing.
 
@@ -116,12 +121,41 @@ My motivation for this was primarily to justify voxel independence assumptions. 
 
 
 
-
-
-
-
 \bibliographystyle{abbrv}
 \bibliography{cvis,stat,alexis}
+
+\appendix
+
+\section{Baggenstoss 2003 paper: reading notes}
+
+He introduces the class-specific approach by a curse of dimensionality argument:
+\begin{quote}
+Because each feature set can be designed without regard to other classes (or states), it can be of much lower dimension than a common feature set that must account for all classes, effectively avoiding the curse of dimensionality.
+\end{quote}
+
+This is spot on: we want to select features to avoid the curse of dimensionality, however class-independent feature selection may not give us enough flexibility. He further comments on that:
+\begin{quote}
+[Feature selection] leads to a fundamental tradeoff: whether to discard features in an attempt to reduce the dimension to something manageable or to include them and suffer the problems associated with estimating a PDF at high dimension.
+\end{quote}
+
+He mentions that he did publish a previous work on the topic in 1999, which was based on sufficient statistics and used a fixed reference hypothesis.
+
+His exposition of the PDF~projection theorem starts with the remark that, if $X$ is a random vector and $Z = f(X)$ is a one-to-one function of~$X$, then:
+$$
+p_x(\x)
+=
+|J_f(\x)| p_z(\z)
+.
+$$
+
+In the more general case of a many-to-one function, there are multiple distributions~$p_x(\x)$ that are compatible with a given~$p_z(\z)$. To solve for this ambiguity, Baggenstoss postulates that a reference distribution is needed:
+\begin{quote}
+In order to apply the constraint, it is necessary to make use of a reference hypothesis $H_0$ for which we know the PDF of both $\x$ and $\z$.
+\end{quote}
+
+In his derivation of the PDF~projection theorem, he postulates the 
+
+
 
 %%\input{draft.biblio}
 
