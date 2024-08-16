@@ -20,7 +20,8 @@
 \def\h{\mathbf{h}}
 \def\A{\mathbf{A}}
 \def\B{\mathbf{B}}
-\def\prec{\mathrm{prec}}
+\def\prec{\mathrm{Prec}}
+\def\var{\mathrm{Var}}
 
 \title{Variational sampling reloaded}
 \author{Alexis Roche}
@@ -58,10 +59,10 @@ How the pieces of the puzzle came together.
 \begin{itemize}
 \item 2010: discovery of the VS core idea and its intriguing exactness property.
 \item 2011--13: consolidation of the theory behind VS.
-\item 2014--16: realization that VS is useful in practice combined with Expectation Propagation.
+\item 2014--16: realization that VS is useful combined with Expectation Propagation.
 \item 2018--19: extension to large dimension via custom optimizer (avoiding big Hessian inversion); unveiling connection between distribution scaling and $\alpha$-divergence minimization.
 \item 2022: proven bound on VS asymptotic variance.
-\item 2023: revisited custom optimizer.
+\item 2023: key insight: VS leverages more information from a sample than stochastic gradient descent on KL~divergence.
 \end{itemize}
 
 
@@ -92,7 +93,16 @@ where $\ell(f, g)$ is the loss function associated with the KL~divergence:
 $$
 \ell(f, g) \equiv f \log \frac{f}{g} - f + g
 $$
-  
+
+The gradient and Hessian of the KL~proxy are given by:
+$$
+\nabla \tilde{D} = \frac{1}{n}\sum_i [g_\theta(x_i)-f(x_i)]\phi(x_i),
+\qquad
+\nabla \nabla^T \tilde{D} = \frac{1}{n}\sum_i g_\theta(x_i)\phi(x_i)\phi(x_i)^\top
+,
+$$
+which can be interpreted as IS estimates.
+
 We have proved in our initial paper from 2013 that the resulting estimator of the integral, or moment, $I(\phi) \equiv \int \pi f \phi$, is asymptotically unbiased with variance matrix:
 $$
 \Sigma_n = \frac{1}{n} \int \pi (f - g_\star)^2 \phi \phi^\top,
@@ -125,6 +135,129 @@ $$
 $$
 
 The key difference with $\tilde{D}(\theta)$ is that the sample mean of $g_\theta(x_i)$ is replaced by its asymptotical value. Hence, $\tilde{D}_{IS}$ may be seen as a ``partial Rao-Blackwellization'' of $\tilde{D}$, partial because we can't do it for the term in $\log g_\theta(x_i)$; and, because it's partial, it may not improve the estimator accuracy (our main claim is that it doesn't in many situations of practical interest).
+
+The gradient and Hessian of this alternative KL~proxy are seen to be:
+$$
+\nabla \tilde{D}_{IS} = \int \pi g_\theta \phi - \frac{1}{n}\sum_i f(x_i)\phi(x_i),
+\qquad
+\nabla \nabla^T \tilde{D}_{IS} = \int \pi g_\theta \phi \phi^\top
+.
+$$
+
+
+
+\section{Stochastic convergence}
+
+We have seen that the VS moment estimate converges in distribution to the true moment if the following matrix is finite:
+$$
+\Sigma = \int \pi (f - g_\star)^2 \phi \phi^\top
+.
+$$
+
+Can we give simple conditions for it to be the case? 
+
+Let us focus for now on the first diagonal element:
+$$
+\sigma_0^2 = \int \pi (f - g_\star)^2.
+$$
+
+We note that $(f-g_\star)^2 = f^2 - 2fg_\star + g_\star^2\leq f^2 + g_\star^2$. So, if both $\int \pi f^2$ and $\int \pi g_\star^2$ exist, then $\sigma_0^2$ is finite. Both conditions depend on the distribution tails of $f$ and $g_\star$, respectively.
+
+In practice, we might be able to ascertain that the target $f$ is bounded, so that $\|f\|_\infty$ is finite and $\int \pi f^2$ is therefore finite.
+
+What about $g_\star$? Let's go back to the KL~minimization. The variances of $\pi f$ and $\pi g_\star$ are the same owing to the moment matching property of KL~minimization, and so are the precisions:
+$$
+\prec(\pi g_\star) = \prec(\pi f).
+$$
+
+Now, both $\pi$ and $g_\star$ are log-quadratic functions so the precisions satisfy some algebra rules:
+$$
+\prec(\pi g_\star^2)
+= 2 \prec(\pi g_\star) - \prec(\pi)
+= 2 \prec(\pi f) - \prec(\pi).
+$$
+
+Clearly, $\int \pi g_\star^2$ is finite iff $\prec(\pi g_\star^2)$ is positive (not necessarily positive definite), which brings the condition:
+$$
+\prec(\pi f) \succeq \frac{1}{2}\prec(\pi)
+.
+$$
+
+In other words, the ``posterior'' variance should not be more than twice as large as the ``prior'' variance:
+$$
+\var(\pi f) \preceq 2 \var(\pi)
+.
+$$
+
+It feels like a pretty mild condition, but it's not implied by the condition that $f$ is bounded.
+
+
+\subsection{Damning counter-example}
+
+Here is a simple one-dimensional counter-example where $\|f\|_\infty$ is finite and $\|g_\star\|_\infty$ is not. Consider a normalized Gaussian reference $\pi = N(0,1)$, and a uniform factor defined by $f = \chi(-a,a)/\pi$, where $a$ is a positive constant, so that the target distribution $\pi f$ is the uniform distribution $\chi(-a,a)$ and its variance is therefore $a^2/ 3$. Following the same reasoning as above, we see that the precision of the fitted factor is:
+$$
+\prec(g_\star) = \frac{3}{a^2} - 1,
+$$
+which, for $a$ sufficiently large, namely $a>\sqrt{3}$, is strictly negative, implying that $g_\star$ is not upper bounded. Even worse than that, $g_\star$ goes very fast to infinity as $x$ departs from $0$, so $\int \pi g_\star^2$ is infinite, implying that $\int \pi (f-g_\star)^2$ is also infinite, implying that VS does not converge! 
+
+In this case, the optimal fit $g_\star$ goes to infinity while $f$ vanishes. This is weird. But it happens because, on the one hand, the factor looks like a U-shaped function in the context defined by $\pi$, and, on the other hand, the loss incurred in regions where the factor vanihes, $\ell(0,g)=g$, is only linear in~$g$, so it's ``mild'' even for large values of~$g$ when weighted by~$\pi$. This is consistent with the fact that the KL~divergence is an inclusive  measure (``zero avoiding'' for $g_\star$). In contrast, minimizing $\pi(f-g)^2$ would yield a well-behaved (bell-shaped) factor approximation -- to see this, just realize that $\inf_g\int\pi(f-g)^2 \leq \int\pi f^2$, which is finite.  
+
+\subsection{Sufficient conditions for VS convergence}
+
+In summary, sufficient conditions for $\sigma_0^2$ to be finite are:
+\begin{enumerate}
+\item The factor $f$ is upper bounded.
+\item The ``posterior'' variance is smaller than twice the ``prior'' variance.
+\end{enumerate}
+
+It is easy to see that these conditions imply that each element of $\Sigma$ is finite, so they are sufficient for VS convergence. The key reason is that $\pi g_\star^2$ is a Gaussian distribution if condition~2 holds (as opposed to a U-shaped log-quadratic function), so $\int \pi g_\star^2 \phi \phi^\top$ is finite. 
+
+The condition on the posterior variance feels mild because VS is meant to process Bayesian posteriors that may be sharply peaked around their mode. But such situation might be questionable in very large dimension, where the variance may be flat in some directions. Besides, it is difficult to test beforehand (the posterior variance is what we aim to estimate).
+
+As already pointed out, truncating the reference distribution wouldn't really solve the problem. The asymptotic variance would become finite, but still possibly way too big. In the counter-example, how would we know beforehand that we should truncate outside $[-a,a]$?
+
+
+\section{VS vs IS}
+
+The classical Monte Carlo approach to approximate an integral $\int p$ is to sample from some kernel $\pi$ and compute the empirical mean of importance weights $p(x_i)/\pi(x_i)$. This is known as importance sampling, but it's just the old Monte Carlo integration idea if we start from the form $p=\pi f$ and realize that the importance weighting function is then nothing but the target factor. The IS estimator is just a sample mean:
+$$
+\hat{I}(f) = \frac{1}{n}\sum_i f(x_i),
+\qquad x_i \stackrel{iid}{\sim} \pi(x),
+$$
+which has the same mean and $1/n$ times the variance of the random variable $f(X)$, for $X\sim\pi(x)$. Beside the obvious fact that:
+$$
+\mathbb{E}[f(X)] = \int\pi f,
+$$
+we also have that:
+$$
+\var[f(X)]
+= \min_{c\in\mathbb{R}} \int \pi (f - c)^2.
+$$
+
+Note that the same story applies to $f\phi$ instead of just $f$ to deal with moments of order-1, order-2, and so on.
+
+
+\subsection{Asymptotic variance}
+
+Quite clearly, the condition that $\|f\|_\infty$ is finite is sufficient to guarantee that $\var[f(X)]$ is finite, and similarly for $\var[f(X)\phi(X)]$ for all $\phi$, which guarantees in turn the convergence of IS in the context of sampling from a Gaussian distribution $\pi$.
+
+As mentionned before, the VS asymptotic variance is the same as the IS variance, but when applied to $(f-g_\star)$ instead of $f$. Interestingly, the variable $f(X)-g_\star(X)$ has zero mean by the moment matching property inherited from KL~minimization.
+
+For VS, however, we have an extra condition on $g_\star$. Intuitively, since $g_\star$ is the best fit to $f$ in the KL~sense, the residuals $f-g_\star$ tend to be smaller than wrt a constant baseline, so we expect $\int \pi(f-g_\star)^2$ to be smaller than $\var[f(X)]$. We could try and make this a little bit more precise using the following argument:
+$$
+\min_g \int \pi (f-g)^2 \leq \min_{c\in\mathbb{R}} \int \pi (f-c)^2 = \var[f(X)].
+$$
+
+However, $g_\star$ does not minimize $\pi (f-g)^2$, it minimizes the KL divergence $D(\pi f\|\pi g)$, therefore the above reasoning doesn't work, as shown by the above counter-example.
+
+We learn several things from that.
+\begin{enumerate}
+\item VS may not converge while IS converges, even very slowly.
+\item Therefore, VS is not necessarily better than IS.
+\item The intuition that $g_\star$ follows $f$ closely is not always correct. 
+\item This intuition may not be correct even though the factor is ``almost'' perfectly log-quadratic on the domain covered by $\pi$. In the counter-example, VS will actually be much more stable than IS in practice. Why? Just think about it: because on a finite sample drawn from $\pi$, chances are that we don't get any point outside $[-a,a]$, where $f$ is perfectly log-quadratic. 
+\item The sample size required to reach asymptotic regime may heavily depend on the factor at hand. 
+\end{enumerate}
 
 
 
@@ -201,7 +334,9 @@ $$
 This yields the same kind of variance upper bound for any moment estimator we have.
 
 
-\subsection{Sufficient conditions for VS convergence}
+\subsection{Convergence analysis}
+
+Does this upper bound help undestanding when VS converges? 
 
 Substituing~$g$ with the minimizer~$g_\star$ of $D(\pi f\|\pi g)$ in the inequality~(\ref{eq:variance_inequality}), we get an upper bound for the VS 0-order moment estimate asymptotic variance:
 $$
@@ -231,117 +366,48 @@ D(\pi f\|\pi g_\star) \leq
 .
 $$
 
-Is the condition $\|f\|_\infty$ finite sufficient?
-
-For the IS estimate, it is -- because the asymptotic variance is related to the variance of $f(x)$ under $\pi(x)$:
+At this point, we see that a sufficient condition for VS to converge is that both $f$ and $g_\star$ are upper bounded. This condition on $g_\star$ is equivalent to assuming that $g_\star$ is bell-shaped, that is, $\prec(g_\star)\succeq 0$. Because $\prec(\pi f)=\prec(\pi g_\star)=\prec(\pi) + \prec(g_\star)$, this boils down to the assumption:
 $$
-{\rm Var}[f(X)]
-= \min_{c\in\mathbb{R}} \int \pi (f - c)^2,
+\prec(\pi f) \succeq \prec(\pi),
 $$
-which is easily seen to be finite whenever $f$ is upper bounded. 
-
-For VS, however, we need $\|g_\star\|_\infty$ to be finite too. Intuitively, since $g_\star$ is the best fit to $f$ in the KL~sense, the residuals $f-g_\star$ tend to be much smaller than wrt a constant baseline, so we expect $\int \pi(f-g_\star)^2$ to be quite smaller than ${\rm Var}[f(X)]$. We can make this a little bit more precise using :
+or,
 $$
-\min_g \int \pi (f-g)^2 \leq \min_{c\in\mathbb{R}} \int \pi (f-c)^2 = {\rm Var}[f(X)].
-$$
-
-However, $g_\star$ does not minimize $\pi (f-g)^2$, it minimizes the KL divergence $D(\pi f\|\pi g)$, therefore the above reasoning doesn't work.
-
-So let's go back to the KL~minimization. One thing we can note is that the variances of $\pi f$ and $\pi g_\star$ are the same owing to the moment matching property of KL~minimization, and so are the precisions:
-$$
-\prec(\pi g_\star) = \prec(\pi f).
-$$
-
-Now, both $\pi$ and $g_\star$ are log-quadratic functions so the precisions add up:
-$$
-\prec(\pi g_\star) = \prec(\pi) + \prec(g_\star).
-$$
-
-Clearly, $\|g_\star\|_\infty$ is finite iff $\prec(g_\star)$ is positive (not necessarily positive definite). This is the case iff: 
-$$
-\prec(\pi f) \succeq \prec(\pi)
+\var(\pi f) \preceq \var(\pi)
 .
 $$
 
-In other words, sufficient conditions for VS to converge are:
-\begin{enumerate}
-\item The factor $f$ is upper bounded.
-\item The ``posterior'' variance is smaller than the ``prior'' variance.
-\end{enumerate}
-
-Is the second condition implied by the first? No, it isn't.
+This condition is just more stringent than the one we identified before, without being easier to verify, therefore it's not super useful. But it does tell us the variance inequality yields sufficient conditions for convergence that are quite similar to the direct analysis, so the inequality gives some useful insight into what is going on.
 
 
-\paragraph{Damning counter-example.}
+\section{Scaling}
 
-Here is a simple one-dimensional counter-example where $\|f\|_\infty$ is finite and $\|g_\star\|_\infty$ is not. Consider a normalized Gaussian reference $\pi = N(0,1)$, and a uniform factor defined by $f = \chi(-a,a)/\pi$, where $a$ is a positive constant, so that the target distribution $\pi f$ is the uniform distribution $\chi(-a,a)$ and its variance is therefore $a^2/ 3$. Following the same reasoning as above, we see that the precision of the fitted factor is:
+We may interpret the KL divergence $D(\pi f\|\pi g)$ as a divergence between the distributions $\pi f$ and $\pi g$, but also as a divergence between the factors $f$ and $g$ in the context defined by~$\pi$. This second interpretation opens a new perspective on~VS, and enables generalizations. For instance, we may consider the more general divergence:
 $$
-\prec(g_\star) = \frac{3}{a^2} - 1,
+\delta_\alpha (f, g) \equiv
+D(\pi f^\alpha \|\pi g^\alpha),
 $$
-which, for $a$ sufficiently large, namely $a>\sqrt{3}$, is strictly negative, implying that $g_\star$ is not upper bounded. Even worse than that, $g_\star$ goes very fast to infinity as $x$ departs from $0$, so $\int \pi g_\star^2$ is infinite, implying that $\int \pi (f-g_\star)^2$ is also infinite, implying that VS does not converge! 
+where $\alpha$ is a positive scaling factor. The intuition behind this generalization is that the scaled target factor $f^\alpha$ gets flatter as $\alpha$ approaches zero, hence the VS estimator should have lower variance considering that the approximating family contains constant functions. This assumes that the VS variance is continuous in~$\alpha$ but I can't see any reason to think otherwise. On the other hand, applying a scaling factor~$\alpha< 1$ amounts to ``shrinking'' the context with respect to the factor, hence biasing the target distribution  towards the particular context.
 
-In this case, the optimal fit $g_\star$ goes to infinity while $f$ vanishes. This is weird. But it happens because, on the one hand, the factor looks like a U-shaped function in the context defined by $\pi$, and, on the other hands, the loss incurred in regions where the factor vanihes, $\ell(0,g)=g$, is only linear in~$g$, so it's ``mild'' even for large values of~$g$ when weighted by~$\pi$. This is consistent with the fact that the KL~divergence is an inclusive  measure (``zero avoiding'' for $g_\star$). In contrast, minimizing $\pi(f-g)^2$ would yield a well-behaved (bell-shaped) factor approximation -- to see this, just realize that $\inf_g\int\pi(f-g)^2 \leq \int\pi f^2$, which is finite.  
+This is a typical bias/variance tradeoff. Could the Expectation Propagation (EP) solve it? More exactly, its ``averaged'' variant (AEP).
 
-
-\paragraph{Wrapping up.}
-
-We learn several things from the above counter-example.
-
-First off, VS is not necessarily better than IS (it may not converge at all while IS converges).
-
-Second, the intuition that $g_\star$ follows $f$ closely is not necessarily correct. 
-
-Third, this intuition may not be correct even though the factor is ``almost'' perfectly log-quadratic on the domain defined by $\pi$. In the counter-example, VS will do a good job in practice (much better than IS). Why? Just think about it: because on a finite sample drawn from $\pi$, chances are that we don't get any point outside $[-a,a]$, where $f$ is perfectly log-quadratic. 
-
-%For instance, drawing 100000 points from a normal distribution, we have almost no chance to have any point more than 5 times standard deviations away from the mean. With 1000000 points, the same goes for 6 standard deviations.
-
-Hence, and that's a 4th take-away, the asymptotic variance does not tell us the whole truth about how VS performs in practice. The sample size required to reach asymptotic regime may heavily depend on the factor at hand. Besides, the fact that VS may actually worsen by increasing the sample size is both unexpected and concerning.
-
-As already pointed out, truncating the reference distribution doesn't really solve the problem. The asymptotic variance would become finite, but still possibly way too big. In the counter-example, how would we know beforehand that we should truncate outside $[-a,a]$?
-
-So, how can we work around this problem?
-
-%we can put the blame on both the factor for being far off the approximating family and the context $\pi$ as for being too narrow to ``see'' $f$ globally. But we may not know that beforehand.
-
-
-%Then comes a natural question: when is the variance of $(f-g_\star)$ smaller than that of $f$ under~$\pi$?
-
-
-
-
-\paragraph{Bullshite.}
-
-From this point, can we give practical sufficient conditions for VS convergence?  Convergence in distribution will occur under mild conditions if the integral $\int \pi (f-g_\star)^2\phi\phi^\top$ is finite. The above inequality relating the VS variance to the KL~divergence tells us that this holds whenever $\pi$ has finite support.
-
-What if~$\pi$ is stricly Gaussian, hence doesn't have finite support? 
-
-Similarly to IS, the condition that $f$ is upper bounded is sufficient for $\pi f^2 \phi\phi^\top$ to be finite, and may be easy to fulfill in practice.
-
-We are left with another sufficient condition (which IS doesn't have): that $\pi g_\star^2 \phi\phi^\top$ be finite too. Due to the log-quadratic nature of both $\pi$ and $g_\star$, this holds iff $\pi g_\star$ is Gaussian (i.e. its hegated log is a positive definite quadratic form).
-
-In 1D, let us denote $s^2$ and $\sigma^2$ the respective variances of $\pi$ and $\pi g_\star$. Clearly, $\sigma^2$ is finite because it is equal to the variance of $\pi f$ by the moment matching constraint, which is finite if $f$ is upper bounded. A simple asymptotic analysis then shows that the condition that $\pi g_\star^2$ has finite integral boils down to:
+Consider rewriting the target distribution as follows:
 $$
-\prec(\pi) + 2 [\prec(\pi f) - \prec(\pi)] > 0,
-\quad \Rightarrow \quad
-\prec(\pi) < 2 \prec(\pi f),
-$$
-where $\prec$ denotes the precision, {\em i.e.}, the inverse variance. The condition boils down to:
-$$
-s^2 > \frac{\sigma^2}{2}.
+p = \pi \prod_{k=1}^n f^\alpha,
+\quad
+\alpha = \frac{1}{k}.
 $$
 
-The same reasoning can be extended in multiple dimension. If we use factorized Gaussians for fitting, the above condition simply applies to each axis.
+Assume that we have a current approximation $g^\alpha$ for $f^\alpha$. Initially, this approximation could be just $g^\alpha\equiv 1$. 
 
-In short, the kernel size cannot be too small compared to the target distribution. However, we don't know $\sigma$, so how can we guarantee this in practice? 
+The AEP update consists of fitting the factor $f^\alpha$ in the cavity $c=\pi g^{1-\alpha}$ by minimizing $D(cf^\alpha\|cg^\alpha)$ over a new $g$. This can be approximated using VS, with $c$ as the context, and $f^\alpha$ as the target factor. This is arguably a better conditioned problem than the original one in the sense that VS may converge faster.
 
-Let now consider a damping factor $0\leq \alpha \leq 1$, and raise our factor~$f$ to the power~$\alpha$. 
+We see that, in the first iteration, since $g^\alpha=1$, the AEP update boils down to the scaling approach we have just proposed before.
 
+In the second iteration, the context would incorporate some information from the target distribution as the $g^\alpha$ output by VS would approach $f^\alpha$, therefore the new context would resemble a bit more $\pi f^{1-\alpha}$. By iterating this process, we might get a fix point for $g$ that is actually the minimizer of the $\alpha$-divergence $D_\alpha(\pi f\|\pi g)$. 
 
-is practically rules out the naive application of VS to unbounded importance weight functions, hence the need to perform VS within a constrained framework such as Expectation Propagation.
+This could solve the chicken-and-egg problem I mentioned in my early work on VS: $\pi$ would be ideally chosen depending on a Gaussian approximation to the target distribution $p$, but we need $\pi$ to compute such an approximation via VS...
 
-
-
-Note that, if~$f$ is such that all the moments $\int\pi f \phi$ exist, the same goes for $g_\star$ in virtue of the moment matching condition, implying under very mild conditions on the approximating family, that $g_\star$ is upper bounded (easy to see in the Gaussian case, which is BTW the only one we have considered in practice so far.
+The drawback is that we are no longer minimizing the KL divergence $D(\pi f\|\pi g)$, but (hopefully) the $\alpha$-divergence $D_\alpha(\pi f\|\pi g)$. This might be the price to pay to work around slow VS convergence.
 
 
 \section{Custom optimizer}
@@ -539,32 +605,6 @@ What we have sketched here is nothing but a stochastic gradient method to minimi
 
 
 
-\section{VS vs IS}
-
-The classical Monte Carlo approach to approximate an integral $\int p$ is to sample from some kernel $\pi$ and compute the empirical mean of importance weights $p(x_i)/\pi(x_i)$. This is known as importance sampling, but it's just the old Monte Carlo integration idea if we start from the form $p=\pi f$ and realize that the importance weighting function is then nothing but the target factor. The IS estimator is just a sample mean:
-$$
-\hat{I}(f) = \frac{1}{n}\sum_i f(x_i),
-\qquad x_i \stackrel{iid}{\sim} \pi(x),
-$$
-which has the same mean and $1/n$ times the variance of the random variable $f(X)$, for $X\sim\pi(x)$. Beside the obvious fact that:
-$$
-\mathbb{E}[f(X)] = \int\pi f,
-$$
-we also have that:
-$$
-{\rm Var}[f(X)]
-= \min_{c\in\mathbb{R}} \int \pi (f - c)^2.
-$$
-
-Note that the same story applies to $f\phi$ instead of just $f$ to deal with moments of order-1, order-2, and so on. But let's focus on~$f$ for simplicity.
-
-As mentionned before, the VS asymptotic variance is the same as the IS variance, but when applied to $(f-g_\star)$ instead of $f$. Interestingly, the variable $f(X)-g_\star(X)$ has zero mean by the moment matching property inherited from KL~minimization.
-
-Then comes a natural question: when is the variance of $(f-g_\star)$ smaller than that of $f$ under~$\pi$? Intuition suggests that, since $g_\star$ is the best fit to $f$ in the KL~sense, the residuals $f-g_\star$ tend to be ``small''. We can make this a little bit more precise using :
-$$
-\min_g \int \pi (f-g)^2 \leq \min_{c\in\mathbb{R}} \int \pi (f-c)^2 = {\rm Var}[f(X)].
-$$
-
 
 
 \section{Probability updating}
@@ -601,25 +641,6 @@ We will soon realize that this is heavily related to the minimization of the $\a
 
 But, for the time being, let us see why this is interesting for VS. 
 
-
-\section{Scaling}
-
-We may interpret the KL divergence $D(\pi f\|\pi g)$ as a divergence between the distributions $\pi f$ and $\pi g$, but also as a divergence between the factors $f$ and $g$ in the context defined by~$\pi$. This second interpretation opens a new perspective on~VS, and enables generalizations. For instance, we may consider the more general divergence:
-$$
-\delta_\varepsilon (f, g) \equiv
-D(\pi f^\varepsilon \|\pi g^\varepsilon),
-$$
-where $\varepsilon$ is a positive scaling factor. The intuition behind this generalization is that the scaled target factor $f^\varepsilon$ gets flatter as $\varepsilon$ approaches zero, hence the VS estimator should have lower variance considering that the approximating family contains constant functions. On the other hand, applying a scaling factor~$\varepsilon$ smaller than one amounts to ``shrinking'' the context with respect to the factor, hence biasing the divergence minimizer (the VS target) towards the particular context. This yields a typical bias/variance tradeoff.
-
-Could the Expectation Propagation (EP) solve this?
-
-$$
-p = \pi \prod_{k=1}^n f^\varepsilon,
-\quad
-\varepsilon = \frac{1}{k}.
-$$
-
-Say current approx is $g^\epsilon$ for all factors. An EP update is to fit the factor $f^\varepsilon$ in the cavity $c=\pi g^{1-\varepsilon}$ by minimizing $D(cf^\varepsilon\|cg^\varepsilon)$ over a new $g$. This can be approximated using VS, with $c$ as the context, and $f^\varepsilon$ as the target factor. This is arguably an easier problem than the original one. 
 
 
 
